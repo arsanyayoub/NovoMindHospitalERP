@@ -56,8 +56,17 @@ export const routes: Routes = [
             {
                 path: 'hr',
                 loadComponent: () => import('./features/hr/hr.component').then(m => m.HrComponent)
+            },
+            {
+                path: 'reports',
+                loadComponent: () => import('./features/reports/reports.component').then(m => m.ReportsComponent)
+            },
+            {
+                path: 'settings',
+                loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent)
             }
         ]
     },
     { path: '**', redirectTo: 'dashboard' }
 ];
+

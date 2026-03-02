@@ -22,23 +22,39 @@ interface NavItem {
     <!-- Sidebar -->
     <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
       <div class="sidebar-brand">
-        <span class="material-icons-round brand-icon">local_hospital</span>
-        <span class="brand-text" *ngIf="!sidebarCollapsed">{{ 'APP_NAME' | translate }}</span>
+        <div class="brand-logo">
+          <span class="material-icons-round brand-icon">hub</span>
+        </div>
+        <div class="brand-text-wrap" *ngIf="!sidebarCollapsed">
+          <span class="brand-text">Novo<span class="brand-accent">Mind</span></span>
+          <span class="brand-tagline">Hospital ERP</span>
+        </div>
       </div>
 
       <nav class="sidebar-nav">
-        <a *ngFor="let item of navItems"
-           [routerLink]="item.route"
-           routerLinkActive="active"
-           class="nav-item"
-           [title]="item.label | translate">
-          <span class="material-icons-round nav-icon">{{ item.icon }}</span>
-          <span class="nav-label" *ngIf="!sidebarCollapsed">{{ item.label | translate }}</span>
+        <ng-container *ngFor="let item of navItems">
+          <a *ngIf="!item.roles || item.roles.includes(auth.userRole)"
+             [routerLink]="item.route"
+             routerLinkActive="active"
+             class="nav-item"
+             [title]="item.label | translate">
+            <span class="material-icons-round nav-icon">{{ item.icon }}</span>
+            <span class="nav-label" *ngIf="!sidebarCollapsed">{{ item.label | translate }}</span>
+          </a>
+        </ng-container>
+        <div class="nav-divider" *ngIf="!sidebarCollapsed"></div>
+        <a routerLink="/reports" routerLinkActive="active" class="nav-item" [title]="'REPORTS' | translate">
+          <span class="material-icons-round nav-icon">analytics</span>
+          <span class="nav-label" *ngIf="!sidebarCollapsed">{{ 'REPORTS' | translate }}</span>
         </a>
       </nav>
 
       <div class="sidebar-footer">
-        <button class="nav-item" (click)="auth.logout()">
+        <a routerLink="/settings" routerLinkActive="active" class="nav-item" [title]="'SETTINGS' | translate">
+          <span class="material-icons-round nav-icon">settings</span>
+          <span class="nav-label" *ngIf="!sidebarCollapsed">{{ 'SETTINGS' | translate }}</span>
+        </a>
+        <button class="nav-item logout-btn" (click)="auth.logout()">
           <span class="material-icons-round nav-icon">logout</span>
           <span class="nav-label" *ngIf="!sidebarCollapsed">{{ 'LOGOUT' | translate }}</span>
         </button>
@@ -136,13 +152,23 @@ interface NavItem {
     .sidebar.collapsed { width: var(--sidebar-collapsed); }
     .sidebar-brand {
       height: var(--header-height); display: flex; align-items: center;
-      gap: 12px; padding: 0 20px; border-bottom: 1px solid var(--border);
+      gap: 12px; padding: 0 16px; border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
-    .brand-icon { font-size: 28px; color: var(--primary-light); }
-    .brand-text { font-size: 1rem; font-weight: 800; white-space: nowrap;
-      background: linear-gradient(135deg, var(--primary-light), var(--accent));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .brand-logo {
+      width: 38px; height: 38px; border-radius: 12px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(99,102,241,0.4);
+    }
+    .brand-icon { font-size: 22px; color: white; }
+    .brand-text-wrap { display: flex; flex-direction: column; line-height: 1; }
+    .brand-text { font-size: 1.05rem; font-weight: 800; white-space: nowrap; color: var(--text-primary); letter-spacing: -0.02em; }
+    .brand-accent { color: var(--primary-light); }
+    .brand-tagline { font-size: 0.65rem; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
+    .nav-divider { height: 1px; background: var(--border); margin: 8px 10px; }
+    .logout-btn { color: var(--text-secondary); transition: var(--transition); }
+    .logout-btn:hover { color: var(--danger) !important; background: rgba(239,68,68,0.08) !important; }
     .sidebar-nav { flex: 1; padding: 12px 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
     .sidebar-footer { padding: 12px 10px; border-top: 1px solid var(--border); }
     .nav-item {
@@ -251,14 +277,14 @@ export class ShellComponent implements OnInit {
   navItems: NavItem[] = [
     { label: 'DASHBOARD', icon: 'dashboard', route: '/dashboard' },
     { label: 'PATIENTS', icon: 'personal_injury', route: '/patients' },
-    { label: 'DOCTORS', icon: 'medical_services', route: '/doctors' },
+    { label: 'DOCTORS', icon: 'medical_services', route: '/doctors', roles: ['Admin', 'Doctor', 'Nurse', 'Receptionist'] },
     { label: 'APPOINTMENTS', icon: 'calendar_month', route: '/appointments' },
-    { label: 'INVOICES', icon: 'receipt_long', route: '/invoices' },
-    { label: 'ACCOUNTING', icon: 'account_balance', route: '/accounting' },
-    { label: 'INVENTORY', icon: 'inventory_2', route: '/inventory' },
-    { label: 'PURCHASES', icon: 'shopping_cart', route: '/purchases' },
-    { label: 'SALES', icon: 'point_of_sale', route: '/sales' },
-    { label: 'HR', icon: 'people', route: '/hr' },
+    { label: 'INVOICES', icon: 'receipt_long', route: '/invoices', roles: ['Admin', 'Accountant', 'Receptionist'] },
+    { label: 'ACCOUNTING', icon: 'account_balance', route: '/accounting', roles: ['Admin', 'Accountant'] },
+    { label: 'INVENTORY', icon: 'inventory_2', route: '/inventory', roles: ['Admin', 'Accountant'] },
+    { label: 'PURCHASES', icon: 'shopping_cart', route: '/purchases', roles: ['Admin', 'Accountant'] },
+    { label: 'SALES', icon: 'point_of_sale', route: '/sales', roles: ['Admin', 'Accountant'] },
+    { label: 'HR', icon: 'people', route: '/hr', roles: ['Admin'] },
   ];
 
   constructor(
