@@ -1,0 +1,63 @@
+import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
+
+export const routes: Routes = [
+    {
+        path: 'auth',
+        children: [
+            {
+                path: 'login',
+                loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
+            }
+        ]
+    },
+    {
+        path: '',
+        loadComponent: () => import('./layout/shell/shell.component').then(m => m.ShellComponent),
+        canActivate: [authGuard],
+        children: [
+            { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+            {
+                path: 'dashboard',
+                loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
+            },
+            {
+                path: 'patients',
+                loadComponent: () => import('./features/patients/patients.component').then(m => m.PatientsComponent)
+            },
+            {
+                path: 'invoices',
+                loadComponent: () => import('./features/invoices/invoices.component').then(m => m.InvoicesComponent)
+            },
+            {
+                path: 'doctors',
+                loadComponent: () => import('./features/doctors/doctors.component').then(m => m.DoctorsComponent)
+            },
+            {
+                path: 'appointments',
+                loadComponent: () => import('./features/appointments/appointments.component').then(m => m.AppointmentsComponent)
+            },
+            {
+                path: 'accounting',
+                loadComponent: () => import('./features/accounting/accounting.component').then(m => m.AccountingComponent)
+            },
+            {
+                path: 'inventory',
+                loadComponent: () => import('./features/inventory/inventory.component').then(m => m.InventoryComponent)
+            },
+            {
+                path: 'purchases',
+                loadComponent: () => import('./features/purchases/purchases.component').then(m => m.PurchasesComponent)
+            },
+            {
+                path: 'sales',
+                loadComponent: () => import('./features/sales/sales.component').then(m => m.SalesComponent)
+            },
+            {
+                path: 'hr',
+                loadComponent: () => import('./features/hr/hr.component').then(m => m.HrComponent)
+            }
+        ]
+    },
+    { path: '**', redirectTo: 'dashboard' }
+];

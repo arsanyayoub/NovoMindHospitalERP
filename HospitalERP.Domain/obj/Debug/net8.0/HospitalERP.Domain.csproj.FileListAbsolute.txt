@@ -1,0 +1,12 @@
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Domain\bin\Debug\net8.0\HospitalERP.Domain.deps.json
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Domain\bin\Debug\net8.0\HospitalERP.Domain.dll
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Domain\bin\Debug\net8.0\HospitalERP.Domain.pdb
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Domain\obj\Debug\net8.0\HospitalERP.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Domain\obj\Debug\net8.0\HospitalERP.Domain.AssemblyInfoInputs.cache
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Domain\obj\Debug\net8.0\HospitalERP.Domain.AssemblyInfo.cs
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Domain\obj\Debug\net8.0\HospitalERP.Domain.csproj.CoreCompileInputs.cache
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Domain\obj\Debug\net8.0\HospitalERP.Domain.sourcelink.json
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Domain\obj\Debug\net8.0\HospitalERP.Domain.dll
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Domain\obj\Debug\net8.0\refint\HospitalERP.Domain.dll
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Domain\obj\Debug\net8.0\HospitalERP.Domain.pdb
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Domain\obj\Debug\net8.0\ref\HospitalERP.Domain.dll
