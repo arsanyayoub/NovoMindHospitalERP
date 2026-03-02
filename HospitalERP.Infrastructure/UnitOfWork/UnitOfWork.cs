@@ -23,6 +23,8 @@ public class UnitOfWork : IUnitOfWork
         JournalEntries = new Repository<JournalEntry>(context);
         JournalEntryLines = new Repository<JournalEntryLine>(context);
         Items = new Repository<Item>(context);
+        ItemBatches = new Repository<ItemBatch>(context);
+        ItemPackagingUnits = new Repository<ItemPackagingUnit>(context);
         Warehouses = new Repository<Warehouse>(context);
         WarehouseStocks = new Repository<WarehouseStock>(context);
         StockTransactions = new Repository<StockTransaction>(context);
@@ -51,6 +53,8 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<JournalEntry> JournalEntries { get; }
     public IRepository<JournalEntryLine> JournalEntryLines { get; }
     public IRepository<Item> Items { get; }
+    public IRepository<ItemBatch> ItemBatches { get; }
+    public IRepository<ItemPackagingUnit> ItemPackagingUnits { get; }
     public IRepository<Warehouse> Warehouses { get; }
     public IRepository<WarehouseStock> WarehouseStocks { get; }
     public IRepository<StockTransaction> StockTransactions { get; }

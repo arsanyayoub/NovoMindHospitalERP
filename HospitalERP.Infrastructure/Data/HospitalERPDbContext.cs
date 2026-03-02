@@ -25,6 +25,8 @@ public class HospitalERPDbContext : DbContext
 
     // Inventory
     public DbSet<Item> Items => Set<Item>();
+    public DbSet<ItemBatch> ItemBatches => Set<ItemBatch>();
+    public DbSet<ItemPackagingUnit> ItemPackagingUnits => Set<ItemPackagingUnit>();
     public DbSet<Warehouse> Warehouses => Set<Warehouse>();
     public DbSet<WarehouseStock> WarehouseStocks => Set<WarehouseStock>();
     public DbSet<StockTransaction> StockTransactions => Set<StockTransaction>();
@@ -62,6 +64,8 @@ public class HospitalERPDbContext : DbContext
         modelBuilder.Entity<Account>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<JournalEntry>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Item>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<ItemBatch>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<ItemPackagingUnit>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Warehouse>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Supplier>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<PurchaseInvoice>().HasQueryFilter(e => !e.IsDeleted);
@@ -138,6 +142,23 @@ public class HospitalERPDbContext : DbContext
             e.HasIndex(ws => new { ws.WarehouseId, ws.ItemId }).IsUnique();
             e.HasOne(ws => ws.Warehouse).WithMany(w => w.WarehouseStocks).HasForeignKey(ws => ws.WarehouseId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(ws => ws.Item).WithMany(i => i.WarehouseStocks).HasForeignKey(ws => ws.ItemId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ── ItemBatch ────────────────────────────────────────────────
+        modelBuilder.Entity<ItemBatch>(e =>
+        {
+            e.HasIndex(b => b.BatchNumber).IsUnique();
+            e.HasIndex(b => b.Barcode).IsUnique(); // wait, some empty barcodes exist? 
+            e.HasOne(b => b.Item).WithMany(i => i.Batches).HasForeignKey(b => b.ItemId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(b => b.Supplier).WithMany().HasForeignKey(b => b.SupplierId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(b => b.Warehouse).WithMany(w => w.Batches).HasForeignKey(b => b.WarehouseId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ── ItemPackagingUnit ─────────────────────────────────────────
+        modelBuilder.Entity<ItemPackagingUnit>(e =>
+        {
+            e.HasIndex(u => u.Barcode); // Might not be completely unique globally if empty? 
+            e.HasOne(u => u.Item).WithMany().HasForeignKey(u => u.ItemId).OnDelete(DeleteBehavior.Cascade);
         });
 
         // ── Payroll ───────────────────────────────────────────────────

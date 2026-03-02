@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "095mDhoqK8s=",
+  "dgSpecHash": "s1UYydcz4J0=",
   "success": true,
-  "projectFilePath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
+  "projectFilePath": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\arsany.awadallah\\.nuget\\packages\\azure.core\\1.25.0\\azure.core.1.25.0.nupkg.sha512",
     "C:\\Users\\arsany.awadallah\\.nuget\\packages\\azure.identity\\1.7.0\\azure.identity.1.7.0.nupkg.sha512",

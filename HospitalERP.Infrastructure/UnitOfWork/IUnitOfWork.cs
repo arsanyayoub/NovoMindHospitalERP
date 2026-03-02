@@ -18,6 +18,8 @@ public interface IUnitOfWork : IDisposable
     IRepository<JournalEntry> JournalEntries { get; }
     IRepository<JournalEntryLine> JournalEntryLines { get; }
     IRepository<Item> Items { get; }
+    IRepository<ItemBatch> ItemBatches { get; }
+    IRepository<ItemPackagingUnit> ItemPackagingUnits { get; }
     IRepository<Warehouse> Warehouses { get; }
     IRepository<WarehouseStock> WarehouseStocks { get; }
     IRepository<StockTransaction> StockTransactions { get; }

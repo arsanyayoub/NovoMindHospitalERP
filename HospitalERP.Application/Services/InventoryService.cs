@@ -36,7 +36,7 @@ public class InventoryService : IInventoryService
             Category = dto.Category, Unit = dto.Unit,
             SalePrice = dto.SalePrice, PurchasePrice = dto.PurchasePrice,
             TaxRate = dto.TaxRate, Barcode = dto.Barcode,
-            Description = dto.Description, CreatedBy = createdBy
+            Description = dto.Description, TrackBatches = dto.TrackBatches, CreatedBy = createdBy
         };
         await _uow.Items.AddAsync(item);
         await _uow.SaveChangesAsync();
@@ -50,7 +50,7 @@ public class InventoryService : IInventoryService
         item.Category = dto.Category; item.Unit = dto.Unit;
         item.SalePrice = dto.SalePrice; item.PurchasePrice = dto.PurchasePrice;
         item.TaxRate = dto.TaxRate; item.Barcode = dto.Barcode;
-        item.Description = dto.Description; item.UpdatedBy = updatedBy;
+        item.Description = dto.Description; item.TrackBatches = dto.TrackBatches; item.UpdatedBy = updatedBy;
         _uow.Items.Update(item);
         await _uow.SaveChangesAsync();
         return ToDto(item);
@@ -122,5 +122,188 @@ public class InventoryService : IInventoryService
         await _notif.CreateNotificationAsync("Stock Updated", $"Stock transfer of {dto.Quantity} units completed.", "StockUpdated");
     }
 
-    private static ItemDto ToDto(Item i) => new(i.Id, i.ItemCode, i.ItemName, i.ItemNameAr, i.Category, i.Unit, i.SalePrice, i.PurchasePrice, i.TaxRate, i.Barcode, i.Description, i.IsActive, i.CreatedDate);
+    // ── Packaging Units ───────────────────────────────────────────────
+    public async Task<IEnumerable<ItemPackagingUnitDto>> GetItemPackagingUnitsAsync(int itemId)
+    {
+        var units = await _uow.ItemPackagingUnits.Query()
+            .Include(u => u.Item)
+            .Where(u => u.ItemId == itemId)
+            .OrderBy(u => u.SortOrder)
+            .ToListAsync();
+        return units.Select(ToUnitDto);
+    }
+
+    public async Task<ItemPackagingUnitDto> CreateItemPackagingUnitAsync(CreateItemPackagingUnitDto dto, string createdBy)
+    {
+        var unit = new ItemPackagingUnit
+        {
+            ItemId = dto.ItemId,
+            UnitName = dto.UnitName,
+            UnitNameAr = dto.UnitNameAr,
+            Barcode = dto.Barcode ?? "",
+            UnitsPerPackage = dto.UnitsPerPackage,
+            BaseUnitQty = dto.BaseUnitQty,
+            SortOrder = dto.SortOrder,
+            IsBaseUnit = dto.IsBaseUnit,
+            SalePrice = dto.SalePrice,
+            PurchasePrice = dto.PurchasePrice,
+            CreatedBy = createdBy
+        };
+        await _uow.ItemPackagingUnits.AddAsync(unit);
+        await _uow.SaveChangesAsync();
+        
+        // Fetch with Item included
+        unit.Item = await _uow.Items.GetByIdAsync(dto.ItemId) ?? throw new KeyNotFoundException();
+        return ToUnitDto(unit);
+    }
+
+    public async Task DeleteItemPackagingUnitAsync(int id)
+    {
+        var unit = await _uow.ItemPackagingUnits.GetByIdAsync(id) ?? throw new KeyNotFoundException();
+        _uow.ItemPackagingUnits.Remove(unit);
+        await _uow.SaveChangesAsync();
+    }
+
+    // ── Batches ──────────────────────────────────────────────────────────
+    public async Task<PagedResult<ItemBatchDto>> GetBatchesAsync(PagedRequest request, int? itemId, int? warehouseId, bool? excludeExpired, bool? excludeExhausted)
+    {
+        var query = _uow.ItemBatches.Query()
+            .Include(b => b.Item)
+            .Include(b => b.Supplier)
+            .Include(b => b.Warehouse)
+            .AsQueryable();
+
+        if (itemId.HasValue) query = query.Where(b => b.ItemId == itemId.Value);
+        if (warehouseId.HasValue) query = query.Where(b => b.WarehouseId == warehouseId.Value);
+        if (excludeExpired == true) query = query.Where(b => b.Status != "Expired" && b.ExpiryDate > DateTime.UtcNow);
+        if (excludeExhausted == true) query = query.Where(b => b.QuantityRemaining > 0 && b.Status != "Exhausted");
+        
+        if (!string.IsNullOrWhiteSpace(request.Search))
+            query = query.Where(b => b.BatchNumber.Contains(request.Search) || b.Barcode.Contains(request.Search) || (b.LotNumber != null && b.LotNumber.Contains(request.Search)));
+
+        var total = await query.CountAsync();
+        var batches = await query.OrderBy(b => b.ExpiryDate)
+            .Skip((request.Page - 1) * request.PageSize).Take(request.PageSize)
+            .ToListAsync();
+            
+        return new PagedResult<ItemBatchDto>(batches.Select(ToBatchDto), total, request.Page, request.PageSize);
+    }
+
+    public async Task<ItemBatchDto?> GetBatchByIdAsync(int id)
+    {
+        var batch = await _uow.ItemBatches.Query()
+            .Include(b => b.Item).Include(b => b.Supplier).Include(b => b.Warehouse)
+            .FirstOrDefaultAsync(b => b.Id == id);
+        return batch is null ? null : ToBatchDto(batch);
+    }
+
+    public async Task<ItemBatchDto> CreateBatchAsync(CreateItemBatchDto dto, string createdBy)
+    {
+        var count = await _uow.ItemBatches.CountAsync();
+        var dateStr = DateTime.UtcNow.ToString("yyyyMMdd");
+        
+        var batch = new ItemBatch
+        {
+            ItemId = dto.ItemId,
+            SupplierId = dto.SupplierId,
+            WarehouseId = dto.WarehouseId,
+            BatchNumber = $"BAT-{dateStr}-{(count + 1):D4}",
+            Barcode = $"B{dateStr}{(count + 1):D4}", // Generates a unique barcode for the batch
+            ManufactureDate = dto.ManufactureDate,
+            ExpiryDate = dto.ExpiryDate,
+            QuantityReceived = dto.QuantityReceived,
+            QuantityRemaining = dto.QuantityReceived,
+            UnitCost = dto.UnitCost,
+            Status = "Active",
+            LotNumber = dto.LotNumber,
+            Notes = dto.Notes,
+            ReceivedDate = DateTime.UtcNow,
+            CreatedBy = createdBy
+        };
+        
+        await _uow.ItemBatches.AddAsync(batch);
+        await _uow.SaveChangesAsync();
+        
+        var fullBatch = await _uow.ItemBatches.Query()
+            .Include(b => b.Item).Include(b => b.Supplier).Include(b => b.Warehouse)
+            .FirstAsync(b => b.Id == batch.Id);
+            
+        return ToBatchDto(fullBatch);
+    }
+
+    public async Task<ItemBatchDto> UpdateBatchAsync(int id, UpdateItemBatchDto dto, string updatedBy)
+    {
+        var batch = await _uow.ItemBatches.Query()
+            .Include(b => b.Item).Include(b => b.Supplier).Include(b => b.Warehouse)
+            .FirstOrDefaultAsync(b => b.Id == id) ?? throw new KeyNotFoundException();
+            
+        batch.WarehouseId = dto.WarehouseId;
+        batch.QuantityRemaining = dto.QuantityRemaining;
+        batch.Status = dto.Status;
+        batch.Notes = dto.Notes;
+        batch.UpdatedBy = updatedBy;
+        
+        _uow.ItemBatches.Update(batch);
+        await _uow.SaveChangesAsync();
+        return ToBatchDto(batch);
+    }
+
+    public async Task DeleteBatchAsync(int id)
+    {
+        var batch = await _uow.ItemBatches.GetByIdAsync(id) ?? throw new KeyNotFoundException();
+        _uow.ItemBatches.Remove(batch);
+        await _uow.SaveChangesAsync();
+    }
+
+    public async Task<BatchScanResultDto> ScanBarcodeAsync(string barcode, int? warehouseId)
+    {
+        if (string.IsNullOrWhiteSpace(barcode)) return new BatchScanResultDto(false, null, null, "Empty barcode");
+
+        // First check batches (the precise lot of an item)
+        var batchQuery = _uow.ItemBatches.Query()
+            .Include(b => b.Item).Include(b => b.Supplier).Include(b => b.Warehouse)
+            .Where(b => b.Barcode == barcode && b.QuantityRemaining > 0 && b.Status == "Active");
+            
+        if (warehouseId.HasValue) batchQuery = batchQuery.Where(b => b.WarehouseId == warehouseId.Value);
+        
+        var batch = await batchQuery.FirstOrDefaultAsync();
+        if (batch != null) return new BatchScanResultDto(true, ToBatchDto(batch), null, null);
+
+        // If no batch found, check packaging units (generic barcode for product)
+        var unit = await _uow.ItemPackagingUnits.Query()
+            .Include(u => u.Item)
+            .FirstOrDefaultAsync(u => u.Barcode == barcode);
+            
+        if (unit != null) return new BatchScanResultDto(true, null, ToUnitDto(unit), null);
+
+        // Third, fallback to standard item barcode
+        var item = await _uow.Items.Query().FirstOrDefaultAsync(i => i.Barcode == barcode);
+        if (item != null)
+        {
+            var fakeUnit = new ItemPackagingUnitDto(0, item.Id, item.ItemName, item.Unit ?? "Unit", item.Unit ?? "Unit", item.Barcode ?? "", 1, 1, 0, true, item.SalePrice, item.PurchasePrice);
+            return new BatchScanResultDto(true, null, fakeUnit, null);
+        }
+            
+        return new BatchScanResultDto(false, null, null, "Barcode not found in inventory.");
+    }
+    
+    private static ItemPackagingUnitDto ToUnitDto(ItemPackagingUnit u) => new(
+        u.Id, u.ItemId, u.Item?.ItemName ?? "", u.UnitName, u.UnitNameAr, u.Barcode, 
+        u.UnitsPerPackage, u.BaseUnitQty, u.SortOrder, u.IsBaseUnit, u.SalePrice, u.PurchasePrice);
+        
+    private static ItemBatchDto ToBatchDto(ItemBatch b)
+    {
+        int days = (b.ExpiryDate - DateTime.UtcNow).Days;
+        bool isExpired = days <= 0;
+        bool isExpiringSoon = days > 0 && days <= 30;
+        if (isExpired && b.Status != "Expired") b.Status = "Expired"; // Just local to DTO
+        
+        return new ItemBatchDto(
+            b.Id, b.ItemId, b.Item?.ItemName ?? "", b.Item?.ItemCode ?? "", b.SupplierId, b.Supplier?.SupplierName,
+            b.WarehouseId, b.Warehouse?.WarehouseName, b.BatchNumber, b.Barcode, b.ManufactureDate, b.ExpiryDate,
+            b.QuantityReceived, b.QuantityRemaining, b.UnitCost, b.Status, b.LotNumber, b.Notes, b.ReceivedDate,
+            days, isExpired, isExpiringSoon);
+    }
+
+    private static ItemDto ToDto(Item i) => new(i.Id, i.ItemCode, i.ItemName, i.ItemNameAr, i.Category, i.Unit, i.SalePrice, i.PurchasePrice, i.TaxRate, i.Barcode, i.Description, i.IsActive, i.TrackBatches, i.CreatedDate);
 }

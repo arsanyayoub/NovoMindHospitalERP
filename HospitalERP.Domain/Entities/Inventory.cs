@@ -16,8 +16,43 @@ public class Item : BaseEntity
     public string? Barcode { get; set; }
     public string? Description { get; set; }
     public bool IsActive { get; set; } = true;
+    public bool TrackBatches { get; set; } = false;
     public ICollection<StockTransaction> StockTransactions { get; set; } = new List<StockTransaction>();
     public ICollection<WarehouseStock> WarehouseStocks { get; set; } = new List<WarehouseStock>();
+    public ICollection<ItemBatch> Batches { get; set; } = new List<ItemBatch>();
+}
+
+/// <summary>
+/// Tracks a physical lot/batch of received inventory with expiry date,
+/// barcode, lot number and remaining quantity.
+/// </summary>
+public class ItemBatch : BaseEntity
+{
+    public int ItemId { get; set; }
+    public Item Item { get; set; } = null!;
+    public int? SupplierId { get; set; }
+    public Supplier? Supplier { get; set; }
+    public int? WarehouseId { get; set; }
+    public Warehouse? Warehouse { get; set; }
+
+    /// <summary>Auto-generated: BAT-YYYYMMDD-#####</summary>
+    public string BatchNumber { get; set; } = string.Empty;
+
+    /// <summary>EAN-13 / Code-128 barcode string, printed on box labels</summary>
+    public string Barcode { get; set; } = string.Empty;
+
+    public DateTime ManufactureDate { get; set; }
+    public DateTime ExpiryDate { get; set; }
+    public decimal QuantityReceived { get; set; }
+    public decimal QuantityRemaining { get; set; }
+    public decimal UnitCost { get; set; }
+
+    /// <summary>Active | Expired | Exhausted | Recalled</summary>
+    public string Status { get; set; } = "Active";
+
+    public string? LotNumber { get; set; }
+    public string? Notes { get; set; }
+    public DateTime ReceivedDate { get; set; } = DateTime.UtcNow;
 }
 
 public class Warehouse : BaseEntity
@@ -28,6 +63,7 @@ public class Warehouse : BaseEntity
     public bool IsActive { get; set; } = true;
     public ICollection<WarehouseStock> WarehouseStocks { get; set; } = new List<WarehouseStock>();
     public ICollection<StockTransaction> StockTransactions { get; set; } = new List<StockTransaction>();
+    public ICollection<ItemBatch> Batches { get; set; } = new List<ItemBatch>();
 }
 
 public class WarehouseStock : BaseEntity
@@ -47,6 +83,8 @@ public class StockTransaction : BaseEntity
     public Item Item { get; set; } = null!;
     public int WarehouseId { get; set; }
     public Warehouse Warehouse { get; set; } = null!;
+    public int? ItemBatchId { get; set; }
+    public ItemBatch? ItemBatch { get; set; }
     public string TransactionType { get; set; } = string.Empty; // IN, OUT, TRANSFER
     public decimal Quantity { get; set; }
     public decimal UnitCost { get; set; }

@@ -129,7 +129,7 @@ public class DashboardService : IDashboardService
         var recentPayments = await _uow.Payments.Query().OrderByDescending(p => p.CreatedDate).Take(5).Select(p => new RecentActivityDto("Payment", $"{p.PaymentNumber} - {p.Amount:C2}", p.CreatedDate)).ToListAsync();
         var activities = recentAppts.Concat(recentPayments).OrderByDescending(a => a.Date).Take(10).ToList();
 
-        return new DashboardDto(totalPatients, todayAppts, pendingAppts, todayPayments, monthlyPayments, totalRevenue, lowStock, pendingInvoices, outstanding, totalDoctors, totalEmployees, activities, monthlyRevenues);
+        return new DashboardDto(totalPatients, todayAppts, pendingAppts, todayPayments, monthlyPayments, totalRevenue, lowStock, pendingInvoices, outstanding, totalDoctors, totalEmployees, activities, monthlyRevenues, null, null);
     }
 }
 

@@ -140,11 +140,12 @@ public record AccountBalanceDto(string AccountCode, string AccountName, decimal 
 public record ItemDto(
     int Id, string ItemCode, string ItemName, string ItemNameAr, string? Category,
     string? Unit, decimal SalePrice, decimal PurchasePrice, decimal TaxRate,
-    string? Barcode, string? Description, bool IsActive, DateTime CreatedDate);
+    string? Barcode, string? Description, bool IsActive, bool TrackBatches, DateTime CreatedDate);
 
 public record CreateItemDto(
     string ItemName, string ItemNameAr, string? Category, string? Unit,
-    decimal SalePrice, decimal PurchasePrice, decimal TaxRate, string? Barcode, string? Description);
+    decimal SalePrice, decimal PurchasePrice, decimal TaxRate, string? Barcode,
+    string? Description, bool TrackBatches = false);
 
 public record WarehouseDto(int Id, string WarehouseCode, string WarehouseName, string? Location, bool IsActive);
 public record CreateWarehouseDto(string WarehouseName, string? Location);
@@ -154,6 +155,93 @@ public record WarehouseStockDto(
     decimal Quantity, decimal ReorderLevel, decimal MaxLevel, bool IsLowStock);
 
 public record StockTransferDto(int FromWarehouseId, int ToWarehouseId, int ItemId, decimal Quantity, string? Notes);
+
+// ─── Item Packaging Units (Box → Strip → Tablet) ──────────────
+/// <summary>
+/// Defines how a single item can be packaged at different levels.
+/// e.g. Antal:  Box (barcode 6001234000001) contains 10 Strips (barcode 6001234000018),
+///              each strip contains 10 Tablets (unit barcode 6001234000025).
+/// </summary>
+public record ItemPackagingUnitDto(
+    int Id,
+    int ItemId,
+    string ItemName,
+    string UnitName,       // e.g. "Box", "Strip", "Tablet"
+    string UnitNameAr,     // e.g. "علبة", "شريط", "قرص"
+    string Barcode,
+    decimal UnitsPerPackage,   // e.g. Box has 10 strips, Strip has 10 tablets
+    decimal BaseUnitQty,       // qty in base (smallest) units this package equals
+    int SortOrder,
+    bool IsBaseUnit,
+    decimal SalePrice,
+    decimal PurchasePrice
+);
+
+public record CreateItemPackagingUnitDto(
+    int ItemId,
+    string UnitName,
+    string UnitNameAr,
+    string? Barcode,
+    decimal UnitsPerPackage,
+    decimal BaseUnitQty,
+    int SortOrder,
+    bool IsBaseUnit,
+    decimal SalePrice,
+    decimal PurchasePrice
+);
+
+// ─── Item Batches (Lot / Expiry Tracking) ─────────────────────
+public record ItemBatchDto(
+    int Id,
+    int ItemId,
+    string ItemName,
+    string ItemCode,
+    int? SupplierId,
+    string? SupplierName,
+    int? WarehouseId,
+    string? WarehouseName,
+    string BatchNumber,
+    string Barcode,
+    DateTime ManufactureDate,
+    DateTime ExpiryDate,
+    decimal QuantityReceived,
+    decimal QuantityRemaining,
+    decimal UnitCost,
+    string Status,
+    string? LotNumber,
+    string? Notes,
+    DateTime ReceivedDate,
+    int DaysUntilExpiry,
+    bool IsExpired,
+    bool IsExpiringSoon        // within 30 days
+);
+
+public record CreateItemBatchDto(
+    int ItemId,
+    int? SupplierId,
+    int? WarehouseId,
+    DateTime ManufactureDate,
+    DateTime ExpiryDate,
+    decimal QuantityReceived,
+    decimal UnitCost,
+    string? LotNumber,
+    string? Notes
+);
+
+public record UpdateItemBatchDto(
+    int? WarehouseId,
+    decimal QuantityRemaining,
+    string Status,
+    string? Notes
+);
+
+/// <summary>Returned when a barcode is scanned at purchase/sale point.</summary>
+public record BatchScanResultDto(
+    bool Found,
+    ItemBatchDto? Batch,
+    ItemPackagingUnitDto? PackagingUnit,
+    string? Message
+);
 
 // ═══════════════════════════════════════════════════════════════
 //  PURCHASING
@@ -255,10 +343,13 @@ public record DashboardDto(
     int LowStockItems, int PendingInvoices, decimal OutstandingPayments,
     int TotalDoctors, int TotalEmployees,
     List<RecentActivityDto> RecentActivities,
-    List<MonthlyRevenueDto> MonthlyRevenues);
+    List<MonthlyRevenueDto> MonthlyRevenues,
+    List<AppointmentDto>? TodayAppointmentsList,
+    List<TopDoctorDto>? TopDoctors);
 
 public record RecentActivityDto(string Type, string Description, DateTime Date);
 public record MonthlyRevenueDto(string Month, decimal Revenue, decimal Expenses);
+public record TopDoctorDto(string DoctorName, string Specialization, int AppointmentCount);
 
 // ═══════════════════════════════════════════════════════════════
 //  PAGINATION

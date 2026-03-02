@@ -78,6 +78,19 @@ public interface IInventoryService
     Task<IEnumerable<WarehouseStockDto>> GetStockAsync(int? warehouseId, int? itemId);
     Task<IEnumerable<WarehouseStockDto>> GetLowStockItemsAsync();
     Task TransferStockAsync(StockTransferDto dto, string createdBy);
+
+    // Packaging Units
+    Task<IEnumerable<ItemPackagingUnitDto>> GetItemPackagingUnitsAsync(int itemId);
+    Task<ItemPackagingUnitDto> CreateItemPackagingUnitAsync(CreateItemPackagingUnitDto dto, string createdBy);
+    Task DeleteItemPackagingUnitAsync(int id);
+
+    // Batches
+    Task<PagedResult<ItemBatchDto>> GetBatchesAsync(PagedRequest request, int? itemId, int? warehouseId, bool? excludeExpired, bool? excludeExhausted);
+    Task<ItemBatchDto?> GetBatchByIdAsync(int id);
+    Task<ItemBatchDto> CreateBatchAsync(CreateItemBatchDto dto, string createdBy);
+    Task<ItemBatchDto> UpdateBatchAsync(int id, UpdateItemBatchDto dto, string updatedBy);
+    Task DeleteBatchAsync(int id);
+    Task<BatchScanResultDto> ScanBarcodeAsync(string barcode, int? warehouseId);
 }
 
 public interface IPurchaseService

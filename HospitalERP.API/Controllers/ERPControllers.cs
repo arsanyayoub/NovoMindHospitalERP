@@ -110,6 +110,52 @@ public class InventoryController : ControllerBase
         try { var u = User.FindFirstValue(ClaimTypes.Name) ?? "system"; await _service.TransferStockAsync(dto, u); return Ok(new { message = "Stock transferred successfully." }); }
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
     }
+
+    // ---------- Packaging Units ----------
+    [HttpGet("items/{itemId}/packaging-units")]
+    public async Task<IActionResult> GetPackagingUnits(int itemId) => Ok(await _service.GetItemPackagingUnitsAsync(itemId));
+
+    [HttpPost("packaging-units")]
+    public async Task<IActionResult> CreatePackagingUnit([FromBody] CreateItemPackagingUnitDto dto)
+    {
+        var u = User.FindFirstValue(ClaimTypes.Name) ?? "system";
+        return Ok(await _service.CreateItemPackagingUnitAsync(dto, u));
+    }
+
+    [HttpDelete("packaging-units/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeletePackagingUnit(int id) { await _service.DeleteItemPackagingUnitAsync(id); return NoContent(); }
+
+    // ---------- Batches ----------
+    [HttpGet("batches")]
+    public async Task<IActionResult> GetBatches([FromQuery] PagedRequest request, [FromQuery] int? itemId, [FromQuery] int? warehouseId, [FromQuery] bool? excludeExpired, [FromQuery] bool? excludeExhausted) 
+        => Ok(await _service.GetBatchesAsync(request, itemId, warehouseId, excludeExpired, excludeExhausted));
+
+    [HttpGet("batches/{id}")]
+    public async Task<IActionResult> GetBatch(int id) { var b = await _service.GetBatchByIdAsync(id); return b is null ? NotFound() : Ok(b); }
+
+    [HttpPost("batches")]
+    public async Task<IActionResult> CreateBatch([FromBody] CreateItemBatchDto dto)
+    {
+        var u = User.FindFirstValue(ClaimTypes.Name) ?? "system";
+        return Ok(await _service.CreateBatchAsync(dto, u));
+    }
+
+    [HttpPut("batches/{id}")]
+    public async Task<IActionResult> UpdateBatch(int id, [FromBody] UpdateItemBatchDto dto)
+    {
+        var u = User.FindFirstValue(ClaimTypes.Name) ?? "system";
+        return Ok(await _service.UpdateBatchAsync(id, dto, u));
+    }
+
+    [HttpDelete("batches/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteBatch(int id) { await _service.DeleteBatchAsync(id); return NoContent(); }
+
+    // ---------- Scanning ----------
+    [HttpGet("scan")]
+    public async Task<IActionResult> ScanBarcode([FromQuery] string barcode, [FromQuery] int? warehouseId)
+        => Ok(await _service.ScanBarcodeAsync(barcode, warehouseId));
 }
 
 [Authorize]

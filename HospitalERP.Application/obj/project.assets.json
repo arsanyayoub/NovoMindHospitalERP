@@ -2446,11 +2446,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
+      "projectUniqueName": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
       "projectName": "HospitalERP.Application",
-      "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
+      "projectPath": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
       "packagesPath": "C:\\Users\\arsany.awadallah\\.nuget\\packages\\",
-      "outputPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\obj\\",
+      "outputPath": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -2471,11 +2471,11 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj": {
-              "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj"
+            "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj": {
+              "projectPath": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj"
             },
-            "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj": {
-              "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj"
+            "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj": {
+              "projectPath": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj"
             }
           }
         }
