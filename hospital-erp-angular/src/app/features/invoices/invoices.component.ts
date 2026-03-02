@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { InvoiceService, PatientService, SalesService, InventoryService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
+import { ExportService } from '../../core/services/export.service';
 
 @Component({
   selector: 'app-invoices',
@@ -30,6 +31,7 @@ import { ToastService } from '../../core/services/language.service';
         <option value="Patient">Patient</option>
         <option value="Customer">Customer</option>
       </select>
+      <button class="btn btn-secondary" (click)="exportCsv()"><span class="material-icons-round">download</span> {{ 'EXPORT' | translate }}</button>
     </div>
     
     <div class="card" style="padding:0;">
@@ -61,6 +63,7 @@ import { ToastService } from '../../core/services/language.service';
               <td><span class="badge" [ngClass]="getStatusClass(inv.status)">{{ inv.status | translate }}</span></td>
               <td>
                 <div class="flex gap-1">
+                  <button class="btn btn-sm btn-secondary" (click)="printInvoice(inv)" title="{{ 'PRINT' | translate }}"><span class="material-icons-round" style="font-size:16px">print</span></button>
                   <button class="btn btn-sm btn-primary" *ngIf="inv.balanceDue > 0" (click)="openPaymentForm(inv)" title="Record Payment">
                     <span class="material-icons-round" style="font-size:16px">payments</span>
                   </button>
@@ -215,7 +218,8 @@ export class InvoicesComponent implements OnInit {
     private patientSvc: PatientService,
     private salesSvc: SalesService,
     private inventorySvc: InventoryService,
-    private toast: ToastService
+    private toast: ToastService,
+    private exportSvc: ExportService
   ) { }
 
   ngOnInit() { this.loadData(); this.loadLookups(); }
@@ -354,5 +358,78 @@ export class InvoicesComponent implements OnInit {
       case 'Cancelled': return 'badge-danger';
       default: return 'badge-secondary';
     }
+  }
+
+  printInvoice(inv: any) {
+    const now = new Date().toLocaleDateString();
+    const itemRows = (inv.items || []).map((item: any) => {
+      const lineTotal = ((item.quantity || 0) * (item.unitPrice || 0) - (item.discount || 0)) * (1 + (item.taxRate || 0) / 100);
+      return `<tr><td>${item.description || '—'}</td><td>${item.quantity}</td><td>$${(item.unitPrice || 0).toFixed(2)}</td><td>${item.taxRate || 0}%</td><td>-$${(item.discount || 0).toFixed(2)}</td><td><strong>$${lineTotal.toFixed(2)}</strong></td></tr>`;
+    }).join('');
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if (!win) return;
+    win.document.write(`<!DOCTYPE html><html><head><title>Invoice ${inv.invoiceNumber}</title>
+      <style>
+        *{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;color:#1a1a2e;padding:40px;font-size:14px}
+        .top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:24px;border-bottom:2px solid #e5e7eb}
+        .brand{font-size:28px;font-weight:800;color:#6366f1}.brand span{color:#8b5cf6}
+        .inv-badge{font-size:36px;font-weight:800;color:#6366f1;letter-spacing:2px;text-transform:uppercase}
+        .meta{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
+        .meta-box{background:#f8f9ff;border-radius:8px;padding:16px}
+        .meta-box h4{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin-bottom:8px}
+        .meta-box p{margin:3px 0}
+        table{width:100%;border-collapse:collapse;margin:20px 0}
+        th{background:#6366f1;color:white;padding:10px 12px;text-align:left;font-size:12px}
+        td{padding:10px 12px;border-bottom:1px solid #e5e7eb}
+        tr:last-child td{border-bottom:none}
+        .totals{text-align:right;margin-top:24px;padding-top:16px;border-top:2px solid #e5e7eb}
+        .t-row{display:flex;justify-content:flex-end;gap:60px;padding:5px 0;font-size:14px}
+        .t-grand{font-size:20px;font-weight:800;color:#6366f1;border-top:2px solid #6366f1;padding-top:10px;margin-top:6px}
+        .footer{margin-top:40px;text-align:center;font-size:11px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:16px}
+        .badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700}
+        .Paid{background:#d1fae5;color:#065f46}.Unpaid{background:#fef3c7;color:#92400e}.Draft{background:#f3f4f6;color:#6b7280}.Cancelled{background:#fee2e2;color:#991b1b}
+        @media print{body{padding:20px}}
+      </style></head><body>
+      <div class="top">
+        <div><div class="brand">Novo<span>Mind</span></div><div style="font-size:12px;color:#6b7280;margin-top:4px">Hospital ERP System</div></div>
+        <div style="text-align:right"><div class="inv-badge">Invoice</div><div style="color:#6b7280;font-size:14px;margin-top:4px"># ${inv.invoiceNumber}</div></div>
+      </div>
+      <div class="meta">
+        <div class="meta-box"><h4>Bill To</h4><p><strong>${inv.patientName || inv.customerName || '—'}</strong></p><p>Type: ${inv.invoiceType}</p></div>
+        <div class="meta-box"><h4>Invoice Details</h4><p><strong>Date:</strong> ${new Date(inv.invoiceDate).toLocaleDateString()}</p>${inv.dueDate ? `<p><strong>Due:</strong> ${new Date(inv.dueDate).toLocaleDateString()}</p>` : ''}<p><strong>Status:</strong> <span class="badge ${inv.status}">${inv.status}</span></p></div>
+      </div>
+      <table><thead><tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Tax %</th><th>Discount</th><th>Line Total</th></tr></thead>
+      <tbody>${itemRows || '<tr><td colspan="6">—</td></tr>'}</tbody></table>
+      <div class="totals">
+        <div class="t-row"><span>Subtotal</span><span>$${(inv.subTotal || 0).toFixed(2)}</span></div>
+        <div class="t-row"><span>Tax</span><span>$${(inv.taxAmount || 0).toFixed(2)}</span></div>
+        <div class="t-row"><span>Discount</span><span>-$${(inv.discountAmount || 0).toFixed(2)}</span></div>
+        <div class="t-row t-grand"><span>TOTAL</span><span>$${(inv.totalAmount || 0).toFixed(2)}</span></div>
+        <div class="t-row" style="color:#065f46"><span>Paid</span><span>$${(inv.paidAmount || 0).toFixed(2)}</span></div>
+        ${inv.balanceDue > 0 ? `<div class="t-row" style="color:#c00"><span>Balance Due</span><span>$${(inv.balanceDue || 0).toFixed(2)}</span></div>` : ''}
+      </div>
+      ${inv.notes ? `<p style="margin-top:20px;font-size:13px;color:#6b7280"><strong>Notes:</strong> ${inv.notes}</p>` : ''}
+      <div class="footer">Generated by NovoMind Hospital ERP &bull; ${now}</div>
+    </body></html>`);
+    win.document.close();
+    win.onload = () => { win.focus(); win.print(); };
+  }
+
+  exportCsv() {
+    this.exportSvc.toCSV(
+      this.invoices,
+      'invoices',
+      [
+        { key: 'invoiceNumber', header: 'Invoice #' },
+        { key: 'patientName', header: 'Patient' },
+        { key: 'customerName', header: 'Customer' },
+        { key: 'invoiceType', header: 'Type' },
+        { key: 'invoiceDate', header: 'Date' },
+        { key: 'totalAmount', header: 'Total' },
+        { key: 'paidAmount', header: 'Paid' },
+        { key: 'balanceDue', header: 'Balance' },
+        { key: 'status', header: 'Status' }
+      ]
+    );
   }
 }

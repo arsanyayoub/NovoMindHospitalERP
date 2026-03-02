@@ -4,10 +4,10 @@ import { TranslateModule } from '@ngx-translate/core';
 import { DashboardService } from '../../core/services/api.services';
 
 @Component({
-    selector: 'app-dashboard',
-    standalone: true,
-    imports: [CommonModule, TranslateModule],
-    template: `
+  selector: 'app-dashboard',
+  standalone: true,
+  imports: [CommonModule, TranslateModule],
+  template: `
     <div *ngIf="loading" class="loading-container"><div class="spinner"></div></div>
 
     <div *ngIf="!loading" class="animate-fade-in">
@@ -125,10 +125,59 @@ import { DashboardService } from '../../core/services/api.services';
             </div>
           </div>
         </div>
+
+        <!-- Today's Appointments & Top Doctors -->
+        <div class="dashboard-grid mt-6">
+          <div class="card">
+            <h3 class="mb-4" style="display:flex;align-items:center;gap:8px">
+              <span class="material-icons-round" style="color:var(--accent)">today</span>
+              {{ 'TODAY_APPOINTMENTS' | translate }}
+            </h3>
+            <div class="appt-quick-list">
+              <div *ngFor="let a of data?.todayAppointmentsList" class="appt-quick-item">
+                <div class="appt-time">{{ a.appointmentTime?.substring(0,5) || '--:--' }}</div>
+                <div class="appt-info">
+                  <div class="appt-patient font-semibold">{{ a.patientName }}</div>
+                  <div class="appt-doctor text-sm text-muted">Dr. {{ a.doctorName }}</div>
+                </div>
+                <span class="badge" [ngClass]="getApptBadge(a.status)">{{ a.status }}</span>
+              </div>
+              <div class="empty-state" *ngIf="!data?.todayAppointmentsList?.length">
+                <span class="material-icons-round empty-icon">event_available</span>
+                <span class="empty-text">No appointments scheduled today</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="mb-4" style="display:flex;align-items:center;gap:8px">
+              <span class="material-icons-round" style="color:var(--success)">medical_services</span>
+              Top Doctors
+            </h3>
+            <div class="doctor-ranking">
+              <div *ngFor="let d of data?.topDoctors; let i = index" class="doctor-rank-item">
+                <div class="dr-rank" [class.rank-gold]="i===0" [class.rank-silver]="i===1" [class.rank-bronze]="i===2">{{ i + 1 }}</div>
+                <div class="dr-avatar">{{ d.doctorName?.charAt(0) || 'D' }}</div>
+                <div class="dr-info">
+                  <div class="dr-name">{{ d.doctorName }}</div>
+                  <div class="dr-spec text-sm text-muted">{{ d.specialization }}</div>
+                </div>
+                <div class="dr-count">
+                  <span class="count-num">{{ d.appointmentCount }}</span>
+                  <span class="text-muted" style="font-size:0.7rem">appts</span>
+                </div>
+              </div>
+              <div class="empty-state" *ngIf="!data?.topDoctors?.length">
+                <span class="material-icons-round empty-icon">person_off</span>
+                <span class="empty-text">No data available</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
     .dashboard-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
     @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
@@ -160,28 +209,63 @@ import { DashboardService } from '../../core/services/api.services';
     .activity-icon span { font-size: 18px; }
     .activity-desc { font-size: 0.85rem; color: var(--text-primary); }
     .activity-time { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* Today's Appointments quick list */
+    .appt-quick-list { display: flex; flex-direction: column; gap: 2px; max-height: 280px; overflow-y: auto; }
+    .appt-quick-item { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-radius: 10px; transition: background 0.15s; }
+    .appt-quick-item:hover { background: rgba(255,255,255,0.04); }
+    .appt-time { font-size: 0.8rem; font-weight: 700; color: var(--primary-light); min-width: 42px; font-variant-numeric: tabular-nums; }
+    .appt-info { flex: 1; min-width: 0; }
+    .appt-patient { font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .appt-doctor { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Top Doctors */
+    .doctor-ranking { display: flex; flex-direction: column; gap: 8px; }
+    .doctor-rank-item { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-radius: 10px; transition: background 0.15s; }
+    .doctor-rank-item:hover { background: rgba(255,255,255,0.04); }
+    .dr-rank { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; background: rgba(255,255,255,0.07); color: var(--text-muted); flex-shrink: 0; }
+    .dr-rank.rank-gold { background: rgba(251,191,36,0.2); color: #fbbf24; }
+    .dr-rank.rank-silver { background: rgba(156,163,175,0.2); color: #9ca3af; }
+    .dr-rank.rank-bronze { background: rgba(180,83,9,0.2); color: #d97706; }
+    .dr-avatar { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; color: white; flex-shrink: 0; }
+    .dr-info { flex: 1; min-width: 0; }
+    .dr-name { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dr-spec { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dr-count { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+    .count-num { font-size: 1.2rem; font-weight: 800; color: var(--primary-light); line-height: 1; }
   `]
 })
 export class DashboardComponent implements OnInit {
-    data: any = null;
-    loading = true;
-    today = new Date();
-    maxRevenue = 1;
+  data: any = null;
+  loading = true;
+  today = new Date();
+  maxRevenue = 1;
 
-    constructor(private dashboardService: DashboardService) { }
+  constructor(private dashboardService: DashboardService) { }
 
-    ngOnInit() {
-        this.dashboardService.get().subscribe({
-            next: (data) => {
-                this.data = data;
-                this.maxRevenue = Math.max(1, ...data.monthlyRevenues.map((m: any) => Math.max(m.revenue, m.expenses)));
-                this.loading = false;
-            },
-            error: () => { this.loading = false; }
-        });
+  ngOnInit() {
+    this.dashboardService.get().subscribe({
+      next: (data) => {
+        this.data = data;
+        this.maxRevenue = Math.max(1, ...data.monthlyRevenues.map((m: any) => Math.max(m.revenue, m.expenses)));
+        this.loading = false;
+      },
+      error: () => { this.loading = false; }
+    });
+  }
+
+  getBarHeight(value: number): number {
+    return Math.max(3, (value / this.maxRevenue) * 90);
+  }
+
+  getApptBadge(s: string): string {
+    switch (s) {
+      case 'Scheduled': return 'badge-info';
+      case 'Confirmed': return 'badge-primary';
+      case 'InProgress': return 'badge-warning';
+      case 'Completed': return 'badge-success';
+      case 'Cancelled': return 'badge-danger';
+      default: return 'badge-secondary';
     }
-
-    getBarHeight(value: number): number {
-        return Math.max(3, (value / this.maxRevenue) * 90);
-    }
+  }
 }

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { PatientService, InvoiceService, InventoryService } from '../../core/services/api.services';
+import { PatientService, InvoiceService, AppointmentService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
 @Component({
@@ -58,6 +58,7 @@ import { ToastService } from '../../core/services/language.service';
                 <td><span class="badge" [ngClass]="p.isActive ? 'badge-success' : 'badge-secondary'">{{ (p.isActive ? 'ACTIVE' : 'INACTIVE') | translate }}</span></td>
                 <td>
                   <div class="flex gap-1">
+                    <button class="btn btn-sm btn-info" (click)="openHistory(p)" title="History"><span class="material-icons-round" style="font-size:16px">history</span></button>
                     <button class="btn btn-sm btn-secondary" (click)="openForm(p)"><span class="material-icons-round" style="font-size:16px">edit</span></button>
                     <button class="btn btn-sm btn-danger" (click)="deletePatient(p)"><span class="material-icons-round" style="font-size:16px">delete</span></button>
                   </div>
@@ -229,6 +230,68 @@ import { ToastService } from '../../core/services/language.service';
       </div>
     </div></div>
 
+    <!-- Patient History Modal -->
+    <div class="modal-overlay" *ngIf="showHistory" (click)="showHistory=false"><div class="modal modal-xl" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">{{ 'PATIENT_HISTORY' | translate }}</h3>
+          <p class="text-muted text-sm" style="margin-top:4px">{{ historyPatient?.fullName }} &mdash; {{ historyPatient?.patientCode }}</p>
+        </div>
+        <button class="btn btn-sm btn-secondary" (click)="showHistory=false"><span class="material-icons-round">close</span></button>
+      </div>
+      <div class="history-tabs">
+        <button [class.active]="historyTab==='appointments'" (click)="historyTab='appointments'">
+          <span class="material-icons-round">calendar_month</span>{{ 'APPOINTMENT_HISTORY' | translate }}
+          <span class="badge badge-info" style="margin-left:6px">{{ historyAppointments.length }}</span>
+        </button>
+        <button [class.active]="historyTab==='invoices'" (click)="historyTab='invoices'">
+          <span class="material-icons-round">receipt_long</span>{{ 'INVOICE_HISTORY' | translate }}
+          <span class="badge badge-warning" style="margin-left:6px">{{ historyInvoices.length }}</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="historyLoading" class="loading-container"><div class="spinner"></div></div>
+        <!-- Appointments Timeline -->
+        <div *ngIf="!historyLoading && historyTab==='appointments'">
+          <div *ngIf="historyAppointments.length===0" class="empty-state"><span class="material-icons-round empty-icon">event_busy</span><span class="empty-title">{{ 'NO_APPOINTMENTS' | translate }}</span></div>
+          <div class="timeline" *ngIf="historyAppointments.length>0">
+            <div *ngFor="let a of historyAppointments" class="timeline-item">
+              <div class="timeline-dot" [ngClass]="getApptDotClass(a.status)"></div>
+              <div class="timeline-content card">
+                <div class="timeline-header">
+                  <div><span class="font-semibold">{{ a.appointmentDate | date:'mediumDate' }}</span><span class="text-muted text-sm" style="margin-left:8px">{{ a.appointmentTime }}</span></div>
+                  <span class="badge" [ngClass]="getApptBadge(a.status)">{{ a.status }}</span>
+                </div>
+                <div class="text-sm" style="margin-top:8px"><span class="text-muted">Doctor: </span><strong>{{ a.doctorName }}</strong></div>
+                <div class="text-sm" style="margin-top:4px" *ngIf="a.diagnosis"><span class="text-muted">Diagnosis: </span>{{ a.diagnosis }}</div>
+                <div class="text-sm" style="margin-top:4px" *ngIf="a.prescription"><span class="text-muted">Prescription: </span>{{ a.prescription }}</div>
+                <div class="text-sm" style="margin-top:4px" *ngIf="a.notes"><span class="text-muted">Notes: </span>{{ a.notes }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Invoices List -->
+        <div *ngIf="!historyLoading && historyTab==='invoices'">
+          <div *ngIf="historyInvoices.length===0" class="empty-state"><span class="material-icons-round empty-icon">receipt</span><span class="empty-title">{{ 'NO_INVOICES' | translate }}</span></div>
+          <div class="table-container" *ngIf="historyInvoices.length>0">
+            <table class="table">
+              <thead><tr><th>Invoice #</th><th>Date</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let inv of historyInvoices">
+                  <td><span class="badge badge-info">{{ inv.invoiceNumber }}</span></td>
+                  <td>{{ inv.invoiceDate | date:'mediumDate' }}</td>
+                  <td>{{ inv.totalAmount | currency }}</td>
+                  <td class="text-success">{{ inv.paidAmount | currency }}</td>
+                  <td [class.text-danger]="inv.balanceDue>0">{{ inv.balanceDue | currency }}</td>
+                  <td><span class="badge" [ngClass]="inv.status==='Paid'?'badge-success':inv.status==='PartiallyPaid'?'badge-warning':'badge-danger'">{{ inv.status }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div></div>
+
     <!-- Payment Modal -->
     <div class="modal-overlay" *ngIf="showPayModal" (click)="showPayModal=false"><div class="modal" style="max-width:420px" (click)="$event.stopPropagation()">
       <div class="modal-header"><h3>Record Payment</h3><button class="btn btn-sm btn-secondary" (click)="showPayModal=false"><span class="material-icons-round">close</span></button></div>
@@ -261,6 +324,24 @@ import { ToastService } from '../../core/services/language.service';
     .summary-row.total { font-size: 1.1rem; font-weight: 700; color: var(--primary-light); border-top: 1px solid var(--border); padding-top: 8px; margin-top: 4px; }
     .pay-info-card { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
     .pay-row { display: flex; justify-content: space-between; font-size: 0.9rem; }
+    /* History Modal */
+    .history-tabs { display: flex; gap: 2px; padding: 0 24px; background: var(--bg-card); border-bottom: 1px solid var(--border); }
+    .history-tabs button { display: flex; align-items: center; gap: 8px; padding: 14px 18px; border: none; background: none; color: var(--text-secondary); cursor: pointer; font-family: var(--font-family); font-size: 0.875rem; font-weight: 500; border-bottom: 2px solid transparent; transition: var(--transition); }
+    .history-tabs button.active { color: var(--primary-light); border-bottom-color: var(--primary-light); }
+    .history-tabs button .material-icons-round { font-size: 18px; }
+    .timeline { display: flex; flex-direction: column; gap: 0; padding-left: 8px; }
+    .timeline-item { display: flex; gap: 16px; padding-bottom: 20px; position: relative; }
+    .timeline-item:not(:last-child)::before { content: ''; position: absolute; left: 7px; top: 20px; bottom: 0; width: 2px; background: var(--border); }
+    .timeline-dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; border: 2px solid; }
+    .timeline-dot.dot-scheduled { background: rgba(59,130,246,0.3); border-color: #3b82f6; }
+    .timeline-dot.dot-confirmed { background: rgba(99,102,241,0.3); border-color: #6366f1; }
+    .timeline-dot.dot-completed { background: rgba(16,185,129,0.3); border-color: #10b981; }
+    .timeline-dot.dot-cancelled { background: rgba(239,68,68,0.3); border-color: #ef4444; }
+    .timeline-dot.dot-inprogress { background: rgba(245,158,11,0.3); border-color: #f59e0b; }
+    .timeline-content { flex: 1; padding: 14px 16px; }
+    .timeline-header { display: flex; justify-content: space-between; align-items: center; }
+    .btn-info { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+    .btn-info:hover { background: rgba(59,130,246,0.25); }
   `]
 })
 export class PatientsComponent implements OnInit {
@@ -281,11 +362,19 @@ export class PatientsComponent implements OnInit {
   invoiceForm: any = this.freshInvoiceForm();
   selectedInvoice: any = null;
   payAmount = 0;
+  showHistory = false;
+  historyPatient: any = null;
+  historyTab = 'appointments';
+  historyAppointments: any[] = [];
+  historyInvoices: any[] = [];
+  historyLoading = false;
+  private _historyLoads = 0;
   bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
   constructor(
     private svc: PatientService,
     private invSvc: InvoiceService,
+    private apptSvc: AppointmentService,
     private toast: ToastService
   ) { }
 
@@ -381,6 +470,49 @@ export class PatientsComponent implements OnInit {
       next: () => { this.toast.success('Payment recorded'); this.showPayModal = false; this.loadInvoices(); },
       error: () => this.toast.error('Payment failed')
     });
+  }
+
+  openHistory(patient: any) {
+    this.historyPatient = patient;
+    this.historyTab = 'appointments';
+    this.historyAppointments = [];
+    this.historyInvoices = [];
+    this._historyLoads = 0;
+    this.historyLoading = true;
+    this.showHistory = true;
+    this.svc.getAppointments(patient.id).subscribe({
+      next: r => { this.historyAppointments = Array.isArray(r) ? r : (r as any).items || []; this._checkHistoryDone(); },
+      error: () => this._checkHistoryDone()
+    });
+    this.svc.getInvoices(patient.id).subscribe({
+      next: r => { this.historyInvoices = Array.isArray(r) ? r : (r as any).items || []; this._checkHistoryDone(); },
+      error: () => this._checkHistoryDone()
+    });
+  }
+
+  private _checkHistoryDone() {
+    this._historyLoads++;
+    if (this._historyLoads >= 2) { this.historyLoading = false; }
+  }
+
+  getApptDotClass(s: string): string {
+    switch (s) {
+      case 'Scheduled': return 'dot-scheduled';
+      case 'Confirmed': return 'dot-confirmed';
+      case 'Completed': return 'dot-completed';
+      case 'Cancelled': return 'dot-cancelled';
+      default: return 'dot-inprogress';
+    }
+  }
+
+  getApptBadge(s: string): string {
+    switch (s) {
+      case 'Scheduled': return 'badge-info';
+      case 'Confirmed': return 'badge-primary';
+      case 'Completed': return 'badge-success';
+      case 'Cancelled': return 'badge-danger';
+      default: return 'badge-warning';
+    }
   }
 
   deletePatient(p: any) {
