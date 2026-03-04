@@ -405,3 +405,18 @@ export class PharmacyService {
     }
     dispenseItem(id: number, dto: any): Observable<any> { return this.http.post<any>(`${this.API}/items/${id}/dispense`, dto); }
 }
+
+@Injectable({ providedIn: 'root' })
+export class UserService {
+    private readonly API = `${environment.apiUrl}/users`;
+    constructor(private http: HttpClient) { }
+
+    getUsers(req: any): Observable<any> {
+        return this.http.get<any>(this.API, { params: new HttpParams({ fromObject: req }) });
+    }
+    getUser(id: number): Observable<any> { return this.http.get<any>(`${this.API}/${id}`); }
+    createUser(dto: any): Observable<any> { return this.http.post<any>(this.API, dto); }
+    updateUser(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/${id}`, dto); }
+    toggleStatus(id: number): Observable<any> { return this.http.patch<any>(`${this.API}/${id}/toggle-status`, {}); }
+    getRoles(): Observable<any> { return this.http.get<any>(`${this.API}/roles`); }
+}
