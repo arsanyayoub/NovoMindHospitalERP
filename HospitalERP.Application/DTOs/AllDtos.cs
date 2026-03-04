@@ -10,11 +10,6 @@ public record RefreshTokenDto(string RefreshToken);
 public record ChangePasswordDto(string CurrentPassword, string NewPassword);
 
 // ═══════════════════════════════════════════════════════════════
-//  USER
-// ═══════════════════════════════════════════════════════════════
-public record UserDto(int Id, string Username, string Email, string FullName, string? PhoneNumber, bool IsActive, string Role, DateTime CreatedDate);
-public record CreateUserDto(string Username, string Email, string Password, string FullName, string? PhoneNumber, int RoleId);
-public record UpdateUserDto(string Email, string FullName, string? PhoneNumber, bool IsActive, int RoleId);
 
 // ═══════════════════════════════════════════════════════════════
 //  PATIENT
@@ -24,17 +19,21 @@ public record PatientDto(
     DateTime DateOfBirth, string Gender, string? BloodType,
     string? PhoneNumber, string? Email, string? Address,
     string? EmergencyContact, string? EmergencyPhone,
-    string? MedicalHistory, string? Allergies, bool IsActive, DateTime CreatedDate);
+    string? MedicalHistory, string? Allergies, bool IsActive, 
+    string? InsuranceProvider, string? InsurancePolicyNumber, string? InsuranceCoverage, decimal InsuranceBalance,
+    DateTime CreatedDate);
 
 public record CreatePatientDto(
     string FullName, string? NationalId, DateTime DateOfBirth, string Gender,
     string? BloodType, string? PhoneNumber, string? Email, string? Address,
-    string? EmergencyContact, string? EmergencyPhone, string? MedicalHistory, string? Allergies);
+    string? EmergencyContact, string? EmergencyPhone, string? MedicalHistory, string? Allergies,
+    string? InsuranceProvider = null, string? InsurancePolicyNumber = null, string? InsuranceCoverage = null);
 
 public record UpdatePatientDto(
     string FullName, string? NationalId, DateTime DateOfBirth, string Gender,
     string? BloodType, string? PhoneNumber, string? Email, string? Address,
-    string? EmergencyContact, string? EmergencyPhone, string? MedicalHistory, string? Allergies, bool IsActive);
+    string? EmergencyContact, string? EmergencyPhone, string? MedicalHistory, string? Allergies, bool IsActive,
+    string? InsuranceProvider = null, string? InsurancePolicyNumber = null, string? InsuranceCoverage = null);
 
 // ═══════════════════════════════════════════════════════════════
 //  DOCTOR
@@ -440,6 +439,14 @@ public record ClinicalEncounterDto(int Id, int PatientId, string PatientName, in
 
 public record CreateClinicalEncounterDto(int PatientId, int? DoctorId, int? AppointmentId, string? ChiefComplaint, 
     string? Subjective, string? Objective, string? Assessment, string? Plan, string? InternalNotes, bool IsFinalized = false);
+
+// ═══════════════════════════════════════════════════════════════
+//  USER & ROLE MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+public record UserDto(int Id, string Username, string Email, string FullName, string? PhoneNumber, int RoleId, string? RoleName, bool IsActive, DateTime CreatedDate);
+public record CreateUserDto(string Username, string Email, string Password, string FullName, string? PhoneNumber, int RoleId, bool IsActive = true);
+public record UpdateUserDto(string Email, string FullName, string? PhoneNumber, int RoleId, bool IsActive);
+public record RoleDto(int Id, string Name, string? Description);
 
 // ═══════════════════════════════════════════════════════════════
 //  PAGINATION

@@ -61,6 +61,9 @@ public class PatientService : IPatientService
             EmergencyPhone = dto.EmergencyPhone,
             MedicalHistory = dto.MedicalHistory,
             Allergies = dto.Allergies,
+            InsuranceProvider = dto.InsuranceProvider,
+            InsurancePolicyNumber = dto.InsurancePolicyNumber,
+            InsuranceCoverage = dto.InsuranceCoverage,
             CreatedBy = createdBy
         };
         await _uow.Patients.AddAsync(patient);
@@ -89,6 +92,9 @@ public class PatientService : IPatientService
         patient.MedicalHistory = dto.MedicalHistory;
         patient.Allergies = dto.Allergies;
         patient.IsActive = dto.IsActive;
+        patient.InsuranceProvider = dto.InsuranceProvider;
+        patient.InsurancePolicyNumber = dto.InsurancePolicyNumber;
+        patient.InsuranceCoverage = dto.InsuranceCoverage;
         patient.UpdatedBy = updatedBy;
         _uow.Patients.Update(patient);
         await _uow.SaveChangesAsync();
@@ -174,5 +180,7 @@ public class PatientService : IPatientService
     internal static PatientDto ToDto(Patient p) => new(
         p.Id, p.PatientCode, p.FullName, p.NationalId, p.DateOfBirth, p.Gender,
         p.BloodType, p.PhoneNumber, p.Email, p.Address, p.EmergencyContact,
-        p.EmergencyPhone, p.MedicalHistory, p.Allergies, p.IsActive, p.CreatedDate);
+        p.EmergencyPhone, p.MedicalHistory, p.Allergies, p.IsActive,
+        p.InsuranceProvider, p.InsurancePolicyNumber, p.InsuranceCoverage, p.InsuranceBalance,
+        p.CreatedDate);
 }

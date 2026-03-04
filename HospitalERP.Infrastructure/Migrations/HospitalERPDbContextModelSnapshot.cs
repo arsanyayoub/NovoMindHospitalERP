@@ -216,6 +216,74 @@ namespace HospitalERP.Infrastructure.Migrations
                     b.ToTable("Assets");
                 });
 
+            modelBuilder.Entity("HospitalERP.Domain.Entities.ClinicalEncounter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AppointmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Assessment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ChiefComplaint")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DoctorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EncounterDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InternalNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsFinalized")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Objective")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Plan")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Subjective")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.HasIndex("DoctorId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("ClinicalEncounters");
+                });
+
             modelBuilder.Entity("HospitalERP.Domain.Entities.Customer", b =>
                 {
                     b.Property<int>("Id")
@@ -1281,6 +1349,18 @@ namespace HospitalERP.Infrastructure.Migrations
 
                     b.Property<string>("Gender")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("InsuranceBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("InsuranceCoverage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("InsurancePolicyNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("InsuranceProvider")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
@@ -2528,6 +2608,31 @@ namespace HospitalERP.Infrastructure.Migrations
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("HospitalERP.Domain.Entities.ClinicalEncounter", b =>
+                {
+                    b.HasOne("HospitalERP.Domain.Entities.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HospitalERP.Domain.Entities.Doctor", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HospitalERP.Domain.Entities.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
 
                     b.Navigation("Doctor");
 

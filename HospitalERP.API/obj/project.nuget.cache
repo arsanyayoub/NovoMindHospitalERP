@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "AGDOXQ9AXns=",
+  "dgSpecHash": "d19pch9DWqo=",
   "success": true,
   "projectFilePath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.API\\HospitalERP.API.csproj",
   "expectedPackageFiles": [
@@ -73,6 +73,7 @@
     "C:\\Users\\arsany.awadallah\\.nuget\\packages\\microsoft.win32.systemevents\\6.0.0\\microsoft.win32.systemevents.6.0.0.nupkg.sha512",
     "C:\\Users\\arsany.awadallah\\.nuget\\packages\\mono.texttemplating\\2.2.1\\mono.texttemplating.2.2.1.nupkg.sha512",
     "C:\\Users\\arsany.awadallah\\.nuget\\packages\\newtonsoft.json\\11.0.2\\newtonsoft.json.11.0.2.nupkg.sha512",
+    "C:\\Users\\arsany.awadallah\\.nuget\\packages\\questpdf\\2026.2.2\\questpdf.2026.2.2.nupkg.sha512",
     "C:\\Users\\arsany.awadallah\\.nuget\\packages\\swashbuckle.aspnetcore\\6.6.2\\swashbuckle.aspnetcore.6.6.2.nupkg.sha512",
     "C:\\Users\\arsany.awadallah\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.6.2\\swashbuckle.aspnetcore.swagger.6.6.2.nupkg.sha512",
     "C:\\Users\\arsany.awadallah\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\6.6.2\\swashbuckle.aspnetcore.swaggergen.6.6.2.nupkg.sha512",

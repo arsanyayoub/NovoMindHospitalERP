@@ -35,7 +35,7 @@ public class PdfService : IPdfService
                 page.Size(PageSizes.A4);
                 page.Margin(1, Unit.Centimetre);
                 page.PageColor(Colors.White);
-                page.DefaultTextStyle(x => x.FontSize(10).FontFamily(Fonts.Helvetica));
+                page.DefaultTextStyle(x => x.FontSize(10).FontFamily(Fonts.Arial));
 
                 page.Header().Row(row =>
                 {

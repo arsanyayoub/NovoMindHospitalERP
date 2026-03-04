@@ -26,6 +26,10 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/patients/patients.component').then(m => m.PatientsComponent)
             },
             {
+                path: 'patients/:id',
+                loadComponent: () => import('./features/patients/patient-profile/patient-profile.component').then(m => m.PatientProfileComponent)
+            },
+            {
                 path: 'invoices',
                 loadComponent: () => import('./features/invoices/invoices.component').then(m => m.InvoicesComponent)
             },
@@ -76,6 +80,10 @@ export const routes: Routes = [
             {
                 path: 'pharmacy',
                 loadComponent: () => import('./features/pharmacy/pharmacy.component').then(m => m.PharmacyComponent)
+            },
+            {
+                path: 'users',
+                loadComponent: () => import('./features/users/users.component').then(m => m.UsersComponent)
             },
             {
                 path: 'settings',

@@ -32,12 +32,16 @@ import { ExportService } from '../../core/services/export.service';
     .cal-event-confirmed { background: rgba(99,102,241,0.15); color: #818cf8; border-color: #6366f1; }
     .cal-event-completed { background: rgba(16,185,129,0.15); color: #34d399; border-color: #10b981; }
     .cal-event-cancelled { background: rgba(239,68,68,0.15); color: #f87171; border-color: #ef4444; }
+    .cal-event-inprogress { background: rgba(245,158,11,0.15); color: #fbbf24; border-color: #f59e0b; }
+    .cal-event-noshow { background: rgba(107,114,128,0.15); color: #9ca3af; border-color: #6b7280; }
     
     .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
     .status-scheduled { background: rgba(59,130,246,0.1); color: #3b82f6; }
     .status-confirmed { background: rgba(99,102,241,0.1); color: #6366f1; }
     .status-completed { background: rgba(16,185,129,0.1); color: #10b981; }
     .status-cancelled { background: rgba(239,68,68,0.1); color: #ef4444; }
+    .status-inprogress { background: rgba(245,158,11,0.1); color: #f59e0b; }
+    .status-noshow { background: rgba(107,114,128,0.1); color: #6b7280; }
   `],
   template: `
     <div class="page-header">
@@ -110,11 +114,11 @@ import { ExportService } from '../../core/services/export.service';
                 <td><span class="badge badge-secondary">{{ a.appointmentCode }}</span></td>
                 <td>
                    <div class="font-bold">{{ a.patientName }}</div>
-                   <div class="text-xs text-muted">{{ a.patientCode }}</div>
+                   <div class="text-xs text-muted font-mono">{{ a.appointmentCode }}</div>
                 </td>
                 <td>
                    <div class="font-bold">Dr. {{ a.doctorName }}</div>
-                   <div class="text-xs text-muted">{{ a.doctorSpecialization }}</div>
+                   <div class="text-xs text-muted">{{ a.specialization }}</div>
                 </td>
                 <td>{{ a.appointmentDate | date:'fullDate' }}</td>
                 <td class="font-mono">{{ a.appointmentTime | slice:0:5 }}</td>
@@ -217,6 +221,7 @@ import { ExportService } from '../../core/services/export.service';
                  <option value="InProgress">{{ 'IN_PROGRESS' | translate }}</option>
                  <option value="Completed">{{ 'COMPLETED' | translate }}</option>
                  <option value="Cancelled">{{ 'CANCELLED' | translate }}</option>
+                 <option value="NoShow">{{ 'NO_SHOW' | translate }}</option>
                </select>
             </div>
             <div class="form-group">

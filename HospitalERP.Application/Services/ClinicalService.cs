@@ -126,6 +126,17 @@ public class ClinicalService : IClinicalService
         };
 
         await _uow.ClinicalEncounters.AddAsync(encounter);
+
+        if (encounter.IsFinalized && encounter.AppointmentId.HasValue)
+        {
+            var appt = await _uow.Appointments.GetByIdAsync(encounter.AppointmentId.Value);
+            if (appt != null)
+            {
+                appt.Status = HospitalERP.Domain.Enums.AppointmentStatus.Completed;
+                _uow.Appointments.Update(appt);
+            }
+        }
+
         await _uow.SaveChangesAsync();
 
         return ToDto(encounter);
@@ -146,6 +157,17 @@ public class ClinicalService : IClinicalService
         encounter.UpdatedBy = updatedBy;
 
         _uow.ClinicalEncounters.Update(encounter);
+
+        if (encounter.IsFinalized && encounter.AppointmentId.HasValue)
+        {
+            var appt = await _uow.Appointments.GetByIdAsync(encounter.AppointmentId.Value);
+            if (appt != null)
+            {
+                appt.Status = HospitalERP.Domain.Enums.AppointmentStatus.Completed;
+                _uow.Appointments.Update(appt);
+            }
+        }
+
         await _uow.SaveChangesAsync();
 
         return ToDto(encounter);

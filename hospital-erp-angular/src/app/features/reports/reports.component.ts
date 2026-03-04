@@ -7,10 +7,10 @@ import { ExportService } from '../../core/services/export.service';
 import { ToastService } from '../../core/services/language.service';
 
 @Component({
-  selector: 'app-reports',
-  standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
-  styles: [`
+   selector: 'app-reports',
+   standalone: true,
+   imports: [CommonModule, FormsModule, TranslateModule],
+   styles: [`
     .report-tabs { display: flex; gap: 8px; background: rgba(0,0,0,0.15); padding: 6px; border-radius: 16px; margin-bottom: 24px; overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; border: 1px solid var(--border); }
     .report-tabs::-webkit-scrollbar { display: none; }
     .report-tab-btn { padding: 10px 18px; border-radius: 12px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
@@ -28,7 +28,7 @@ import { ToastService } from '../../core/services/language.service';
 
     @media print { .page-header, .report-tabs, .filter-section { display: none !important; } .card, .rep-card { border: 1px solid #ddd !important; box-shadow: none !important; } }
   `],
-  template: `
+   template: `
     <div class="page-header">
       <div>
         <h1 class="page-title">{{ 'BUSINESS_INTELLIGENCE' | translate }}</h1>
@@ -45,28 +45,28 @@ import { ToastService } from '../../core/services/language.service';
     </div>
 
     <div class="report-tabs animate-in">
-      <button class="report-tab-btn" [class.active]="tab==='financial'" (click)="tab='financial';loadFinancial()">
+      <button class="report-tab-btn" [class.active]="tab==='financial'" (click)="loadFinancial()">
         <span class="material-icons-round">account_balance_wallet</span> {{ 'FINANCIAL' | translate }}
       </button>
-      <button class="report-tab-btn" [class.active]="tab==='trial'" (click)="tab='trial';loadTrial()">
+      <button class="report-tab-btn" [class.active]="tab==='trial'" (click)="loadTrial()">
         <span class="material-icons-round">balance</span> {{ 'TRIAL_BALANCE' | translate }}
       </button>
-      <button class="report-tab-btn" [class.active]="tab==='patient_stats'" (click)="tab='patient_stats';loadPatients()">
+      <button class="report-tab-btn" [class.active]="tab==='patient_stats'" (click)="loadPatients()">
         <span class="material-icons-round">groups</span> {{ 'PATIENTS' | translate }}
       </button>
-      <button class="report-tab-btn" [class.active]="tab==='appt_stats'" (click)="tab='appt_stats';loadAppointments()">
+      <button class="report-tab-btn" [class.active]="tab==='appt_stats'" (click)="loadAppointments()">
         <span class="material-icons-round">event_note</span> {{ 'APPOINTMENTS' | translate }}
       </button>
-      <button class="report-tab-btn" [class.active]="tab==='lab_stats'" (click)="tab='lab_stats';loadLab()">
+      <button class="report-tab-btn" [class.active]="tab==='lab_stats'" (click)="loadLab()">
         <span class="material-icons-round">biotech</span> {{ 'LAB_TESTS' | translate }}
       </button>
-      <button class="report-tab-btn" [class.active]="tab==='rx_stats'" (click)="tab='rx_stats';loadPharmacy()">
+      <button class="report-tab-btn" [class.active]="tab==='rx_stats'" (click)="loadPharmacy()">
         <span class="material-icons-round">medication</span> {{ 'PHARMACY' | translate }}
       </button>
-      <button class="report-tab-btn" [class.active]="tab==='inv_stats'" (click)="tab='inv_stats';loadInventory()">
+      <button class="report-tab-btn" [class.active]="tab==='inv_stats'" (click)="loadInventory()">
         <span class="material-icons-round">inventory_2</span> {{ 'INVENTORY' | translate }}
       </button>
-      <button class="report-tab-btn" [class.active]="tab==='hr_stats'" (click)="tab='hr_stats';loadHR()">
+      <button class="report-tab-btn" [class.active]="tab==='hr_stats'" (click)="loadHR()">
         <span class="material-icons-round">badge</span> {{ 'HUMAN_RESOURCES' | translate }}
       </button>
     </div>
@@ -186,6 +186,62 @@ import { ToastService } from '../../core/services/language.service';
           </div>
        </div>
 
+       <!-- APPOINTMENT ANALYTICS -->
+       <div *ngIf="tab==='appt_stats' && apptData">
+          <div class="rep-summary-grid mb-8">
+             <div class="rep-card glass-primary">
+                <div class="rep-icon"><span class="material-icons-round">event_available</span></div>
+                <div class="text-[0.65rem] font-black uppercase tracking-widest">{{ 'TOTAL_APPOINTMENTS'|translate }}</div>
+                <div class="text-3xl font-black">{{ apptData.totalAppointments }}</div>
+             </div>
+          </div>
+          <div class="grid grid-cols-2 gap-8">
+             <div class="card">
+                <h3 class="font-black text-lg mb-6 flex items-center gap-2"><span class="material-icons-round text-primary">insights</span> {{ 'APPOINTMENT_TREND' | translate }}</h3>
+                <div class="rep-chart-box">
+                   <div *ngFor="let m of apptData.appointmentsTrend" class="rep-bar" 
+                        [style.height.%]="getBarHeight(m.count, apptData.appointmentsTrend)" 
+                        [attr.data-label]="m.month">
+                   </div>
+                </div>
+             </div>
+             <div class="card">
+                <h3 class="font-black text-lg mb-6 flex items-center gap-2"><span class="material-icons-round text-success">donut_large</span> {{ 'STATUS_DISTRIBUTION' | translate }}</h3>
+                <div class="flex flex-col gap-6">
+                   <div *ngFor="let g of apptData.statusBreakdown" class="flex flex-col gap-2">
+                      <div class="flex justify-between font-bold text-xs"><span>{{ g.groupName | translate }}</span><span>{{ g.count }}</span></div>
+                      <div class="progress-bar mini"><div class="progress-fill" [style.width.%]="(g.count/apptData.totalAppointments)*100"></div></div>
+                   </div>
+                </div>
+             </div>
+          </div>
+       </div>
+
+       <!-- LAB ANALYTICS -->
+       <div *ngIf="tab==='lab_stats' && labData">
+          <div class="rep-summary-grid mb-8">
+             <div class="rep-card glass-primary">
+                <div class="rep-icon"><span class="material-icons-round">biotech</span></div>
+                <div class="text-[0.65rem] font-black uppercase tracking-widest text-primary">{{ 'TOTAL_TESTS'|translate }}</div>
+                <div class="text-3xl font-black text-primary">{{ labData.totalTests }}</div>
+             </div>
+             <div class="rep-card glass-success">
+                <div class="rep-icon"><span class="material-icons-round">monetization_on</span></div>
+                <div class="text-[0.65rem] font-black uppercase tracking-widest text-success">{{ 'LAB_REVENUE'|translate }}</div>
+                <div class="text-3xl font-black text-success">{{ labData.totalRevenue | currency }}</div>
+             </div>
+          </div>
+          <div class="card">
+             <h3 class="font-black text-lg mb-6 flex items-center gap-2"><span class="material-icons-round text-accent">leaderboard</span> {{ 'TEST_CATEGORY_DISTRIBUTION' | translate }}</h3>
+             <div class="grid grid-cols-3 gap-6">
+                <div *ngFor="let g of labData.categoryBreakdown" class="p-4 bg-glass border rounded-2xl">
+                   <div class="text-[0.6rem] font-black uppercase text-muted mb-1">{{ g.groupName | translate }}</div>
+                   <div class="text-2xl font-black">{{ g.count }}</div>
+                </div>
+             </div>
+          </div>
+       </div>
+
        <!-- PHARMACY ANALYTICS -->
        <div *ngIf="tab==='rx_stats' && rxData">
           <div class="rep-summary-grid mb-8">
@@ -211,6 +267,67 @@ import { ToastService } from '../../core/services/language.service';
           </div>
        </div>
 
+       <!-- INVENTORY ANALYTICS -->
+       <div *ngIf="tab==='inv_stats' && invData">
+          <div class="rep-summary-grid mb-8">
+             <div class="rep-card glass-primary">
+                <div class="rep-icon"><span class="material-icons-round">inventory</span></div>
+                <div class="text-[0.65rem] font-black uppercase tracking-widest text-primary">{{ 'TOTAL_VALUATION'|translate }}</div>
+                <div class="text-3xl font-black text-primary">{{ invData.totalValue | currency }}</div>
+             </div>
+             <div class="rep-card glass-warning">
+                <div class="rep-icon"><span class="material-icons-round">notification_important</span></div>
+                <div class="text-[0.65rem] font-black uppercase tracking-widest text-warning">{{ 'REORDER_ALERTS'|translate }}</div>
+                <div class="text-3xl font-black text-warning">{{ invData.lowStockItems }}</div>
+             </div>
+          </div>
+          <div class="card">
+             <h3 class="font-black text-lg mb-4">{{ 'STOCK_BY_CATEGORY' | translate }}</h3>
+             <div class="flex flex-col gap-4">
+                <div *ngFor="let g of invData.categoryDistribution" class="flex flex-col gap-1">
+                   <div class="flex justify-between text-xs font-bold"><span>{{ g.groupName | translate }}</span><span>{{ g.count }} items</span></div>
+                   <div class="progress-bar mini"><div class="progress-fill" [style.width.%]="(g.count/invData.totalItems)*100"></div></div>
+                </div>
+             </div>
+          </div>
+       </div>
+
+       <!-- HR ANALYTICS -->
+       <div *ngIf="tab==='hr_stats' && hrData">
+          <div class="rep-summary-grid mb-8">
+             <div class="rep-card glass-primary">
+                <div class="rep-icon"><span class="material-icons-round">badge</span></div>
+                <div class="text-[0.65rem] font-black uppercase tracking-widest text-primary">{{ 'TOTAL_EMPLOYEES'|translate }}</div>
+                <div class="text-3xl font-black text-primary">{{ hrData.totalEmployees }}</div>
+             </div>
+             <div class="rep-card glass-success">
+                <div class="rep-icon"><span class="material-icons-round">payments</span></div>
+                <div class="text-[0.65rem] font-black uppercase tracking-widest text-success">{{ 'MONTHLY_PAYROLL'|translate }}</div>
+                <div class="text-3xl font-black text-success">{{ hrData.monthlyPayroll | currency }}</div>
+             </div>
+          </div>
+          <div class="grid grid-cols-2 gap-8">
+             <div class="card">
+                <h3 class="font-black text-lg mb-6">{{ 'DEPARTMENT_DISTRIBUTION' | translate }}</h3>
+                <div class="flex flex-col gap-6">
+                   <div *ngFor="let g of hrData.departmentDistribution" class="flex flex-col gap-2">
+                      <div class="flex justify-between font-bold text-xs"><span>{{ g.groupName }}</span><span>{{ g.count }}</span></div>
+                      <div class="progress-bar mini"><div class="progress-fill" [style.width.%]="(g.count/hrData.totalEmployees)*100"></div></div>
+                   </div>
+                </div>
+             </div>
+             <div class="card">
+                <h3 class="font-black text-lg mb-6">{{ 'PAYROLL_TREND' | translate }}</h3>
+                <div class="rep-chart-box">
+                   <div *ngFor="let m of hrData.payrollTrend" class="rep-bar" 
+                        [style.height.%]="getBarHeight(m.count, hrData.payrollTrend)" 
+                        [attr.data-label]="m.month">
+                   </div>
+                </div>
+             </div>
+          </div>
+       </div>
+
        <div *ngIf="tabIsEmpty()" class="p-20 text-center card bg-glass grayscale opacity-30">
           <span class="material-icons-round text-6xl mb-4">analytics</span>
           <h3 class="font-black uppercase tracking-widest">{{ 'NO_DATA_GENERATED' | translate }}</h3>
@@ -220,95 +337,105 @@ import { ToastService } from '../../core/services/language.service';
   `
 })
 export class ReportsComponent implements OnInit {
-  tab = 'financial';
-  loading = false;
-  from = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
-  to = new Date().toISOString().split('T')[0];
+   tab = 'financial';
+   loading = false;
+   from = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
+   to = new Date().toISOString().split('T')[0];
 
-  patientData: any = null;
-  apptData: any = null;
-  labData: any = null;
-  radData: any = null;
-  rxData: any = null;
-  invData: any = null;
-  hrData: any = null;
-  report: any = null;
-  trialBalance: any[] = [];
+   patientData: any = null;
+   apptData: any = null;
+   labData: any = null;
+   radData: any = null;
+   rxData: any = null;
+   invData: any = null;
+   hrData: any = null;
+   report: any = null;
+   trialBalance: any[] = [];
 
-  constructor(
-    private accounting: AccountingService,
-    private reportsSvc: ReportingService,
-    private exportSvc: ExportService,
-    private translate: TranslateService,
-    private toast: ToastService
-  ) { }
+   constructor(
+      private accounting: AccountingService,
+      private reportsSvc: ReportingService,
+      private exportSvc: ExportService,
+      private translate: TranslateService,
+      private toast: ToastService
+   ) { }
 
-  ngOnInit() { this.load(); }
+   ngOnInit() { this.load(); }
 
-  load() {
-    this.loading = true;
-    const obs = this.getObservable();
-    if (!obs) { this.loading = false; return; }
+   // ── Tab-switching helpers called from template ──────────────
+   loadFinancial() { this.tab = 'financial'; this.load(); }
+   loadTrial() { this.tab = 'trial'; this.load(); }
+   loadPatients() { this.tab = 'patient_stats'; this.load(); }
+   loadAppointments() { this.tab = 'appt_stats'; this.load(); }
+   loadLab() { this.tab = 'lab_stats'; this.load(); }
+   loadPharmacy() { this.tab = 'rx_stats'; this.load(); }
+   loadInventory() { this.tab = 'inv_stats'; this.load(); }
+   loadHR() { this.tab = 'hr_stats'; this.load(); }
 
-    obs.subscribe({
-      next: (r: any) => {
-        if (this.tab === 'financial') this.report = r;
-        else if (this.tab === 'trial') this.trialBalance = r;
-        else if (this.tab === 'patient_stats') this.patientData = r;
-        else if (this.tab === 'appt_stats') this.apptData = r;
-        else if (this.tab === 'lab_stats') this.labData = r;
-        else if (this.tab === 'rx_stats') this.rxData = r;
-        else if (this.tab === 'inv_stats') this.invData = r;
-        else if (this.tab === 'hr_stats') this.hrData = r;
-        this.loading = false;
-      },
-      error: () => { this.loading = false; this.toast.error(this.translate.instant('ERROR_REFRESHING')); }
-    });
-  }
+   load() {
+      this.loading = true;
+      const obs = this.getObservable();
+      if (!obs) { this.loading = false; return; }
 
-  private getObservable() {
-    switch (this.tab) {
-      case 'financial': return this.accounting.getFinancialReport(this.from, this.to);
-      case 'trial': return this.accounting.getTrialBalance(this.to);
-      case 'patient_stats': return this.reportsSvc.getPatients(this.from, this.to);
-      case 'appt_stats': return this.reportsSvc.getAppointments(this.from, this.to);
-      case 'lab_stats': return this.reportsSvc.getLab(this.from, this.to);
-      case 'rx_stats': return this.reportsSvc.getPharmacy(this.from, this.to);
-      case 'inv_stats': return this.reportsSvc.getInventory();
-      case 'hr_stats': return this.reportsSvc.getHR(new Date(this.to).getFullYear());
-      default: return null;
-    }
-  }
+      obs.subscribe({
+         next: (r: any) => {
+            if (this.tab === 'financial') this.report = r;
+            else if (this.tab === 'trial') this.trialBalance = r;
+            else if (this.tab === 'patient_stats') this.patientData = r;
+            else if (this.tab === 'appt_stats') this.apptData = r;
+            else if (this.tab === 'lab_stats') this.labData = r;
+            else if (this.tab === 'rx_stats') this.rxData = r;
+            else if (this.tab === 'inv_stats') this.invData = r;
+            else if (this.tab === 'hr_stats') this.hrData = r;
+            this.loading = false;
+         },
+         error: () => { this.loading = false; this.toast.error(this.translate.instant('ERROR_REFRESHING')); }
+      });
+   }
 
-  get expensePct(): string { return this.report?.totalRevenue ? ((this.report.totalExpenses / this.report.totalRevenue) * 100).toFixed(1) : '0'; }
-  get netPct(): string { return this.report?.totalRevenue ? ((this.report.netIncome / this.report.totalRevenue) * 100).toFixed(1) : '0'; }
-  get totalDebit() { return this.trialBalance.filter(a => a.balance >= 0).reduce((s, a) => s + a.balance, 0); }
-  get totalCredit() { return this.trialBalance.filter(a => a.balance < 0).reduce((s, a) => s - a.balance, 0); }
+   private getObservable() {
+      switch (this.tab) {
+         case 'financial': return this.accounting.getFinancialReport(this.from, this.to);
+         case 'trial': return this.accounting.getTrialBalance(this.to);
+         case 'patient_stats': return this.reportsSvc.getPatients(this.from, this.to);
+         case 'appt_stats': return this.reportsSvc.getAppointments(this.from, this.to);
+         case 'lab_stats': return this.reportsSvc.getLab(this.from, this.to);
+         case 'rx_stats': return this.reportsSvc.getPharmacy(this.from, this.to);
+         case 'inv_stats': return this.reportsSvc.getInventory();
+         case 'hr_stats': return this.reportsSvc.getHR(new Date(this.to).getFullYear());
+         default: return null;
+      }
+   }
 
-  getBarHeight(val: number, trend: any[]): number {
-    if (!trend?.length) return 4;
-    const max = Math.max(1, ...trend.map(i => i.count));
-    return Math.max(4, (val / max) * 100);
-  }
+   get expensePct(): string { return this.report?.totalRevenue ? ((this.report.totalExpenses / this.report.totalRevenue) * 100).toFixed(1) : '0'; }
+   get netPct(): string { return this.report?.totalRevenue ? ((this.report.netIncome / this.report.totalRevenue) * 100).toFixed(1) : '0'; }
+   get totalDebit() { return this.trialBalance.filter(a => a.balance >= 0).reduce((s, a) => s + a.balance, 0); }
+   get totalCredit() { return this.trialBalance.filter(a => a.balance < 0).reduce((s, a) => s - a.balance, 0); }
 
-  tabIsEmpty(): boolean {
-    if (this.tab === 'financial') return !this.report;
-    if (this.tab === 'trial') return !this.trialBalance?.length;
-    if (this.tab === 'patient_stats') return !this.patientData;
-    if (this.tab === 'appt_stats') return !this.apptData;
-    if (this.tab === 'lab_stats') return !this.labData;
-    if (this.tab === 'rx_stats') return !this.rxData;
-    if (this.tab === 'inv_stats') return !this.invData;
-    if (this.tab === 'hr_stats') return !this.hrData;
-    return true;
-  }
+   getBarHeight(val: number, trend: any[]): number {
+      if (!trend?.length) return 4;
+      const max = Math.max(1, ...trend.map(i => i.count));
+      return Math.max(4, (val / max) * 100);
+   }
 
-  exportReport() {
-    this.toast.info(this.translate.instant('EXTRACTING_CSV'));
-    // Simplified export logic for the AI demonstration
-    const data = this.tab === 'trial' ? this.trialBalance : (this.report ? [this.report] : []);
-    this.exportSvc.toCSV(data, `report-${this.tab}-${this.to}`);
-  }
+   tabIsEmpty(): boolean {
+      if (this.tab === 'financial') return !this.report;
+      if (this.tab === 'trial') return !this.trialBalance?.length;
+      if (this.tab === 'patient_stats') return !this.patientData;
+      if (this.tab === 'appt_stats') return !this.apptData;
+      if (this.tab === 'lab_stats') return !this.labData;
+      if (this.tab === 'rx_stats') return !this.rxData;
+      if (this.tab === 'inv_stats') return !this.invData;
+      if (this.tab === 'hr_stats') return !this.hrData;
+      return true;
+   }
 
-  printReport() { window.print(); }
+   exportReport() {
+      this.toast.info(this.translate.instant('EXTRACTING_CSV'));
+      // Simplified export logic for the AI demonstration
+      const data = this.tab === 'trial' ? this.trialBalance : (this.report ? [this.report] : []);
+      this.exportSvc.toCSV(data, `report-${this.tab}-${this.to}`);
+   }
+
+   printReport() { window.print(); }
 }

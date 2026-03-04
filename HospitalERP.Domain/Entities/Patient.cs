@@ -18,6 +18,12 @@ public class Patient : BaseEntity
     public string? MedicalHistory { get; set; }
     public string? Allergies { get; set; }
     public bool IsActive { get; set; } = true;
+
+    // --- Insurance Details ---
+    public string? InsuranceProvider { get; set; }
+    public string? InsurancePolicyNumber { get; set; }
+    public string? InsuranceCoverage { get; set; } // e.g. "Full", "80/20", "Fixed Co-pay"
+    public decimal InsuranceBalance { get; set; }
     public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
     public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
     public ICollection<PatientVital> Vitals { get; set; } = new List<PatientVital>();

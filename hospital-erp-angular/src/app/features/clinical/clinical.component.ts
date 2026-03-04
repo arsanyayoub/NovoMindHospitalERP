@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ClinicalService, PatientService, DoctorService } from '../../core/services/api.services';
+import { ClinicalService, PatientService, DoctorService, LabService, PharmacyService, RadiologyService, InventoryService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
 @Component({
@@ -24,6 +24,11 @@ import { ToastService } from '../../core/services/language.service';
     .tab-btn { padding: 10px 24px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
     .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3); }
     .tab-btn:hover:not(.active) { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+
+    .order-section { border: 1px solid var(--border); border-radius: 16px; padding: 20px; background: rgba(var(--card-bg-rgb), 0.3); margin-bottom: 20px; }
+    .order-title { font-size: 0.7rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+    .item-row { display: grid; grid-template-columns: 1fr 100px 120px 40px; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .test-pill { background: rgba(var(--primary-rgb), 0.1); border: 1px solid rgba(var(--primary-rgb), 0.2); border-radius: 6px; padding: 4px 10px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
   `],
   template: `
     <div class="page-header">
@@ -276,6 +281,66 @@ import { ToastService } from '../../core/services/language.service';
             </div>
           </div>
 
+          <!-- UNIFIED ORDERS -->
+          <div class="grid grid-cols-2 gap-6 mb-6" *ngIf="!encounterForm.isFinalized">
+             <!-- PRESCRIPTION SECTION -->
+             <div class="order-section">
+                <div class="order-title"><span class="material-icons-round">medication</span> PHARMACY ORDERS</div>
+                <div class="flex gap-2 mb-4">
+                   <select class="form-control" [(ngModel)]="currentMed" (change)="addMedication()">
+                      <option [ngValue]="null">Search Medication...</option>
+                      <option *ngFor="let m of medicines" [ngValue]="m">{{ m.itemName }} ({{ m.unit }})</option>
+                   </select>
+                </div>
+                <div class="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar">
+                   <div *ngFor="let mi of encounterOrders.medications; let i = index" class="item-row">
+                      <div class="text-xs">
+                         <div class="font-bold">{{ mi.itemName }}</div>
+                         <input class="form-control h-7 px-2 border-0 bg-transparent text-[0.6rem] font-bold" [(ngModel)]="mi.dosage" placeholder="Dosage (e.g. 500mg)">
+                      </div>
+                      <input class="form-control h-8 text-center font-bold" type="number" [(ngModel)]="mi.quantity" placeholder="Qty">
+                      <select class="form-control h-8 text-[0.6rem] font-bold" [(ngModel)]="mi.frequency">
+                         <option value="Once Daily">Once Daily</option>
+                         <option value="BID (2x)">BID (2x)</option>
+                         <option value="TID (3x)">TID (3x)</option>
+                         <option value="QID (4x)">QID (4x)</option>
+                         <option value="As Needed">As Needed</option>
+                      </select>
+                      <button class="btn btn-icon btn-xs text-danger" (click)="removeMed(i)"><span class="material-icons-round">close</span></button>
+                   </div>
+                </div>
+             </div>
+
+             <!-- DIAGNOSTIC ORDERS -->
+             <div class="order-section">
+                <div class="order-title"><span class="material-icons-round">biotech</span> DIAGNOSTICS & IMAGING</div>
+                <div class="flex flex-col gap-4">
+                   <div>
+                      <div class="text-[0.6rem] font-black text-muted uppercase mb-2">Laboratory Tests</div>
+                      <div class="flex flex-wrap gap-2">
+                         <div *ngFor="let t of labTests" class="test-pill cursor-pointer hover:bg-opacity-20" 
+                              [class.bg-primary]="isTestSelected(t.id, 'lab')"
+                              (click)="toggleTest(t, 'lab')">
+                            {{ t.name }}
+                            <span class="material-icons-round text-xs">{{ isTestSelected(t.id, 'lab') ? 'check_circle' : 'add' }}</span>
+                         </div>
+                      </div>
+                   </div>
+                   <div class="pt-4 border-top">
+                      <div class="text-[0.6rem] font-black text-muted uppercase mb-2">Imaging (Radiology)</div>
+                      <div class="flex flex-wrap gap-2">
+                         <div *ngFor="let rt of radTests" class="test-pill cursor-pointer hover:bg-opacity-20"
+                              [class.bg-accent]="isTestSelected(rt.id, 'rad')"
+                              (click)="toggleTest(rt, 'rad')">
+                            {{ rt.name }}
+                            <span class="material-icons-round text-xs">{{ isTestSelected(rt.id, 'rad') ? 'check_circle' : 'add' }}</span>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+             </div>
+          </div>
+
           <div class="flex items-center gap-3 p-4 bg-glass border rounded-xl" *ngIf="!encounterForm.isFinalized">
             <input type="checkbox" id="finalize" [(ngModel)]="encounterForm.isFinalized" style="width:20px;height:20px">
             <div>
@@ -310,10 +375,20 @@ export class ClinicalComponent implements OnInit {
   form: any = {};
   encounterForm: any = {};
 
+  medicines: any[] = [];
+  labTests: any[] = [];
+  radTests: any[] = [];
+  currentMed: any = null;
+  encounterOrders = { medications: [] as any[], labTestIds: [] as number[], radTestIds: [] as number[] };
+
   constructor(
     private clinical: ClinicalService,
     private patientSvc: PatientService,
     private doctorSvc: DoctorService,
+    private labSvc: LabService,
+    private radSvc: RadiologyService,
+    private invSvc: InventoryService,
+    private rxSvc: PharmacyService,
     private toast: ToastService,
     private translate: TranslateService
   ) { }
@@ -322,6 +397,9 @@ export class ClinicalComponent implements OnInit {
     this.load();
     this.patientSvc.getAll({ pageSize: 1000 }).subscribe((r: any) => this.patients = r.items);
     this.doctorSvc.getAll({ pageSize: 1000 }).subscribe((r: any) => this.doctors = r.items);
+    this.invSvc.getItems({}, 'Pharmacy').subscribe(r => this.medicines = r.items);
+    this.labSvc.getTests({ pageSize: 1000 }).subscribe((r: any) => this.labTests = r.items || r);
+    this.radSvc.getTests({ pageSize: 1000 }).subscribe((r: any) => this.radTests = r.items || r);
   }
 
   load() {
@@ -382,13 +460,84 @@ export class ClinicalComponent implements OnInit {
       : this.clinical.createEncounter(this.encounterForm);
 
     obs.subscribe({
-      next: () => {
+      next: (res: any) => {
+        // Trigger orders if any
+        this._processOrders(res.id || this.encounterForm.id);
+
         this.toast.success(this.translate.instant('SUCCESS_SAVE'));
         this.showEncounterForm = false;
         this.loadEncounters();
       },
       error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
     });
+  }
+
+  private _processOrders(encounterId: number) {
+    const patientId = this.encounterForm.patientId;
+    const doctorId = this.encounterForm.doctorId;
+
+    // 1. Create Prescription if meds exist
+    if (this.encounterOrders.medications.length > 0) {
+      this.rxSvc.createPrescription({
+        patientId, doctorId, encounterId,
+        notes: 'Generated from clinical encounter',
+        items: this.encounterOrders.medications.map(m => ({
+          itemId: m.itemId,
+          dosage: m.dosage || 'As directed',
+          frequency: m.frequency || 'Once Daily',
+          duration: '5 days',
+          quantity: m.quantity || 1
+        }))
+      }).subscribe();
+    }
+
+    // 2. Create Lab Request
+    if (this.encounterOrders.labTestIds.length > 0) {
+      this.labSvc.createRequest({
+        patientId, doctorId,
+        requestDate: new Date(),
+        testIds: this.encounterOrders.labTestIds
+      }).subscribe();
+    }
+
+    // 3. Create Radiology Request
+    if (this.encounterOrders.radTestIds.length > 0) {
+      this.radSvc.createRequest({
+        patientId, doctorId,
+        requestDate: new Date(),
+        testIds: this.encounterOrders.radTestIds
+      }).subscribe();
+    }
+  }
+
+  addMedication() {
+    if (!this.currentMed) return;
+    if (!this.encounterOrders.medications.find(m => m.itemId === this.currentMed.id)) {
+      this.encounterOrders.medications.push({
+        itemId: this.currentMed.id,
+        itemName: this.currentMed.itemName,
+        quantity: 1,
+        dosage: '',
+        frequency: 'Once Daily'
+      });
+    }
+    this.currentMed = null;
+  }
+
+  removeMed(index: number) {
+    this.encounterOrders.medications.splice(index, 1);
+  }
+
+  toggleTest(test: any, type: 'lab' | 'rad') {
+    const list = type === 'lab' ? this.encounterOrders.labTestIds : this.encounterOrders.radTestIds;
+    const idx = list.indexOf(test.id);
+    if (idx > -1) list.splice(idx, 1);
+    else list.push(test.id);
+  }
+
+  isTestSelected(id: number, type: 'lab' | 'rad') {
+    const list = type === 'lab' ? this.encounterOrders.labTestIds : this.encounterOrders.radTestIds;
+    return list.includes(id);
   }
 
   deleteEncounter(id: number) {

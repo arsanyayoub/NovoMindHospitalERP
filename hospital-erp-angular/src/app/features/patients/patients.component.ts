@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { RouterModule } from '@angular/router';
 import { PatientService, InvoiceService, AppointmentService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
 @Component({
    selector: 'app-patients',
    standalone: true,
-   imports: [CommonModule, FormsModule, TranslateModule],
+   imports: [CommonModule, FormsModule, TranslateModule, RouterModule],
    styles: [`
     .patient-tab-nav { display: flex; gap: 4px; background: rgba(0,0,0,0.15); padding: 5px; border-radius: 14px; margin-bottom: 24px; width: fit-content; border: 1px solid var(--border); }
     .patient-tab-btn { padding: 10px 20px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
@@ -67,27 +68,27 @@ import { ToastService } from '../../core/services/language.service';
                       <div class="text-[0.65rem] font-black uppercase text-primary tracking-widest">{{ p.patientCode }}</div>
                    </div>
                 </div>
-                <div class="flex gap-1">
-                   <button class="btn btn-icon btn-xs text-muted" (click)="openHistory(p)"><span class="material-icons-round">history</span></button>
-                   <button class="btn btn-icon btn-xs text-primary" (click)="openForm(p)"><span class="material-icons-round">edit</span></button>
-                </div>
-             </div>
-             
-             <div class="grid grid-cols-2 gap-4 mb-6">
-                <div class="bg-glass p-3 rounded-2xl border">
-                   <div class="text-[0.55rem] font-black text-muted uppercase tracking-widest mb-1">{{ 'GENDER' | translate }}</div>
-                   <div class="font-bold flex items-center gap-1 text-sm"><span class="material-icons-round text-xs">{{ p.gender === 'Male' ? 'male' : 'female' }}</span> {{ p.gender | translate }}</div>
-                </div>
-                <div class="bg-glass p-3 rounded-2xl border">
-                   <div class="text-[0.55rem] font-black text-muted uppercase tracking-widest mb-1">{{ 'CONTACT' | translate }}</div>
-                   <div class="font-bold text-sm truncate">{{ p.phoneNumber || 'N/A' }}</div>
-                </div>
-             </div>
+                 <div class="flex gap-1">
+                    <button class="btn btn-icon btn-xs text-muted" [routerLink]="['/patients', p.id]"><span class="material-icons-round">history</span></button>
+                    <button class="btn btn-icon btn-xs text-primary" (click)="openForm(p)"><span class="material-icons-round">edit</span></button>
+                 </div>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-4 mb-6">
+                 <div class="bg-glass p-3 rounded-2xl border cursor-pointer" [routerLink]="['/patients', p.id]">
+                    <div class="text-[0.55rem] font-black text-muted uppercase tracking-widest mb-1">{{ 'GENDER' | translate }}</div>
+                    <div class="font-bold flex items-center gap-1 text-sm"><span class="material-icons-round text-xs">{{ p.gender === 'Male' ? 'male' : 'female' }}</span> {{ p.gender | translate }}</div>
+                 </div>
+                 <div class="bg-glass p-3 rounded-2xl border">
+                    <div class="text-[0.55rem] font-black text-muted uppercase tracking-widest mb-1">{{ 'CONTACT' | translate }}</div>
+                    <div class="font-bold text-sm truncate">{{ p.phoneNumber || 'N/A' }}</div>
+                 </div>
+              </div>
 
-             <div class="flex items-center justify-between border-top pt-4">
-                <div class="text-[0.6rem] font-black uppercase text-muted">{{ 'REGISTERED' | translate }}: {{ p.createdAt | date:'mediumDate' }}</div>
-                <button class="btn btn-secondary btn-sm px-4 rounded-lg font-black text-[0.7rem]" (click)="openHistory(p)">{{ 'VIEW_FULL_PROFILE' | translate }}</button>
-             </div>
+              <div class="flex items-center justify-between border-top pt-4">
+                 <div class="text-[0.6rem] font-black uppercase text-muted">{{ 'REGISTERED' | translate }}: {{ p.createdDate | date:'mediumDate' }}</div>
+                 <button class="btn btn-secondary btn-sm px-4 rounded-lg font-black text-[0.7rem]" [routerLink]="['/patients', p.id]">{{ 'VIEW_FULL_PROFILE' | translate }}</button>
+              </div>
           </div>
        </div>
 
@@ -148,86 +149,6 @@ import { ToastService } from '../../core/services/language.service';
        </div>
     </div>
 
-    <!-- HISTORY DRAWER (RTL-friendly slide-in) -->
-    <div class="modal-overlay" *ngIf="showHistory" (click)="showHistory=false" style="background:rgba(0,0,0,0.6)">
-       <div class="history-drawer animate-in" (click)="$event.stopPropagation()">
-          <div class="drawer-header">
-             <div class="flex items-center gap-6">
-                <div class="w-16 h-16 rounded-3xl bg-primary bg-opacity-10 flex items-center justify-center text-primary font-black text-2xl shadow-inner shadow-primary">
-                   {{ (historyPatient?.fullName || 'P')[0] }}
-                </div>
-                <div>
-                   <h2 class="font-black text-2xl tracking-tighter">{{ historyPatient?.fullName }}</h2>
-                   <div class="flex gap-4 text-[0.65rem] font-black uppercase text-muted tracking-widest mt-1">
-                      <span class="text-primary">{{ historyPatient?.patientCode }}</span>
-                      <span>{{ historyPatient?.gender | translate }}</span>
-                      <span>{{ historyPatient?.dateOfBirth | date:'yyyy' }}</span>
-                   </div>
-                </div>
-                <button class="btn btn-icon text-muted ml-auto" (click)="showHistory=false"><span class="material-icons-round">close</span></button>
-             </div>
-          </div>
-
-          <div class="drawer-nav">
-             <button class="drawer-nav-item" [class.active]="historyTab==='appointments'" (click)="historyTab='appointments'">{{ 'APPOINTMENTS' | translate }}</button>
-             <button class="drawer-nav-item" [class.active]="historyTab==='vitals'" (click)="historyTab='vitals'">{{ 'VITALS' | translate }}</button>
-             <button class="drawer-nav-item" [class.active]="historyTab==='prescriptions'" (click)="historyTab='prescriptions'">{{ 'PHARMACY' | translate }}</button>
-             <button class="drawer-nav-item" [class.active]="historyTab==='lab'" (click)="historyTab='lab'">{{ 'LABORATORY' | translate }}</button>
-             <button class="drawer-nav-item" [class.active]="historyTab==='radiology'" (click)="historyTab='radiology'">{{ 'IMAGING' | translate }}</button>
-             <button class="drawer-nav-item" [class.active]="historyTab==='invoices'" (click)="historyTab='invoices'">{{ 'BILLING' | translate }}</button>
-          </div>
-
-          <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
-             <div *ngIf="historyLoading" class="flex flex-col items-center justify-center h-full opacity-30grayscale">
-                <span class="spinner mb-4"></span>
-                <p class="font-black uppercase text-xs tracking-widest">{{ 'FETCHING_RECORDS'|translate }}</p>
-             </div>
-
-             <div *ngIf="!historyLoading" class="animate-in">
-                <!-- VITALS PREVIEW -->
-                <div *ngIf="historyTab==='vitals'" class="grid gap-6">
-                   <div *ngFor="let v of historyVitals" class="p-6 bg-glass border rounded-3xl animate-in">
-                      <div class="flex justify-between items-center mb-6">
-                         <div class="flex items-center gap-2"><span class="material-icons-round text-primary">vitals</span> <span class="font-black text-sm">{{ 'MEDICAL_VITALS' | translate }}</span></div>
-                         <div class="text-[0.65rem] font-black text-muted">{{ v.recordedDate | date:'medium' }}</div>
-                      </div>
-                      <div class="grid grid-cols-2 gap-4">
-                         <div class="vitals-pill">
-                            <span class="vitals-val">{{ v.bloodPressureSystolic }}/{{ v.bloodPressureDiastolic }}</span>
-                            <span class="vitals-unit">mmHg</span>
-                         </div>
-                         <div class="vitals-pill">
-                            <span class="vitals-val">{{ v.temperature }}</span>
-                            <span class="vitals-unit">°C</span>
-                         </div>
-                         <div class="vitals-pill">
-                            <span class="vitals-val">{{ v.heartRate }}</span>
-                            <span class="vitals-unit">bpm</span>
-                         </div>
-                         <div class="vitals-pill">
-                            <span class="vitals-val">{{ v.spO2 }}</span>
-                            <span class="vitals-unit">% SpO2</span>
-                         </div>
-                      </div>
-                   </div>
-                </div>
-
-                <!-- GENERIC LISTING FOR OTHER TABS -->
-                <div *ngIf="historyTab !== 'vitals'">
-                   <div *ngIf="!getHistoryData()?.length" class="p-20 text-center opacity-30 italic font-black text-xs uppercase tracking-widest">{{ 'NO_RECORDS_YET' | translate }}</div>
-                   <div *ngFor="let item of getHistoryData()" class="mb-6 p-6 border rounded-3xl bg-glass animate-in">
-                      <div class="flex justify-between mb-4">
-                         <div class="badge badge-primary font-mono">{{ item.appointmentDate || item.prescriptionNumber || item.requestNumber || item.invoiceNumber }}</div>
-                         <div class="text-[0.65rem] font-black text-muted uppercase">{{ (item.appointmentDate || item.prescriptionDate || item.requestDate || item.invoiceDate) | date:'mediumDate' }}</div>
-                      </div>
-                      <div class="font-bold text-lg mb-1">{{ item.description || item.doctorName || item.status }}</div>
-                      <div class="text-xs font-black text-primary uppercase opacity-60">{{ item.notes || item.diagnosis || 'DETAILS' | translate }}</div>
-                   </div>
-                </div>
-             </div>
-          </div>
-       </div>
-    </div>
 
     <!-- PATIENT FORM MODAL -->
     <div class="modal-overlay" *ngIf="showForm" (click)="showForm=false">
@@ -253,6 +174,24 @@ import { ToastService } from '../../core/services/language.service';
                    </select>
                 </div>
                 <div class="form-group col-span-2"><label class="form-label font-black text-xs uppercase">{{ 'RELEVANT_MEDICAL_HISTORY'|translate }}</label><textarea class="form-control rounded-2xl p-4" rows="3" [(ngModel)]="form.medicalHistory"></textarea></div>
+                
+                <div class="form-group col-span-2 mt-4 pt-4 border-top">
+                   <h4 class="font-black text-xs uppercase tracking-widest text-primary mb-4">{{ 'INSURANCE_DETAILS' | translate }}</h4>
+                   <div class="grid grid-cols-2 gap-4">
+                      <div class="form-group">
+                         <label class="form-label font-black text-[0.6rem] uppercase">{{ 'INSURANCE_PROVIDER' | translate }}</label>
+                         <input class="form-control h-12 rounded-xl" [(ngModel)]="form.insuranceProvider" placeholder="e.g. AXA, Bupa...">
+                      </div>
+                      <div class="form-group">
+                         <label class="form-label font-black text-[0.6rem] uppercase">{{ 'POLICY_NUMBER' | translate }}</label>
+                         <input class="form-control h-12 rounded-xl" [(ngModel)]="form.insurancePolicyNumber">
+                      </div>
+                      <div class="form-group col-span-2">
+                         <label class="form-label font-black text-[0.6rem] uppercase">{{ 'COVERAGE_TERMS' | translate }}</label>
+                         <input class="form-control h-12 rounded-xl" [(ngModel)]="form.insuranceCoverage" placeholder="e.g. 80/20 Co-pay, Full Coverage...">
+                      </div>
+                   </div>
+                </div>
              </div>
           </div>
           <div class="modal-footer bg-glass">
@@ -297,19 +236,6 @@ export class PatientsComponent implements OnInit {
    form: any = {};
    selectedInvoice: any = null;
    payAmount = 0;
-   showHistory = false;
-   historyPatient: any = null;
-   historyTab = 'appointments';
-   historyAppointments: any[] = [];
-   historyInvoices: any[] = [];
-   historyVitals: any[] = [];
-   historyPrescriptions: any[] = [];
-   historyLab: any[] = [];
-   historyRadiology: any[] = [];
-   historyLoading = false;
-   private _historyLoads = 0;
-   private readonly TOTAL_HISTORY_TABS = 6;
-
    constructor(
       private svc: PatientService,
       private invSvc: InvoiceService,
@@ -367,36 +293,5 @@ export class PatientsComponent implements OnInit {
          },
          error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
       });
-   }
-
-   openHistory(patient: any) {
-      this.historyPatient = patient;
-      this.historyTab = 'appointments';
-      this.historyLoading = true;
-      this._historyLoads = 0;
-      this.showHistory = true;
-
-      this.svc.getAppointments(patient.id).subscribe({ next: r => { this.historyAppointments = r; this._checkHistoryDone(); }, error: () => this._checkHistoryDone() });
-      this.svc.getInvoices(patient.id).subscribe({ next: r => { this.historyInvoices = r; this._checkHistoryDone(); }, error: () => this._checkHistoryDone() });
-      this.svc.getVitals(patient.id).subscribe({ next: r => { this.historyVitals = r; this._checkHistoryDone(); }, error: () => this._checkHistoryDone() });
-      this.svc.getPrescriptions(patient.id).subscribe({ next: r => { this.historyPrescriptions = r; this._checkHistoryDone(); }, error: () => this._checkHistoryDone() });
-      this.svc.getLabRequests(patient.id).subscribe({ next: r => { this.historyLab = r; this._checkHistoryDone(); }, error: () => this._checkHistoryDone() });
-      this.svc.getRadiologyRequests(patient.id).subscribe({ next: r => { this.historyRadiology = r; this._checkHistoryDone(); }, error: () => this._checkHistoryDone() });
-   }
-
-   private _checkHistoryDone() {
-      this._historyLoads++;
-      if (this._historyLoads >= this.TOTAL_HISTORY_TABS) this.historyLoading = false;
-   }
-
-   getHistoryData(): any[] {
-      switch (this.historyTab) {
-         case 'appointments': return this.historyAppointments;
-         case 'invoices': return this.historyInvoices;
-         case 'prescriptions': return this.historyPrescriptions;
-         case 'lab': return this.historyLab;
-         case 'radiology': return this.historyRadiology;
-         default: return [];
-      }
    }
 }

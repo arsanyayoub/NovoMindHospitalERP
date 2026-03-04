@@ -221,3 +221,13 @@ public interface IPdfService
 {
     Task<byte[]> GenerateInvoicePdfAsync(int invoiceId);
 }
+
+public interface IUserService
+{
+    Task<PagedResult<UserDto>> GetUsersAsync(PagedRequest request);
+    Task<UserDto?> GetUserByIdAsync(int id);
+    Task<UserDto> CreateUserAsync(CreateUserDto dto, string createdBy);
+    Task<UserDto> UpdateUserAsync(int id, UpdateUserDto dto, string updatedBy);
+    Task ToggleUserStatusAsync(int id, string updatedBy);
+    Task<IEnumerable<RoleDto>> GetRolesAsync();
+}
