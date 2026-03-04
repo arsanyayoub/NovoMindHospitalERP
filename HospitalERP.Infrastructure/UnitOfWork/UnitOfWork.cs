@@ -39,6 +39,16 @@ public class UnitOfWork : IUnitOfWork
         Expenses = new Repository<Expense>(context);
         Assets = new Repository<Asset>(context);
         Notifications = new Repository<Notification>(context);
+        LabTests = new Repository<LabTest>(context);
+        LabRequests = new Repository<LabRequest>(context);
+        LabResults = new Repository<LabResult>(context);
+        RadiologyTests = new Repository<RadiologyTest>(context);
+        RadiologyRequests = new Repository<RadiologyRequest>(context);
+        RadiologyResults = new Repository<RadiologyResult>(context);
+        PatientVitals = new Repository<PatientVital>(context);
+        Prescriptions = new Repository<Prescription>(context);
+        PrescriptionItems = new Repository<PrescriptionItem>(context);
+        ClinicalEncounters = new Repository<ClinicalEncounter>(context);
     }
 
     public IRepository<User> Users { get; }
@@ -69,6 +79,16 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<Expense> Expenses { get; }
     public IRepository<Asset> Assets { get; }
     public IRepository<Notification> Notifications { get; }
+    public IRepository<LabTest> LabTests { get; }
+    public IRepository<LabRequest> LabRequests { get; }
+    public IRepository<LabResult> LabResults { get; }
+    public IRepository<RadiologyTest> RadiologyTests { get; }
+    public IRepository<RadiologyRequest> RadiologyRequests { get; }
+    public IRepository<RadiologyResult> RadiologyResults { get; }
+    public IRepository<PatientVital> PatientVitals { get; }
+    public IRepository<Prescription> Prescriptions { get; }
+    public IRepository<PrescriptionItem> PrescriptionItems { get; }
+    public IRepository<ClinicalEncounter> ClinicalEncounters { get; }
 
     public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
 

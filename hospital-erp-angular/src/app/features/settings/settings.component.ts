@@ -8,10 +8,10 @@ import { ToastService } from '../../core/services/language.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
-    selector: 'app-settings',
-    standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule],
-    template: `
+  selector: 'app-settings',
+  standalone: true,
+  imports: [CommonModule, FormsModule, TranslateModule],
+  template: `
     <div class="page-header">
       <div>
         <h1 class="page-title">{{ 'SETTINGS' | translate }}</h1>
@@ -56,7 +56,7 @@ import { environment } from '../../../environments/environment';
                   <span class="material-icons-round" style="font-size:12px">shield</span>
                   {{ auth.currentUser?.role }}
                 </span>
-                <span class="text-muted text-sm">@{{ auth.currentUser?.username }}</span>
+                <span class="text-muted text-sm">{{'@'}}{{ auth.currentUser?.username }}</span>
               </div>
               <div class="profile-stats mt-4">
                 <div class="profile-stat">
@@ -250,7 +250,7 @@ import { environment } from '../../../environments/environment';
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     .settings-layout {
       display: grid;
       grid-template-columns: 220px 1fr;
@@ -325,81 +325,81 @@ import { environment } from '../../../environments/environment';
   `]
 })
 export class SettingsComponent implements OnInit {
-    tab = 'profile';
-    saving = false;
-    lang = 'en';
-    showCurrent = false; showNew = false; showConfirm = false;
-    strength = 0;
-    strengthClass = '';
-    strengthLabel = '';
+  tab = 'profile';
+  saving = false;
+  lang = 'en';
+  showCurrent = false; showNew = false; showConfirm = false;
+  strength = 0;
+  strengthClass = '';
+  strengthLabel = '';
 
-    profileForm: any = {};
-    pwForm: any = { currentPassword: '', newPassword: '', confirmPassword: '' };
+  profileForm: any = {};
+  pwForm: any = { currentPassword: '', newPassword: '', confirmPassword: '' };
 
-    constructor(
-        public auth: AuthService,
-        private http: HttpClient,
-        private toast: ToastService
-    ) { }
+  constructor(
+    public auth: AuthService,
+    private http: HttpClient,
+    private toast: ToastService
+  ) { }
 
-    ngOnInit() {
-        const u = this.auth.currentUser;
-        this.profileForm = { fullName: u?.fullName, email: '', phoneNumber: '', username: u?.username };
-        this.lang = document.documentElement.getAttribute('dir') === 'rtl' ? 'ar' : 'en';
+  ngOnInit() {
+    const u = this.auth.currentUser;
+    this.profileForm = { fullName: u?.fullName, email: '', phoneNumber: '', username: u?.username };
+    this.lang = document.documentElement.getAttribute('dir') === 'rtl' ? 'ar' : 'en';
+  }
+
+  saveProfile() {
+    this.saving = true;
+    this.http.put(`${environment.apiUrl}/auth/profile`, this.profileForm).subscribe({
+      next: () => { this.toast.success('Profile updated'); this.saving = false; },
+      error: () => { this.toast.error('Failed to update profile'); this.saving = false; }
+    });
+  }
+
+  changePassword() {
+    if (this.pwForm.newPassword !== this.pwForm.confirmPassword) {
+      this.toast.error('Passwords do not match'); return;
     }
+    this.saving = true;
+    this.http.post(`${environment.apiUrl}/auth/change-password`, {
+      currentPassword: this.pwForm.currentPassword,
+      newPassword: this.pwForm.newPassword
+    }).subscribe({
+      next: () => {
+        this.toast.success('Password changed successfully');
+        this.pwForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
+        this.saving = false;
+      },
+      error: (e: any) => { this.toast.error(e.error?.message || 'Failed to change password'); this.saving = false; }
+    });
+  }
 
-    saveProfile() {
-        this.saving = true;
-        this.http.put(`${environment.apiUrl}/auth/profile`, this.profileForm).subscribe({
-            next: () => { this.toast.success('Profile updated'); this.saving = false; },
-            error: () => { this.toast.error('Failed to update profile'); this.saving = false; }
-        });
-    }
+  checkStrength() {
+    const pw = this.pwForm.newPassword;
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    this.strength = score;
+    if (score <= 1) { this.strengthClass = 'text-danger'; this.strengthLabel = 'Weak'; }
+    else if (score === 2) { this.strengthClass = 'text-warning'; this.strengthLabel = 'Fair'; }
+    else if (score === 3) { this.strengthClass = 'text-info'; this.strengthLabel = 'Good'; }
+    else { this.strengthClass = 'text-success'; this.strengthLabel = 'Strong'; }
+  }
 
-    changePassword() {
-        if (this.pwForm.newPassword !== this.pwForm.confirmPassword) {
-            this.toast.error('Passwords do not match'); return;
-        }
-        this.saving = true;
-        this.http.post(`${environment.apiUrl}/auth/change-password`, {
-            currentPassword: this.pwForm.currentPassword,
-            newPassword: this.pwForm.newPassword
-        }).subscribe({
-            next: () => {
-                this.toast.success('Password changed successfully');
-                this.pwForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
-                this.saving = false;
-            },
-            error: (e: any) => { this.toast.error(e.error?.message || 'Failed to change password'); this.saving = false; }
-        });
-    }
+  setLang(lang: string) {
+    this.lang = lang;
+    document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    document.documentElement.setAttribute('lang', lang);
+    localStorage.setItem('lang', lang);
+    location.reload();
+  }
 
-    checkStrength() {
-        const pw = this.pwForm.newPassword;
-        let score = 0;
-        if (pw.length >= 8) score++;
-        if (/[A-Z]/.test(pw)) score++;
-        if (/[0-9]/.test(pw)) score++;
-        if (/[^A-Za-z0-9]/.test(pw)) score++;
-        this.strength = score;
-        if (score <= 1) { this.strengthClass = 'text-danger'; this.strengthLabel = 'Weak'; }
-        else if (score === 2) { this.strengthClass = 'text-warning'; this.strengthLabel = 'Fair'; }
-        else if (score === 3) { this.strengthClass = 'text-info'; this.strengthLabel = 'Good'; }
-        else { this.strengthClass = 'text-success'; this.strengthLabel = 'Strong'; }
-    }
-
-    setLang(lang: string) {
-        this.lang = lang;
-        document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
-        document.documentElement.setAttribute('lang', lang);
-        localStorage.setItem('lang', lang);
-        location.reload();
-    }
-
-    clearCache() {
-        const token = this.auth.token;
-        localStorage.clear();
-        if (token) localStorage.setItem('auth_user', JSON.stringify(this.auth.currentUser));
-        this.toast.success('Cache cleared');
-    }
+  clearCache() {
+    const token = this.auth.token;
+    localStorage.clear();
+    if (token) localStorage.setItem('auth_user', JSON.stringify(this.auth.currentUser));
+    this.toast.success('Cache cleared');
+  }
 }

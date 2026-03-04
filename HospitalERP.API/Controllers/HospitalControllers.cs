@@ -56,6 +56,18 @@ public class PatientsController : ControllerBase
 
     [HttpGet("{id}/invoices")]
     public async Task<IActionResult> GetInvoices(int id) => Ok(await _service.GetPatientInvoicesAsync(id));
+    
+    [HttpGet("{id}/vitals")]
+    public async Task<IActionResult> GetVitals(int id) => Ok(await _service.GetPatientVitalsAsync(id));
+
+    [HttpGet("{id}/prescriptions")]
+    public async Task<IActionResult> GetPrescriptions(int id) => Ok(await _service.GetPatientPrescriptionsAsync(id));
+
+    [HttpGet("{id}/lab-requests")]
+    public async Task<IActionResult> GetLabRequests(int id) => Ok(await _service.GetPatientLabRequestsAsync(id));
+
+    [HttpGet("{id}/radiology-requests")]
+    public async Task<IActionResult> GetRadiologyRequests(int id) => Ok(await _service.GetPatientRadiologyRequestsAsync(id));
 }
 
 [Authorize]
@@ -185,4 +197,12 @@ public class InvoicesController : ControllerBase
 
     [HttpGet("{id}/payments")]
     public async Task<IActionResult> GetPayments(int id) => Ok(await _service.GetPaymentsAsync(id));
+
+    [HttpGet("{id}/pdf")]
+    public async Task<IActionResult> DownloadPdf(int id, [FromServices] IPdfService pdfService)
+    {
+        var pdf = await pdfService.GenerateInvoicePdfAsync(id);
+        if (pdf == null) return NotFound();
+        return File(pdf, "application/pdf", $"Invoice_{id}.pdf");
+    }
 }

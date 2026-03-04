@@ -40,6 +40,10 @@ export class PatientService {
     delete(id: number): Observable<void> { return this.http.delete<void>(`${this.API}/${id}`); }
     getAppointments(id: number): Observable<any[]> { return this.http.get<any[]>(`${this.API}/${id}/appointments`); }
     getInvoices(id: number): Observable<any[]> { return this.http.get<any[]>(`${this.API}/${id}/invoices`); }
+    getVitals(id: number): Observable<any[]> { return this.http.get<any[]>(`${this.API}/${id}/vitals`); }
+    getPrescriptions(id: number): Observable<any[]> { return this.http.get<any[]>(`${this.API}/${id}/prescriptions`); }
+    getLabRequests(id: number): Observable<any[]> { return this.http.get<any[]>(`${this.API}/${id}/lab-requests`); }
+    getRadiologyRequests(id: number): Observable<any[]> { return this.http.get<any[]>(`${this.API}/${id}/radiology-requests`); }
 }
 
 @Injectable({ providedIn: 'root' })
@@ -110,6 +114,7 @@ export class InvoiceService {
     delete(id: number): Observable<void> { return this.http.delete<void>(`${this.API}/${id}`); }
     recordPayment(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/payment`, dto); }
     getPayments(id: number): Observable<any[]> { return this.http.get<any[]>(`${this.API}/${id}/payments`); }
+    downloadPdf(id: number): Observable<Blob> { return this.http.get(`${this.API}/${id}/pdf`, { responseType: 'blob' }); }
 }
 
 @Injectable({ providedIn: 'root' })
@@ -143,11 +148,12 @@ export class InventoryService {
     private readonly API = `${environment.apiUrl}/inventory`;
     constructor(private http: HttpClient) { }
 
-    getItems(request: PagedRequest = {}): Observable<PagedResult<any>> {
+    getItems(request: PagedRequest = {}, category?: string): Observable<PagedResult<any>> {
         let params = new HttpParams();
         if (request.page) params = params.set('page', request.page);
         if (request.pageSize) params = params.set('pageSize', request.pageSize);
         if (request.search) params = params.set('search', request.search);
+        if (category) params = params.set('category', category);
         return this.http.get<PagedResult<any>>(`${this.API}/items`, { params });
     }
     createItem(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/items`, dto); }
@@ -163,6 +169,46 @@ export class InventoryService {
     }
     getLowStock(): Observable<any[]> { return this.http.get<any[]>(`${this.API}/stock/low`); }
     transferStock(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/stock/transfer`, dto); }
+
+    // ---------- Batches ----------
+    getBatches(request: PagedRequest = {}, filters: { itemId?: number; warehouseId?: number; excludeExpired?: boolean; excludeExhausted?: boolean } = {}): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (request.search) params = params.set('search', request.search);
+        if (filters.itemId) params = params.set('itemId', filters.itemId);
+        if (filters.warehouseId) params = params.set('warehouseId', filters.warehouseId);
+        if (filters.excludeExpired != null) params = params.set('excludeExpired', filters.excludeExpired);
+        if (filters.excludeExhausted != null) params = params.set('excludeExhausted', filters.excludeExhausted);
+        return this.http.get<PagedResult<any>>(`${this.API}/batches`, { params });
+    }
+    getBatch(id: number): Observable<any> { return this.http.get<any>(`${this.API}/batches/${id}`); }
+    createBatch(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/batches`, dto); }
+    updateBatch(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/batches/${id}`, dto); }
+    deleteBatch(id: number): Observable<void> { return this.http.delete<void>(`${this.API}/batches/${id}`); }
+
+    // ---------- Packaging Units ----------
+    getPackagingUnits(itemId: number): Observable<any[]> { return this.http.get<any[]>(`${this.API}/items/${itemId}/packaging-units`); }
+    createPackagingUnit(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/packaging-units`, dto); }
+    deletePackagingUnit(id: number): Observable<void> { return this.http.delete<void>(`${this.API}/packaging-units/${id}`); }
+
+    // ---------- Barcode Scan ----------
+    scanBarcode(barcode: string, warehouseId?: number): Observable<any> {
+        let params = new HttpParams().set('barcode', barcode);
+        if (warehouseId) params = params.set('warehouseId', warehouseId);
+        return this.http.get<any>(`${this.API}/scan`, { params });
+    }
+
+    // ---------- Reports ----------
+    getTransactions(itemId?: number, warehouseId?: number, type?: string, from?: string, to?: string): Observable<any[]> {
+        let params = new HttpParams();
+        if (itemId) params = params.set('itemId', itemId);
+        if (warehouseId) params = params.set('warehouseId', warehouseId);
+        if (type) params = params.set('type', type);
+        if (from) params = params.set('from', from);
+        if (to) params = params.set('to', to);
+        return this.http.get<any[]>(`${this.API}/transactions`, { params });
+    }
 }
 
 @Injectable({ providedIn: 'root' })
@@ -242,8 +288,120 @@ export class HRService {
 }
 
 @Injectable({ providedIn: 'root' })
+export class ReportingService {
+    private readonly API = `${environment.apiUrl}/reporting`;
+    constructor(private http: HttpClient) { }
+    getPatients(from: string, to: string): Observable<any> {
+        return this.http.get<any>(`${this.API}/patients`, { params: new HttpParams().set('from', from).set('to', to) });
+    }
+    getAppointments(from: string, to: string): Observable<any> {
+        return this.http.get<any>(`${this.API}/appointments`, { params: new HttpParams().set('from', from).set('to', to) });
+    }
+    getLab(from: string, to: string): Observable<any> {
+        return this.http.get<any>(`${this.API}/lab`, { params: new HttpParams().set('from', from).set('to', to) });
+    }
+    getRadiology(from: string, to: string): Observable<any> {
+        return this.http.get<any>(`${this.API}/radiology`, { params: new HttpParams().set('from', from).set('to', to) });
+    }
+    getPharmacy(from: string, to: string): Observable<any> {
+        return this.http.get<any>(`${this.API}/pharmacy`, { params: new HttpParams().set('from', from).set('to', to) });
+    }
+    getInventory(): Observable<any> {
+        return this.http.get<any>(`${this.API}/inventory`);
+    }
+    getHR(year: number): Observable<any> {
+        return this.http.get<any>(`${this.API}/hr`, { params: new HttpParams().set('year', year) });
+    }
+}
+
+@Injectable({ providedIn: 'root' })
 export class DashboardService {
     private readonly API = `${environment.apiUrl}/dashboard`;
     constructor(private http: HttpClient) { }
     get(): Observable<any> { return this.http.get<any>(this.API); }
+}
+
+@Injectable({ providedIn: 'root' })
+export class LabService {
+    private readonly API = `${environment.apiUrl}/lab`;
+    constructor(private http: HttpClient) { }
+    getTests(req: any): Observable<any> { return this.http.get<any>(`${this.API}/tests`, { params: req }); }
+    getTest(id: number): Observable<any> { return this.http.get<any>(`${this.API}/tests/${id}`); }
+    createTest(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/tests`, dto); }
+    updateTest(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/tests/${id}`, dto); }
+    deleteTest(id: number): Observable<any> { return this.http.delete(`${this.API}/tests/${id}`); }
+    getRequests(req: any, status?: string): Observable<any> {
+        let p = new HttpParams({ fromObject: req });
+        if (status) p = p.set('status', status);
+        return this.http.get<any>(`${this.API}/requests`, { params: p });
+    }
+    getRequest(id: number): Observable<any> { return this.http.get<any>(`${this.API}/requests/${id}`); }
+    createRequest(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/requests`, dto); }
+    updateResult(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/results/${id}`, dto); }
+    completeRequest(id: number): Observable<any> { return this.http.post<any>(`${this.API}/requests/${id}/complete`, {}); }
+}
+
+@Injectable({ providedIn: 'root' })
+export class RadiologyService {
+    private readonly API = `${environment.apiUrl}/radiology`;
+    constructor(private http: HttpClient) { }
+    getTests(req: any): Observable<any> { return this.http.get<any>(`${this.API}/tests`, { params: req }); }
+    getTest(id: number): Observable<any> { return this.http.get<any>(`${this.API}/tests/${id}`); }
+    createTest(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/tests`, dto); }
+    updateTest(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/tests/${id}`, dto); }
+    deleteTest(id: number): Observable<any> { return this.http.delete(`${this.API}/tests/${id}`); }
+    getRequests(req: any, status?: string): Observable<any> {
+        let p = new HttpParams({ fromObject: req });
+        if (status) p = p.set('status', status);
+        return this.http.get<any>(`${this.API}/requests`, { params: p });
+    }
+    getRequest(id: number): Observable<any> { return this.http.get<any>(`${this.API}/requests/${id}`); }
+    createRequest(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/requests`, dto); }
+    updateResult(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/results/${id}`, dto); }
+    completeRequest(id: number): Observable<any> { return this.http.post<any>(`${this.API}/requests/${id}/complete`, {}); }
+}
+
+@Injectable({ providedIn: 'root' })
+export class ClinicalService {
+    private readonly API = `${environment.apiUrl}/clinical`;
+    constructor(private http: HttpClient) { }
+    getVitals(req: any, patientId?: number): Observable<any> {
+        let p = new HttpParams({ fromObject: req });
+        if (patientId) p = p.set('patientId', patientId);
+        return this.http.get<any>(`${this.API}/vitals`, { params: p });
+    }
+    createVital(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/vitals`, dto); }
+    deleteVital(id: number): Observable<any> { return this.http.delete(`${this.API}/vitals/${id}`); }
+
+    // Encounters
+    getEncounters(req: any, patientId?: number, doctorId?: number): Observable<any> {
+        let p = new HttpParams({ fromObject: req });
+        if (patientId) p = p.set('patientId', patientId);
+        if (doctorId) p = p.set('doctorId', doctorId);
+        return this.http.get<any>(`${this.API}/encounters`, { params: p });
+    }
+    getEncounter(id: number): Observable<any> { return this.http.get<any>(`${this.API}/encounters/${id}`); }
+    createEncounter(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/encounters`, dto); }
+    updateEncounter(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/encounters/${id}`, dto); }
+    deleteEncounter(id: number): Observable<any> { return this.http.delete(`${this.API}/encounters/${id}`); }
+}
+
+@Injectable({ providedIn: 'root' })
+export class PharmacyService {
+    private readonly API = `${environment.apiUrl}/pharmacy`;
+    constructor(private http: HttpClient) { }
+    getPrescriptions(req: any, status?: string): Observable<any> {
+        let p = new HttpParams({ fromObject: req });
+        if (status) p = p.set('status', status);
+        return this.http.get<any>(`${this.API}/prescriptions`, { params: p });
+    }
+    getPrescription(id: number): Observable<any> { return this.http.get<any>(`${this.API}/prescriptions/${id}`); }
+    createPrescription(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/prescriptions`, dto); }
+    cancelPrescription(id: number): Observable<any> { return this.http.post<any>(`${this.API}/prescriptions/${id}/cancel`, {}); }
+    getPendingDispensing(patientId?: number): Observable<any> {
+        let p = new HttpParams();
+        if (patientId) p = p.set('patientId', patientId);
+        return this.http.get<any>(`${this.API}/pending-dispensing`, { params: p });
+    }
+    dispenseItem(id: number, dto: any): Observable<any> { return this.http.post<any>(`${this.API}/items/${id}/dispense`, dto); }
 }

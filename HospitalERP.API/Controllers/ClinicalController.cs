@@ -1,0 +1,66 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using HospitalERP.Application.Interfaces;
+using HospitalERP.Application.DTOs;
+using System.Security.Claims;
+
+namespace HospitalERP.API.Controllers;
+
+[Authorize]
+[ApiController]
+[Route("api/[controller]")]
+public class ClinicalController : ControllerBase
+{
+    private readonly IClinicalService _service;
+    public ClinicalController(IClinicalService service) => _service = service;
+
+    [HttpGet("vitals")]
+    public async Task<IActionResult> GetVitals([FromQuery] PagedRequest request, [FromQuery] int? patientId) =>
+        Ok(await _service.GetVitalsAsync(request, patientId));
+
+    [HttpPost("vitals")]
+    public async Task<IActionResult> CreateVital([FromBody] CreatePatientVitalDto dto)
+    {
+        var recordedBy = User.FindFirstValue(ClaimTypes.Name) ?? "System";
+        return Ok(await _service.CreateVitalAsync(dto, recordedBy));
+    }
+
+    [HttpDelete("vitals/{id}")]
+    public async Task<IActionResult> DeleteVital(int id)
+    {
+        await _service.DeleteVitalAsync(id);
+        return NoContent();
+    }
+
+    [HttpGet("encounters")]
+    public async Task<IActionResult> GetEncounters([FromQuery] PagedRequest request, [FromQuery] int? patientId, [FromQuery] int? doctorId) =>
+        Ok(await _service.GetEncountersAsync(request, patientId, doctorId));
+
+    [HttpGet("encounters/{id}")]
+    public async Task<IActionResult> GetEncounter(int id)
+    {
+        var e = await _service.GetEncounterByIdAsync(id);
+        return e == null ? NotFound() : Ok(e);
+    }
+
+    [HttpPost("encounters")]
+    public async Task<IActionResult> CreateEncounter([FromBody] CreateClinicalEncounterDto dto)
+    {
+        var createdBy = User.FindFirstValue(ClaimTypes.Name) ?? "System";
+        return Ok(await _service.CreateEncounterAsync(dto, createdBy));
+    }
+
+    [HttpPut("encounters/{id}")]
+    public async Task<IActionResult> UpdateEncounter(int id, [FromBody] CreateClinicalEncounterDto dto)
+    {
+        var updatedBy = User.FindFirstValue(ClaimTypes.Name) ?? "System";
+        return Ok(await _service.UpdateEncounterAsync(id, dto, updatedBy));
+    }
+
+    [HttpDelete("encounters/{id}")]
+    public async Task<IActionResult> DeleteEncounter(int id)
+    {
+        await _service.DeleteEncounterAsync(id);
+        return NoContent();
+    }
+}

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj": {}
+    "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj": {}
   },
   "projects": {
-    "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj": {
+    "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
+        "projectUniqueName": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
         "projectName": "HospitalERP.Application",
-        "projectPath": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
+        "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
         "packagesPath": "C:\\Users\\arsany.awadallah\\.nuget\\packages\\",
-        "outputPath": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\obj\\",
+        "outputPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -32,11 +32,11 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj": {
-                "projectPath": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj"
+              "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj": {
+                "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj"
               },
-              "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj": {
-                "projectPath": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj"
+              "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj": {
+                "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj"
               }
             }
           }
@@ -73,6 +73,10 @@
               "target": "Package",
               "version": "[7.3.1, )"
             },
+            "QuestPDF": {
+              "target": "Package",
+              "version": "[2026.2.2, )"
+            },
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",
               "version": "[7.3.1, )"
@@ -98,14 +102,14 @@
         }
       }
     },
-    "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj": {
+    "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj",
+        "projectUniqueName": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj",
         "projectName": "HospitalERP.Domain",
-        "projectPath": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj",
+        "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj",
         "packagesPath": "C:\\Users\\arsany.awadallah\\.nuget\\packages\\",
-        "outputPath": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\obj\\",
+        "outputPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -163,14 +167,14 @@
         }
       }
     },
-    "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj": {
+    "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj",
+        "projectUniqueName": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj",
         "projectName": "HospitalERP.Infrastructure",
-        "projectPath": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj",
+        "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\arsany.awadallah\\.nuget\\packages\\",
-        "outputPath": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\obj\\",
+        "outputPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -191,8 +195,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj": {
-                "projectPath": "d:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj"
+              "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj": {
+                "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj"
               }
             }
           }

@@ -20,4 +20,6 @@ public class Patient : BaseEntity
     public bool IsActive { get; set; } = true;
     public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
     public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
+    public ICollection<PatientVital> Vitals { get; set; } = new List<PatientVital>();
+    public ICollection<Prescription> Prescriptions { get; set; } = new List<Prescription>();
 }

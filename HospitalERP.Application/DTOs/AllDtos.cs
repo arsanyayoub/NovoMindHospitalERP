@@ -152,7 +152,8 @@ public record CreateWarehouseDto(string WarehouseName, string? Location);
 
 public record WarehouseStockDto(
     int Id, int WarehouseId, string WarehouseName, int ItemId, string ItemName,
-    decimal Quantity, decimal ReorderLevel, decimal MaxLevel, bool IsLowStock);
+    decimal Quantity, decimal ReorderLevel, decimal MaxLevel, bool IsLowStock,
+    decimal PurchasePrice = 0);
 
 public record StockTransferDto(int FromWarehouseId, int ToWarehouseId, int ItemId, decimal Quantity, string? Notes);
 
@@ -345,11 +346,100 @@ public record DashboardDto(
     List<RecentActivityDto> RecentActivities,
     List<MonthlyRevenueDto> MonthlyRevenues,
     List<AppointmentDto>? TodayAppointmentsList,
-    List<TopDoctorDto>? TopDoctors);
+    List<TopDoctorDto>? TopDoctors,
+    int ExpiringBatchesCount,
+    int PendingPrescriptions = 0,
+    int PendingLabRequests = 0,
+    int PendingRadiologyRequests = 0,
+    decimal PharmacyMonthlyRevenue = 0,
+    decimal TotalStockValue = 0);
 
 public record RecentActivityDto(string Type, string Description, DateTime Date);
 public record MonthlyRevenueDto(string Month, decimal Revenue, decimal Expenses);
 public record TopDoctorDto(string DoctorName, string Specialization, int AppointmentCount);
+
+public record PatientAnalyticsDto(
+    int TotalPatients,
+    List<MonthlyCountDto> NewPatientsTrend,
+    List<GroupCountDto> GenderBreakdown,
+    List<GroupCountDto> AgeDistribution
+);
+
+public record AppointmentAnalyticsDto(int TotalAppointments, List<GroupCountDto> StatusBreakdown, List<GroupCountDto> SpecializationBreakdown, List<MonthlyCountDto> AppointmentsTrend);
+
+public record LabAnalyticsDto(int TotalTests, decimal TotalRevenue, List<GroupCountDto> CategoryBreakdown, List<MonthlyCountDto> TestsTrend);
+public record RadiologyAnalyticsDto(int TotalTests, decimal TotalRevenue, List<GroupCountDto> CategoryBreakdown, List<MonthlyCountDto> TestsTrend);
+
+public record MonthlyCountDto(string Month, int Count);
+public record GroupCountDto(string GroupName, int Count);
+
+public record PharmacyAnalyticsDto(int TotalPrescriptions, decimal TotalRevenue, List<GroupCountDto> TopMedicines, List<MonthlyCountDto> RxTrend);
+public record InventoryAnalyticsDto(int TotalItems, decimal TotalValue, int LowStockItems, List<GroupCountDto> CategoryDistribution);
+public record HRAnalyticsDto(int TotalEmployees, decimal MonthlyPayroll, List<GroupCountDto> DepartmentDistribution, List<MonthlyCountDto> PayrollTrend);
+
+// ═══════════════════════════════════════════════════════════════
+//  STOCK TRANSACTIONS (INVENTORY REPORTS)
+// ═══════════════════════════════════════════════════════════════
+public record StockTransactionDto(
+    int Id, int ItemId, string ItemName, string ItemCode,
+    int WarehouseId, string WarehouseName,
+    string TransactionType,   // IN, OUT, TRANSFER
+    decimal Quantity, decimal UnitCost,
+    string? Reference, string? Notes,
+    string? BatchNumber,
+    DateTime TransactionDate, string CreatedBy);
+
+// ═══════════════════════════════════════════════════════════════
+//  LAB
+// ═══════════════════════════════════════════════════════════════
+public record LabTestDto(int Id, string TestCode, string Name, string NameAr, string Category, string NormalRange, string Unit, decimal Price, bool IsActive);
+public record CreateLabTestDto(string Name, string NameAr, string Category, string NormalRange, string Unit, decimal Price);
+
+public record LabRequestDto(int Id, string RequestNumber, int PatientId, string PatientName, int? DoctorId, string? DoctorName, DateTime RequestDate, string Status, decimal TotalAmount, string? Notes, List<LabResultDto> Results);
+public record CreateLabRequestDto(int PatientId, int? DoctorId, DateTime RequestDate, string? Notes, List<int> TestIds);
+
+public record LabResultDto(int Id, int LabRequestId, int LabTestId, string TestName, string? ResultValue, string? NormalRange, string? Unit, DateTime? ResultDate, string? Remarks, string? PerformedBy);
+public record UpdateLabResultDto(string? ResultValue, string? Remarks, string? PerformedBy);
+
+// ═══════════════════════════════════════════════════════════════
+//  RADIOLOGY
+// ═══════════════════════════════════════════════════════════════
+public record RadiologyTestDto(int Id, string TestCode, string Name, string NameAr, string Category, string? PreparationInstructions, decimal Price, bool IsActive);
+public record CreateRadiologyTestDto(string Name, string NameAr, string Category, string? PreparationInstructions, decimal Price);
+
+public record RadiologyRequestDto(int Id, string RequestNumber, int PatientId, string PatientName, int? DoctorId, string? DoctorName, DateTime RequestDate, string Status, decimal TotalAmount, string? Notes, List<RadiologyResultDto> Results);
+public record CreateRadiologyRequestDto(int PatientId, int? DoctorId, DateTime RequestDate, string? Notes, List<int> TestIds);
+
+public record RadiologyResultDto(int Id, int RadiologyRequestId, int RadiologyTestId, string TestName, string? Findings, string? Impression, string? ImageUrl, DateTime? ResultDate, string? PerformedBy, string? RadiologistName);
+public record UpdateRadiologyResultDto(string? Findings, string? Impression, string? ImageUrl, string? PerformedBy, string? RadiologistName);
+
+// ═══════════════════════════════════════════════════════════════
+//  CLINICAL & PHARMACY
+// ═══════════════════════════════════════════════════════════════
+public record PatientVitalDto(int Id, int PatientId, string PatientName, int? AppointmentId, DateTime RecordedDate, string RecordedBy, 
+    decimal? Temperature, int? BloodPressureSystolic, int? BloodPressureDiastolic, int? HeartRate, int? RespiratoryRate, int? SpO2, 
+    decimal? WeightKg, decimal? HeightCm, decimal? BMI, string? PainScale, string? Notes);
+
+public record CreatePatientVitalDto(int PatientId, int? AppointmentId, decimal? Temperature, int? BloodPressureSystolic, int? BloodPressureDiastolic, 
+    int? HeartRate, int? RespiratoryRate, int? SpO2, decimal? WeightKg, decimal? HeightCm, string? PainScale, string? Notes);
+
+public record PrescriptionDto(int Id, string PrescriptionNumber, int PatientId, string PatientName, int? DoctorId, string? DoctorName, 
+    int? AppointmentId, DateTime PrescriptionDate, string Status, string? Notes, List<PrescriptionItemDto> Items);
+
+public record CreatePrescriptionDto(int PatientId, int? DoctorId, int? AppointmentId, string? Notes, List<CreatePrescriptionItemDto> Items);
+
+public record PrescriptionItemDto(int Id, int PrescriptionId, int ItemId, string ItemName, string Dosage, string Frequency, string Duration, decimal Quantity, string? Instructions, bool IsDispensed, DateTime? DispensedDate, string? DispensedBy);
+
+public record CreatePrescriptionItemDto(int ItemId, string Dosage, string Frequency, string Duration, decimal Quantity, string? Instructions);
+
+public record DispenseItemDto(int? ItemBatchId, decimal Quantity);
+
+public record ClinicalEncounterDto(int Id, int PatientId, string PatientName, int? DoctorId, string? DoctorName, 
+    int? AppointmentId, DateTime EncounterDate, string? ChiefComplaint, string? Subjective, string? Objective, 
+    string? Assessment, string? Plan, string? InternalNotes, bool IsFinalized, DateTime CreatedDate);
+
+public record CreateClinicalEncounterDto(int PatientId, int? DoctorId, int? AppointmentId, string? ChiefComplaint, 
+    string? Subjective, string? Objective, string? Assessment, string? Plan, string? InternalNotes, bool IsFinalized = false);
 
 // ═══════════════════════════════════════════════════════════════
 //  PAGINATION

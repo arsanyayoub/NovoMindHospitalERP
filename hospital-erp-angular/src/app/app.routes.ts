@@ -62,6 +62,22 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/reports/reports.component').then(m => m.ReportsComponent)
             },
             {
+                path: 'lab',
+                loadComponent: () => import('./features/lab/lab.component').then(m => m.LabComponent)
+            },
+            {
+                path: 'radiology',
+                loadComponent: () => import('./features/radiology/radiology.component').then(m => m.RadiologyComponent)
+            },
+            {
+                path: 'clinical',
+                loadComponent: () => import('./features/clinical/clinical.component').then(m => m.ClinicalComponent)
+            },
+            {
+                path: 'pharmacy',
+                loadComponent: () => import('./features/pharmacy/pharmacy.component').then(m => m.PharmacyComponent)
+            },
+            {
                 path: 'settings',
                 loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent)
             }

@@ -34,5 +34,17 @@ public interface IUnitOfWork : IDisposable
     IRepository<Expense> Expenses { get; }
     IRepository<Asset> Assets { get; }
     IRepository<Notification> Notifications { get; }
+    IRepository<LabTest> LabTests { get; }
+    IRepository<LabRequest> LabRequests { get; }
+    IRepository<LabResult> LabResults { get; }
+    IRepository<RadiologyTest> RadiologyTests { get; }
+    IRepository<RadiologyRequest> RadiologyRequests { get; }
+    IRepository<RadiologyResult> RadiologyResults { get; }
+    
+    // Clinical
+    IRepository<PatientVital> PatientVitals { get; }
+    IRepository<Prescription> Prescriptions { get; }
+    IRepository<PrescriptionItem> PrescriptionItems { get; }
+    IRepository<ClinicalEncounter> ClinicalEncounters { get; }
     Task<int> SaveChangesAsync();
 }

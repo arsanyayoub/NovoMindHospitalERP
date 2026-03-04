@@ -109,6 +109,8 @@ public class DashboardService : IDashboardService
         var totalEmployees = await _uow.Employees.CountAsync();
         var lowStock = await _uow.WarehouseStocks.CountAsync(ws => ws.Quantity <= ws.ReorderLevel);
         var pendingInvoices = await _uow.Invoices.CountAsync(i => (int)i.Status == 1);
+        var expiryThreshold = today.AddDays(30);
+        var expiringBatches = await _uow.ItemBatches.CountAsync(b => b.Status == "Active" && b.ExpiryDate > today && b.ExpiryDate <= expiryThreshold);
 
         var todayPayments = await _uow.Payments.Query().Where(p => p.PaymentDate.Date == today).SumAsync(p => p.Amount);
         var monthlyPayments = await _uow.Payments.Query().Where(p => p.PaymentDate >= monthStart).SumAsync(p => p.Amount);
@@ -129,7 +131,41 @@ public class DashboardService : IDashboardService
         var recentPayments = await _uow.Payments.Query().OrderByDescending(p => p.CreatedDate).Take(5).Select(p => new RecentActivityDto("Payment", $"{p.PaymentNumber} - {p.Amount:C2}", p.CreatedDate)).ToListAsync();
         var activities = recentAppts.Concat(recentPayments).OrderByDescending(a => a.Date).Take(10).ToList();
 
-        return new DashboardDto(totalPatients, todayAppts, pendingAppts, todayPayments, monthlyPayments, totalRevenue, lowStock, pendingInvoices, outstanding, totalDoctors, totalEmployees, activities, monthlyRevenues, null, null);
+        var todayApptsList = await _uow.Appointments.Query()
+            .Include(a => a.Patient).Include(a => a.Doctor)
+            .Where(a => a.AppointmentDate.Date == today)
+            .OrderBy(a => a.AppointmentTime)
+            .Take(10)
+            .Select(a => new AppointmentDto(
+                a.Id, a.AppointmentCode, a.PatientId, a.Patient.FullName,
+                a.DoctorId, a.Doctor.FullName, a.Doctor.Specialization,
+                a.AppointmentDate, a.AppointmentTime, a.DurationMinutes,
+                a.Status.ToString(), a.Notes, a.Diagnosis, a.Prescription,
+                a.Fee, a.IsPaid, a.CreatedDate))
+            .ToListAsync();
+
+        var topDoctors = await _uow.Appointments.Query()
+            .Include(a => a.Doctor)
+            .GroupBy(a => new { a.DoctorId, a.Doctor.FullName, a.Doctor.Specialization })
+            .Select(g => new TopDoctorDto(g.Key.FullName, g.Key.Specialization, g.Count()))
+            .OrderByDescending(d => d.AppointmentCount)
+            .Take(5)
+            .ToListAsync();
+
+        var pendingPrescriptions = await _uow.Prescriptions.CountAsync(p => p.Status == "Pending" || p.Status == "Partially Dispensed");
+        var pendingLab = await _uow.LabRequests.CountAsync(r => r.Status == "Pending" || r.Status == "Partial");
+        var pendingRad = await _uow.RadiologyRequests.CountAsync(r => r.Status == "Pending");
+
+        // New KPIs
+        var pharmacyRevenue = await _uow.Prescriptions.Query()
+            .Where(p => p.PrescriptionDate >= monthStart)
+            .SelectMany(p => p.Items)
+            .SumAsync(i => i.Quantity * (i.Item.SalePrice));
+
+        var totalStockValue = await _uow.WarehouseStocks.Query()
+            .SumAsync(ws => ws.Quantity * ws.Item.PurchasePrice);
+
+        return new DashboardDto(totalPatients, todayAppts, pendingAppts, todayPayments, monthlyPayments, totalRevenue, lowStock, pendingInvoices, outstanding, totalDoctors, totalEmployees, activities, monthlyRevenues, todayApptsList, topDoctors, expiringBatches, pendingPrescriptions, pendingLab, pendingRad, pharmacyRevenue, totalStockValue);
     }
 }
 

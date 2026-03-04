@@ -1,239 +1,181 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DashboardService } from '../../core/services/api.services';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule, TranslateModule],
+  styles: [`
+    .stats-wrapper { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .dash-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 24px; }
+    @media (max-width: 1024px) { .dash-grid { grid-template-columns: 1fr; } }
+
+    .chart-box { height: 260px; display: flex; align-items: flex-end; justify-content: space-around; padding-bottom: 40px; position: relative; border-bottom: 1px solid var(--border); }
+    .chart-col { display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; position: relative; }
+    .bar-pair { display: flex; align-items: flex-end; gap: 4px; height: 100%; width: 100%; justify-content: center; }
+    .bar-item { width: 16px; border-radius: 6px 6px 0 0; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; min-height: 4px; }
+    .bar-item:hover { transform: scaleY(1.05); filter: brightness(1.2); }
+    .bar-rev { background: linear-gradient(180deg, var(--primary-light), var(--primary)); box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3); }
+    .bar-exp { background: linear-gradient(180deg, #f87171, #ef4444); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+    .bar-date { position: absolute; bottom: -30px; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+
+    .activity-row { display: flex; align-items: center; gap: 16px; padding: 12px; border-radius: 12px; transition: 0.2s; }
+    .activity-row:hover { background: rgba(var(--primary-rgb), 0.05); }
+    .act-icon { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    
+    .ranking-list { display: flex; flex-direction: column; gap: 4px; }
+    .ranking-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; transition: 0.2s; background: rgba(255,255,255,0.02); border: 1px solid transparent; }
+    .ranking-item:hover { border-color: var(--primary); background: rgba(var(--primary-rgb), 0.03); }
+    .rank-num { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.8rem; background: var(--bg-sidebar); border: 2px solid var(--border); }
+    .rank-1 { border-color: #fbbf24; color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
+    .rank-2 { border-color: #9ca3af; color: #9ca3af; background: rgba(156, 163, 175, 0.1); }
+    .rank-3 { border-color: #d97706; color: #d97706; background: rgba(217, 119, 6, 0.1); }
+  `],
   template: `
-    <div *ngIf="loading" class="loading-container"><div class="spinner"></div></div>
-
-    <div *ngIf="!loading" class="animate-fade-in">
-      <div class="page-header">
-        <div>
-          <h1 class="page-title">{{ 'DASHBOARD' | translate }}</h1>
-          <p class="page-subtitle">{{ today | date:'fullDate' }}</p>
-        </div>
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">{{ 'HOSPITAL_DASHBOARD' | translate }}</h1>
+        <p class="page-subtitle text-primary font-bold">{{ today | date:'EEEE, d MMMM yyyy' }}</p>
       </div>
+      <div class="flex gap-2">
+        <button class="btn btn-secondary btn-icon" (click)="refresh()"><span class="material-icons-round">refresh</span></button>
+      </div>
+    </div>
 
-      <!-- Stat Cards -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon primary"><span class="material-icons-round">personal_injury</span></div>
+    <div *ngIf="loading" class="flex flex-col items-center justify-center p-20 gray-glass rounded-3xl">
+      <span class="spinner mb-4" style="width:40px;height:40px"></span>
+      <span class="font-black text-muted uppercase tracking-widest">{{ 'LOADING_ANALYTICS' | translate }}</span>
+    </div>
+
+    <div *ngIf="!loading" class="animate-in">
+      <!-- STATS OVERVIEW -->
+      <div class="stats-wrapper mb-8">
+        <div class="stat-card glass-primary">
+          <div class="stat-icon primary shadow-primary"><span class="material-icons-round">personal_injury</span></div>
           <div>
             <div class="stat-value">{{ data?.totalPatients || 0 }}</div>
-            <div class="stat-label">{{ 'TOTAL_PATIENTS' | translate }}</div>
+            <div class="stat-label uppercase tracking-tighter">{{ 'TOTAL_PATIENTS' | translate }}</div>
           </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon accent"><span class="material-icons-round">calendar_month</span></div>
+        <div class="stat-card glass-accent">
+          <div class="stat-icon accent shadow-accent"><span class="material-icons-round">calendar_month</span></div>
           <div>
             <div class="stat-value">{{ data?.todayAppointments || 0 }}</div>
-            <div class="stat-label">{{ 'TODAY_APPOINTMENTS' | translate }}</div>
+            <div class="stat-label uppercase tracking-tighter">{{ 'TODAY_APPOINTMENTS' | translate }}</div>
           </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon success"><span class="material-icons-round">payments</span></div>
+        <div class="stat-card glass-success">
+          <div class="stat-icon success shadow-success"><span class="material-icons-round">payments</span></div>
           <div>
-            <div class="stat-value">{{ data?.monthlyRevenue | currency:'USD':'symbol':'1.0-0' }}</div>
-            <div class="stat-label">{{ 'MONTHLY_REVENUE' | translate }}</div>
+            <div class="stat-value">{{ data?.monthlyRevenue | currency }}</div>
+            <div class="stat-label uppercase tracking-tighter">{{ 'MONTHLY_REVENUE' | translate }}</div>
           </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon warning"><span class="material-icons-round">inventory</span></div>
+        <div class="stat-card glass-warning">
+          <div class="stat-icon warning shadow-warning"><span class="material-icons-round">inventory_2</span></div>
           <div>
             <div class="stat-value">{{ data?.lowStockItems || 0 }}</div>
-            <div class="stat-label">{{ 'LOW_STOCK_ITEMS' | translate }}</div>
+            <div class="stat-label uppercase tracking-tighter font-black text-danger">{{ 'LOW_STOCK_ALERTS' | translate }}</div>
           </div>
         </div>
       </div>
 
-      <!-- Second Row -->
-      <div class="stats-grid mt-4">
-        <div class="stat-card">
-          <div class="stat-icon primary"><span class="material-icons-round">medical_services</span></div>
-          <div>
-            <div class="stat-value">{{ data?.totalDoctors || 0 }}</div>
-            <div class="stat-label">{{ 'DOCTORS' | translate }}</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon accent"><span class="material-icons-round">people</span></div>
-          <div>
-            <div class="stat-value">{{ data?.totalEmployees || 0 }}</div>
-            <div class="stat-label">{{ 'EMPLOYEES' | translate }}</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon danger"><span class="material-icons-round">pending_actions</span></div>
-          <div>
-            <div class="stat-value">{{ data?.pendingInvoices || 0 }}</div>
-            <div class="stat-label">{{ 'PENDING' | translate }}</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon success"><span class="material-icons-round">account_balance_wallet</span></div>
-          <div>
-            <div class="stat-value">{{ data?.totalRevenue | currency:'USD':'symbol':'1.0-0' }}</div>
-            <div class="stat-label">{{ 'TOTAL' | translate }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Charts & Activities -->
-      <div class="dashboard-grid mt-6">
-        <!-- Revenue Chart -->
-        <div class="card">
-          <h3 class="mb-4">{{ 'MONTHLY_REVENUE' | translate }}</h3>
-          <div class="chart-container">
-            <div class="chart-bars">
-              <div *ngFor="let m of data?.monthlyRevenues" class="chart-bar-group">
-                <div class="bar-wrapper">
-                  <div class="bar revenue" [style.height.%]="getBarHeight(m.revenue)" title="Revenue: {{m.revenue | currency}}"></div>
-                  <div class="bar expenses" [style.height.%]="getBarHeight(m.expenses)" title="Expenses: {{m.expenses | currency}}"></div>
-                </div>
-                <span class="bar-label">{{ m.month }}</span>
-              </div>
+      <div class="dash-grid">
+        <!-- REVENUE ANALYTICS -->
+        <div class="flex flex-col gap-6">
+          <div class="card p-6">
+            <div class="flex justify-between items-center mb-8">
+               <h3 class="font-black text-xl flex items-center gap-2"><span class="material-icons-round text-primary">analytics</span> {{ 'FINANCIAL_PERFORMANCE' | translate }}</h3>
+               <div class="flex gap-4">
+                  <div class="flex items-center gap-2 text-xs font-bold"><span class="w-3 h-3 rounded bg-primary"></span> {{ 'REVENUE' | translate }}</div>
+                  <div class="flex items-center gap-2 text-xs font-bold"><span class="w-3 h-3 rounded bg-danger"></span> {{ 'EXPENSES' | translate }}</div>
+               </div>
             </div>
-            <div class="chart-legend">
-              <span class="legend-item"><span class="legend-dot revenue"></span> Revenue</span>
-              <span class="legend-item"><span class="legend-dot expenses"></span> Expenses</span>
+            <div class="chart-box">
+               <div *ngFor="let m of data?.monthlyRevenues" class="chart-col">
+                  <div class="bar-pair">
+                     <div class="bar-item bar-rev" [style.height.%]="getBarHeight(m.revenue)" [title]="m.revenue | currency"></div>
+                     <div class="bar-item bar-exp" [style.height.%]="getBarHeight(m.expenses)" [title]="m.expenses | currency"></div>
+                  </div>
+                  <span class="bar-date">{{ m.month | translate }}</span>
+               </div>
+            </div>
+          </div>
+
+          <div class="card p-0 overflow-hidden">
+            <div class="p-4 border-bottom bg-glass flex items-center justify-between">
+               <h3 class="font-black text-lg flex items-center gap-2"><span class="material-icons-round text-accent">history</span> {{ 'RECENT_ACTIVITY' | translate }}</h3>
+               <button class="btn btn-xs btn-secondary uppercase font-bold">{{ 'VIEW_ALL' | translate }}</button>
+            </div>
+            <div class="p-2">
+              <div *ngFor="let a of data?.recentActivities" class="activity-row">
+                 <div class="act-icon" [ngClass]="a.type === 'Appointment' ? 'primary bg-opacity-10' : 'success bg-opacity-10'">
+                    <span class="material-icons-round">{{ a.type === 'Appointment' ? 'event' : 'receipt_long' }}</span>
+                 </div>
+                 <div class="flex-grow">
+                    <div class="font-bold text-sm">{{ a.description }}</div>
+                    <div class="text-xs text-muted">{{ a.date | date:'medium' }}</div>
+                 </div>
+                 <div class="text-xs font-black uppercase tracking-widest text-muted">{{ a.type | translate }}</div>
+              </div>
+              <div *ngIf="!data?.recentActivities?.length" class="p-10 text-center opacity-30 italic">{{ 'NO_ACTIVITY' | translate }}</div>
             </div>
           </div>
         </div>
 
-        <!-- Recent Activity -->
-        <div class="card">
-          <h3 class="mb-4">{{ 'RECENT_ACTIVITY' | translate }}</h3>
-          <div class="activity-list">
-            <div *ngFor="let a of data?.recentActivities" class="activity-item">
-              <div class="activity-icon" [ngClass]="a.type.toLowerCase()">
-                <span class="material-icons-round">
-                  {{ a.type === 'Appointment' ? 'event' : 'payment' }}
-                </span>
+        <!-- SIDEBAR DATA -->
+        <div class="flex flex-col gap-6">
+           <!-- TOP DOCTORS -->
+           <div class="card p-0 overflow-hidden shadow-xl border-primary border-opacity-10">
+              <div class="p-4 bg-primary bg-opacity-5 border-bottom">
+                 <h3 class="font-black text-lg flex items-center gap-2"><span class="material-icons-round text-primary">military_tech</span> {{ 'TOP_DOCTORS' | translate }}</h3>
               </div>
-              <div class="activity-content">
-                <div class="activity-desc">{{ a.description }}</div>
-                <div class="activity-time">{{ a.date | date:'short' }}</div>
+              <div class="p-3 ranking-list">
+                 <div *ngFor="let d of data?.topDoctors; let i = index" class="ranking-item">
+                    <div class="rank-num" [ngClass]="'rank-' + (i+1)">{{ i + 1 }}</div>
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-black text-lg shadow-md">
+                       {{ d.doctorName?.charAt(0) }}
+                    </div>
+                    <div class="flex-grow">
+                       <div class="font-black text-sm">Dr. {{ d.doctorName }}</div>
+                       <div class="text-[0.65rem] font-bold text-primary uppercase">{{ d.specialization | translate }}</div>
+                    </div>
+                    <div class="text-right">
+                       <div class="font-black text-lg text-primary">{{ d.appointmentCount }}</div>
+                       <div class="text-[0.6rem] font-bold text-muted uppercase">{{ 'APPOINTMENTS' | translate }}</div>
+                    </div>
+                 </div>
+                 <div *ngIf="!data?.topDoctors?.length" class="p-10 text-center opacity-30">{{ 'NO_DATA' | translate }}</div>
               </div>
-            </div>
-            <div class="empty-state" *ngIf="!data?.recentActivities?.length">
-              <span class="material-icons-round empty-icon">history</span>
-              <span class="empty-text">No recent activity</span>
-            </div>
-          </div>
-        </div>
+           </div>
 
-        <!-- Today's Appointments & Top Doctors -->
-        <div class="dashboard-grid mt-6">
-          <div class="card">
-            <h3 class="mb-4" style="display:flex;align-items:center;gap:8px">
-              <span class="material-icons-round" style="color:var(--accent)">today</span>
-              {{ 'TODAY_APPOINTMENTS' | translate }}
-            </h3>
-            <div class="appt-quick-list">
-              <div *ngFor="let a of data?.todayAppointmentsList" class="appt-quick-item">
-                <div class="appt-time">{{ a.appointmentTime?.substring(0,5) || '--:--' }}</div>
-                <div class="appt-info">
-                  <div class="appt-patient font-semibold">{{ a.patientName }}</div>
-                  <div class="appt-doctor text-sm text-muted">Dr. {{ a.doctorName }}</div>
-                </div>
-                <span class="badge" [ngClass]="getApptBadge(a.status)">{{ a.status }}</span>
+           <!-- TODAY'S SCHEDULE -->
+           <div class="card p-0 overflow-hidden">
+              <div class="p-4 border-bottom bg-glass flex items-center gap-2">
+                 <span class="material-icons-round text-warning">today</span>
+                 <h3 class="font-black text-lg">{{ 'TODAY_SCHEDULE' | translate }}</h3>
               </div>
-              <div class="empty-state" *ngIf="!data?.todayAppointmentsList?.length">
-                <span class="material-icons-round empty-icon">event_available</span>
-                <span class="empty-text">No appointments scheduled today</span>
+              <div class="p-2 flex flex-col gap-1 max-h-[400px] overflow-y-auto">
+                 <div *ngFor="let a of data?.todayAppointmentsList" class="flex items-center gap-4 p-3 hover:bg-white hover:bg-opacity-5 rounded-xl transition-all">
+                    <div class="font-black text-sm text-primary font-mono bg-primary bg-opacity-10 p-1 px-2 rounded-lg">{{ a.appointmentTime?.substring(0,5) }}</div>
+                    <div class="flex-grow">
+                       <div class="font-bold text-sm">{{ a.patientName }}</div>
+                       <div class="text-xs text-muted">Dr. {{ a.doctorName }}</div>
+                    </div>
+                    <span class="text-[0.6rem] font-black p-1 px-2 rounded-md uppercase tracking-tighter" 
+                          [ngClass]="a.status === 'Completed' ? 'bg-success bg-opacity-10 text-success' : 'bg-warning bg-opacity-10 text-warning'">
+                       {{ a.status | translate }}
+                    </span>
+                 </div>
+                 <div *ngIf="!data?.todayAppointmentsList?.length" class="p-10 text-center text-muted italic text-sm">{{ 'NO_APPOINTMENTS_TODAY' | translate }}</div>
               </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <h3 class="mb-4" style="display:flex;align-items:center;gap:8px">
-              <span class="material-icons-round" style="color:var(--success)">medical_services</span>
-              Top Doctors
-            </h3>
-            <div class="doctor-ranking">
-              <div *ngFor="let d of data?.topDoctors; let i = index" class="doctor-rank-item">
-                <div class="dr-rank" [class.rank-gold]="i===0" [class.rank-silver]="i===1" [class.rank-bronze]="i===2">{{ i + 1 }}</div>
-                <div class="dr-avatar">{{ d.doctorName?.charAt(0) || 'D' }}</div>
-                <div class="dr-info">
-                  <div class="dr-name">{{ d.doctorName }}</div>
-                  <div class="dr-spec text-sm text-muted">{{ d.specialization }}</div>
-                </div>
-                <div class="dr-count">
-                  <span class="count-num">{{ d.appointmentCount }}</span>
-                  <span class="text-muted" style="font-size:0.7rem">appts</span>
-                </div>
-              </div>
-              <div class="empty-state" *ngIf="!data?.topDoctors?.length">
-                <span class="material-icons-round empty-icon">person_off</span>
-                <span class="empty-text">No data available</span>
-              </div>
-            </div>
-          </div>
+           </div>
         </div>
       </div>
     </div>
-  `,
-  styles: [`
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
-    .dashboard-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
-    @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
-
-    .chart-container { padding: 8px 0; }
-    .chart-bars { display: flex; align-items: flex-end; justify-content: space-between; height: 200px; gap: 6px; padding-bottom: 28px; position: relative; }
-    .chart-bar-group { display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; }
-    .bar-wrapper { flex: 1; display: flex; align-items: flex-end; gap: 3px; width: 100%; justify-content: center; }
-    .bar { width: 14px; border-radius: 4px 4px 0 0; transition: height 0.8s cubic-bezier(0.34,1.56,0.64,1); min-height: 4px; cursor: pointer; }
-    .bar.revenue { background: linear-gradient(180deg, var(--primary-light), var(--primary)); }
-    .bar.expenses { background: linear-gradient(180deg, var(--accent), var(--accent-dark)); }
-    .bar:hover { opacity: 0.8; transform: scaleY(1.02); }
-    .bar-label { font-size: 0.65rem; color: var(--text-muted); margin-top: 6px; }
-    .chart-legend { display: flex; justify-content: center; gap: 20px; margin-top: 12px; }
-    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-secondary); }
-    .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
-    .legend-dot.revenue { background: var(--primary); }
-    .legend-dot.expenses { background: var(--accent); }
-
-    .activity-list { display: flex; flex-direction: column; gap: 2px; }
-    .activity-item { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 10px; transition: background 0.15s; }
-    .activity-item:hover { background: rgba(255,255,255,0.03); }
-    .activity-icon {
-      width: 38px; height: 38px; border-radius: 10px; display: flex;
-      align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px;
-    }
-    .activity-icon.appointment { background: rgba(59,130,246,0.12); color: var(--info); }
-    .activity-icon.payment { background: rgba(16,185,129,0.12); color: var(--success); }
-    .activity-icon span { font-size: 18px; }
-    .activity-desc { font-size: 0.85rem; color: var(--text-primary); }
-    .activity-time { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
-
-    /* Today's Appointments quick list */
-    .appt-quick-list { display: flex; flex-direction: column; gap: 2px; max-height: 280px; overflow-y: auto; }
-    .appt-quick-item { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-radius: 10px; transition: background 0.15s; }
-    .appt-quick-item:hover { background: rgba(255,255,255,0.04); }
-    .appt-time { font-size: 0.8rem; font-weight: 700; color: var(--primary-light); min-width: 42px; font-variant-numeric: tabular-nums; }
-    .appt-info { flex: 1; min-width: 0; }
-    .appt-patient { font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .appt-doctor { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    /* Top Doctors */
-    .doctor-ranking { display: flex; flex-direction: column; gap: 8px; }
-    .doctor-rank-item { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-radius: 10px; transition: background 0.15s; }
-    .doctor-rank-item:hover { background: rgba(255,255,255,0.04); }
-    .dr-rank { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; background: rgba(255,255,255,0.07); color: var(--text-muted); flex-shrink: 0; }
-    .dr-rank.rank-gold { background: rgba(251,191,36,0.2); color: #fbbf24; }
-    .dr-rank.rank-silver { background: rgba(156,163,175,0.2); color: #9ca3af; }
-    .dr-rank.rank-bronze { background: rgba(180,83,9,0.2); color: #d97706; }
-    .dr-avatar { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; color: white; flex-shrink: 0; }
-    .dr-info { flex: 1; min-width: 0; }
-    .dr-name { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .dr-spec { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .dr-count { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
-    .count-num { font-size: 1.2rem; font-weight: 800; color: var(--primary-light); line-height: 1; }
-  `]
+  `
 })
 export class DashboardComponent implements OnInit {
   data: any = null;
@@ -241,13 +183,22 @@ export class DashboardComponent implements OnInit {
   today = new Date();
   maxRevenue = 1;
 
-  constructor(private dashboardService: DashboardService) { }
+  constructor(
+    private dashboardService: DashboardService,
+    private translate: TranslateService
+  ) { }
 
   ngOnInit() {
+    this.refresh();
+  }
+
+  refresh() {
+    this.loading = true;
     this.dashboardService.get().subscribe({
       next: (data) => {
         this.data = data;
-        this.maxRevenue = Math.max(1, ...data.monthlyRevenues.map((m: any) => Math.max(m.revenue, m.expenses)));
+        const allValues = data.monthlyRevenues.flatMap((m: any) => [m.revenue, m.expenses]);
+        this.maxRevenue = Math.max(1, ...allValues);
         this.loading = false;
       },
       error: () => { this.loading = false; }
@@ -255,17 +206,6 @@ export class DashboardComponent implements OnInit {
   }
 
   getBarHeight(value: number): number {
-    return Math.max(3, (value / this.maxRevenue) * 90);
-  }
-
-  getApptBadge(s: string): string {
-    switch (s) {
-      case 'Scheduled': return 'badge-info';
-      case 'Confirmed': return 'badge-primary';
-      case 'InProgress': return 'badge-warning';
-      case 'Completed': return 'badge-success';
-      case 'Cancelled': return 'badge-danger';
-      default: return 'badge-secondary';
-    }
+    return Math.max(4, (value / this.maxRevenue) * 92);
   }
 }

@@ -152,6 +152,13 @@ public class InventoryController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteBatch(int id) { await _service.DeleteBatchAsync(id); return NoContent(); }
 
+    // ---------- Reports ----------
+    [HttpGet("transactions")]
+    public async Task<IActionResult> GetTransactions(
+        [FromQuery] int? itemId, [FromQuery] int? warehouseId,
+        [FromQuery] string? type, [FromQuery] DateTime? from, [FromQuery] DateTime? to)
+        => Ok(await _service.GetStockTransactionsAsync(itemId, warehouseId, type, from, to));
+
     // ---------- Scanning ----------
     [HttpGet("scan")]
     public async Task<IActionResult> ScanBarcode([FromQuery] string barcode, [FromQuery] int? warehouseId)

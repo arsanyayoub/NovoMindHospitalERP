@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: hospital_db
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Your_Password123"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    healthcheck:
+      test: [ "CMD", "/opt/mssql-tools/bin/sqlcmd", "-U", "sa", "-P", "Your_Password123", "-Q", "SELECT 1" ]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hospital_api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=db;Database=HospitalERP;User Id=sa;Password=Your_Password123;MultipleActiveResultSets=true;TrustServerCertificate=True;
+    ports:
+      - "8080:8080"
+    restart: on-failure
+
+  frontend:
+    build:
+      context: ./hospital-erp-angular
+      dockerfile: Dockerfile
+    container_name: hospital_frontend
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+    restart: on-failure
+
+volumes:
+  sql_data:

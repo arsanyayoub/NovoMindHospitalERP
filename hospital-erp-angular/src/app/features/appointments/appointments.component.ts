@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AppointmentService, DoctorService, PatientService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 import { ExportService } from '../../core/services/export.service';
@@ -10,153 +10,250 @@ import { ExportService } from '../../core/services/export.service';
   selector: 'app-appointments',
   standalone: true,
   imports: [CommonModule, FormsModule, TranslateModule],
+  styles: [`
+    .view-toggle { display: flex; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; background: rgba(var(--card-bg-rgb), 0.3); }
+    .view-toggle button { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border: none; background: none; color: var(--text-muted); cursor: pointer; font-weight: 600; transition: all 0.2s; font-size: 0.85rem; }
+    .view-toggle button.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3); }
+    .view-toggle button:hover:not(.active) { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+
+    .calendar-card { background: rgba(var(--card-bg-rgb), 0.3); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); background: var(--border); gap: 1px; border: 1px solid var(--border); border-radius: 0 0 20px 20px; overflow: hidden; }
+    .calendar-day-header { background: rgba(var(--card-bg-rgb), 0.8); padding: 14px; text-align: center; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+    .calendar-cell { min-height: 120px; padding: 12px; background: var(--bg-card); cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; gap: 6px; }
+    .calendar-cell:hover { background: rgba(var(--primary-rgb), 0.05); }
+    .calendar-cell.other-month { background: rgba(0,0,0,0.15); opacity: 0.4; pointer-events: none; }
+    .calendar-cell.today { background: rgba(var(--primary-rgb), 0.08); }
+    
+    .cell-day { font-size: 0.9rem; font-weight: 700; color: var(--text-secondary); width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: 0.2s; }
+    .calendar-cell.today .cell-day { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(var(--primary-rgb), 0.4); }
+    
+    .cal-event { font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-left: 3px solid transparent; margin-bottom: 2px; }
+    .cal-event-scheduled { background: rgba(59,130,246,0.15); color: #60a5fa; border-color: #3b82f6; }
+    .cal-event-confirmed { background: rgba(99,102,241,0.15); color: #818cf8; border-color: #6366f1; }
+    .cal-event-completed { background: rgba(16,185,129,0.15); color: #34d399; border-color: #10b981; }
+    .cal-event-cancelled { background: rgba(239,68,68,0.15); color: #f87171; border-color: #ef4444; }
+    
+    .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .status-scheduled { background: rgba(59,130,246,0.1); color: #3b82f6; }
+    .status-confirmed { background: rgba(99,102,241,0.1); color: #6366f1; }
+    .status-completed { background: rgba(16,185,129,0.1); color: #10b981; }
+    .status-cancelled { background: rgba(239,68,68,0.1); color: #ef4444; }
+  `],
   template: `
     <div class="page-header">
-      <div><h1 class="page-title">{{ 'APPOINTMENTS' | translate }}</h1></div>
-      <div class="flex gap-2">
+      <div>
+        <h1 class="page-title">{{ 'APPOINTMENTS' | translate }}</h1>
+        <p class="page-subtitle">{{ 'MANAGE_SCHEDULES' | translate }}</p>
+      </div>
+      <div class="flex gap-3">
         <div class="view-toggle">
           <button [class.active]="viewMode==='list'" (click)="viewMode='list'">
-            <span class="material-icons-round">list</span>
+            <span class="material-icons-round" style="font-size:18px">format_list_bulleted</span>
             {{ 'LIST_VIEW' | translate }}
           </button>
           <button [class.active]="viewMode==='calendar'" (click)="viewMode='calendar';buildCalendar()">
-            <span class="material-icons-round">calendar_month</span>
+            <span class="material-icons-round" style="font-size:18px">calendar_month</span>
             {{ 'CALENDAR_VIEW' | translate }}
           </button>
         </div>
-        <button class="btn btn-secondary" (click)="exportCsv()"><span class="material-icons-round">download</span> {{ 'EXPORT' | translate }}</button>
-        <button class="btn btn-primary" (click)="openForm()"><span class="material-icons-round">add</span> {{ 'ADD_NEW' | translate }}</button>
+        <button class="btn btn-secondary px-4" (click)="exportCsv()">
+          <span class="material-icons-round mr-1" style="font-size:20px">file_download</span> {{ 'EXPORT' | translate }}
+        </button>
+        <button class="btn btn-primary px-4" (click)="openForm()">
+          <span class="material-icons-round mr-1" style="font-size:20px">event_available</span> {{ 'ADD_NEW' | translate }}
+        </button>
       </div>
     </div>
 
-    <div class="filter-bar mb-4">
-      <div class="search-bar"><span class="material-icons-round search-icon">search</span><input class="form-control" [placeholder]="'SEARCH' | translate" [(ngModel)]="search" (input)="loadData()"></div>
-      <select class="form-control" style="width:auto;" [(ngModel)]="statusFilter" (change)="loadData()"><option value="">All Status</option><option value="Scheduled">Scheduled</option><option value="Confirmed">Confirmed</option><option value="Completed">Completed</option><option value="Cancelled">Cancelled</option></select>
-      <input class="form-control" type="date" style="width:auto;" [(ngModel)]="dateFilter" (change)="loadData()">
+    <div class="filter-bar mb-6 animate-in">
+      <div class="search-bar" style="max-width:300px">
+        <span class="material-icons-round search-icon">search</span>
+        <input class="form-control" [placeholder]="'SEARCH' | translate" [(ngModel)]="search" (input)="loadData()">
+      </div>
+      <select class="form-control" style="width:180px" [(ngModel)]="statusFilter" (change)="loadData()">
+        <option value="">{{ 'ALL_STATUSES' | translate }}</option>
+        <option value="Scheduled">{{ 'SCHEDULED' | translate }}</option>
+        <option value="Confirmed">{{ 'CONFIRMED' | translate }}</option>
+        <option value="Completed">{{ 'COMPLETED' | translate }}</option>
+        <option value="Cancelled">{{ 'CANCELLED' | translate }}</option>
+      </select>
+      <div class="flex items-center gap-2 bg-glass border p-1 rounded-xl">
+        <input class="form-control border-0 bg-transparent" type="date" [(ngModel)]="dateFilter" (change)="loadData()">
+        <button *ngIf="dateFilter" class="btn btn-icon btn-xs text-danger" (click)="dateFilter='';loadData()">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
     </div>
 
     <!-- LIST VIEW -->
-    <div *ngIf="viewMode==='list'">
-      <div class="card" style="padding:0;">
-        <div *ngIf="loading" class="loading-container"><div class="spinner"></div></div>
+    <div *ngIf="viewMode==='list'" class="animate-in">
+      <div class="card p-0 overflow-hidden">
+        <div *ngIf="loading" class="flex flex-col items-center justify-center p-20 text-muted">
+          <span class="spinner mb-4"></span>
+          {{ 'LOADING' | translate }}
+        </div>
         <div class="table-container" *ngIf="!loading">
           <table class="table">
-            <thead><tr><th>{{ 'APPOINTMENT_CODE' | translate }}</th><th>{{ 'PATIENT_NAME' | translate }}</th><th>{{ 'DOCTOR_NAME' | translate }}</th><th>{{ 'DATE' | translate }}</th><th>Time</th><th>{{ 'STATUS' | translate }}</th><th>Fee</th><th>{{ 'ACTIONS' | translate }}</th></tr></thead>
-            <tbody>
-              <tr *ngFor="let a of appointments">
-                <td><span class="badge badge-info">{{ a.appointmentCode }}</span></td>
-                <td class="font-semibold">{{ a.patientName }}</td>
-                <td>{{ a.doctorName }}</td>
-                <td>{{ a.appointmentDate | date:'mediumDate' }}</td>
-                <td>{{ a.appointmentTime }}</td>
-                <td><span class="badge" [ngClass]="getStatusClass(a.status)">{{ a.status }}</span></td>
-                <td>{{ a.fee | currency }}</td>
-                <td><div class="flex gap-1"><button class="btn btn-sm btn-secondary" (click)="openForm(a)"><span class="material-icons-round" style="font-size:16px">edit</span></button><button class="btn btn-sm btn-danger" (click)="deleteAppt(a)"><span class="material-icons-round" style="font-size:16px">delete</span></button></div></td>
+            <thead>
+              <tr>
+                <th>{{ 'CODE' | translate }}</th>
+                <th>{{ 'PATIENT' | translate }}</th>
+                <th>{{ 'DOCTOR' | translate }}</th>
+                <th>{{ 'DATE' | translate }}</th>
+                <th>{{ 'TIME' | translate }}</th>
+                <th>{{ 'STATUS' | translate }}</th>
+                <th class="text-end">{{ 'ACTIONS' | translate }}</th>
               </tr>
-              <tr *ngIf="appointments.length === 0"><td colspan="8"><div class="empty-state"><span class="material-icons-round empty-icon">calendar_month</span><span class="empty-title">{{ 'NO_DATA' | translate }}</span></div></td></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let a of appointments" class="hover-row">
+                <td><span class="badge badge-secondary">{{ a.appointmentCode }}</span></td>
+                <td>
+                   <div class="font-bold">{{ a.patientName }}</div>
+                   <div class="text-xs text-muted">{{ a.patientCode }}</div>
+                </td>
+                <td>
+                   <div class="font-bold">Dr. {{ a.doctorName }}</div>
+                   <div class="text-xs text-muted">{{ a.doctorSpecialization }}</div>
+                </td>
+                <td>{{ a.appointmentDate | date:'fullDate' }}</td>
+                <td class="font-mono">{{ a.appointmentTime | slice:0:5 }}</td>
+                <td>
+                  <span class="status-badge" [ngClass]="'status-' + a.status.toLowerCase()">
+                    {{ (a.status === 'InProgress' ? 'IN_PROGRESS' : a.status) | translate }}
+                  </span>
+                </td>
+                <td class="text-end">
+                  <div class="flex justify-end gap-1">
+                    <button class="btn btn-icon btn-xs text-primary" (click)="openForm(a)">
+                      <span class="material-icons-round">edit</span>
+                    </button>
+                    <button class="btn btn-icon btn-xs text-danger" (click)="deleteAppt(a)">
+                      <span class="material-icons-round">delete</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="!appointments.length"><td colspan="8"><div class="p-20 text-center text-muted"><span class="material-icons-round text-5xl opacity-20 mb-4">event_busy</span><p>{{ 'NO_DATA' | translate }}</p></div></td></tr>
             </tbody>
           </table>
         </div>
-        <div class="pagination" *ngIf="totalPages > 1"><span class="pagination-info">Page {{ page }} of {{ totalPages }}</span><div class="pagination-buttons"><button class="page-btn" (click)="page=page-1;loadData()" [disabled]="page<=1"><span class="material-icons-round">chevron_left</span></button><button class="page-btn" (click)="page=page+1;loadData()" [disabled]="page>=totalPages"><span class="material-icons-round">chevron_right</span></button></div></div>
       </div>
     </div>
 
     <!-- CALENDAR VIEW -->
-    <div *ngIf="viewMode==='calendar'" class="calendar-container animate-fade-in">
-      <div class="calendar-nav">
-        <button class="btn btn-sm btn-secondary" (click)="prevMonth()"><span class="material-icons-round">chevron_left</span></button>
-        <h3 class="calendar-month-title">{{ calendarDate | date:'MMMM yyyy' }}</h3>
-        <button class="btn btn-sm btn-secondary" (click)="nextMonth()"><span class="material-icons-round">chevron_right</span></button>
-        <button class="btn btn-sm btn-secondary" (click)="goToday()">Today</button>
-      </div>
-      <div class="card" style="padding:0; overflow:hidden;">
+    <div *ngIf="viewMode==='calendar'" class="animate-in">
+      <div class="calendar-card mb-6">
+        <div class="p-4 flex items-center justify-between border-bottom bg-glass">
+            <div class="flex items-center gap-3">
+              <button class="btn btn-icon btn-secondary" (click)="prevMonth()"><span class="material-icons-round">chevron_left</span></button>
+              <h3 class="font-bold text-xl min-w-[200px] text-center">{{ calendarDate | date:'MMMM yyyy' }}</h3>
+              <button class="btn btn-icon btn-secondary" (click)="nextMonth()"><span class="material-icons-round">chevron_right</span></button>
+            </div>
+            <button class="btn btn-sm btn-secondary font-bold" (click)="goToday()">{{ 'TODAY' | translate }}</button>
+        </div>
         <div class="calendar-grid">
-          <div class="calendar-day-header" *ngFor="let d of dayHeaders">{{ d }}</div>
+          <div class="calendar-day-header" *ngFor="let d of dayHeaders">{{ d | translate }}</div>
           <div *ngFor="let cell of calendarCells"
                class="calendar-cell"
                [class.other-month]="!cell.currentMonth"
                [class.today]="cell.isToday"
                (click)="selectDate(cell.date)">
-            <span class="cell-day" [class.today-num]="cell.isToday">{{ cell.day }}</span>
-            <div class="cell-events">
+            <span class="cell-day">{{ cell.day }}</span>
+            <div class="flex flex-col gap-1 overflow-hidden">
               <div *ngFor="let ev of cell.events.slice(0,3)"
                    class="cal-event"
-                   [class.cal-event-scheduled]="ev.status==='Scheduled'"
-                   [class.cal-event-confirmed]="ev.status==='Confirmed'"
-                   [class.cal-event-completed]="ev.status==='Completed'"
-                   [class.cal-event-cancelled]="ev.status==='Cancelled'"
-                   [class.cal-event-inprogress]="ev.status==='InProgress'"
+                   [ngClass]="'cal-event-' + ev.status.toLowerCase()"
                    [title]="ev.patientName + ' - Dr. ' + ev.doctorName">
-                {{ ev.appointmentTime?.substring(0,5) }} {{ ev.patientName }}
+                <span class="font-mono">{{ ev.appointmentTime | slice:0:5 }}</span> {{ ev.patientName }}
               </div>
-              <div *ngIf="cell.events.length > 3" class="cal-more">+{{ cell.events.length - 3 }} more</div>
+              <div *ngIf="cell.events.length > 3" class="text-xs font-bold text-muted ml-1">+{{ cell.events.length - 3 }} {{ 'MORE' | translate }}</div>
             </div>
           </div>
         </div>
       </div>
-      <div class="calendar-legend">
-        <span class="legend-chip cal-event-scheduled">Scheduled</span>
-        <span class="legend-chip cal-event-confirmed">Confirmed</span>
-        <span class="legend-chip cal-event-completed">Completed</span>
-        <span class="legend-chip cal-event-cancelled">Cancelled</span>
-        <span class="legend-chip cal-event-inprogress">In Progress</span>
-      </div>
     </div>
 
     <!-- FORM MODAL -->
-    <div class="modal-overlay" *ngIf="showForm" (click)="showForm=false"><div class="modal modal-lg" (click)="$event.stopPropagation()">
-      <div class="modal-header"><h3 class="modal-title">{{ editing ? ('EDIT' | translate) : ('ADD_NEW' | translate) }}</h3><button class="btn btn-sm btn-secondary" (click)="showForm=false"><span class="material-icons-round">close</span></button></div>
-      <div class="modal-body">
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">{{ 'PATIENTS' | translate }} *</label><select class="form-control" [(ngModel)]="form.patientId"><option *ngFor="let p of patientsList" [value]="p.id">{{ p.fullName }} ({{ p.patientCode }})</option></select></div>
-          <div class="form-group"><label class="form-label">{{ 'DOCTORS' | translate }} *</label><select class="form-control" [(ngModel)]="form.doctorId"><option *ngFor="let d of doctorsList" [value]="d.id">{{ d.fullName }} — {{ d.specialization }}</option></select></div>
+    <div class="modal-overlay" *ngIf="showForm" (click)="showForm=false">
+      <div class="modal modal-lg" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+           <h3 class="modal-title font-bold">{{ (editing ? 'EDIT' : 'ADD_NEW') | translate }} {{ 'APPOINTMENT' | translate }}</h3>
+           <button (click)="showForm=false" class="btn-close">×</button>
         </div>
-        <div class="form-row mt-4">
-          <div class="form-group"><label class="form-label">{{ 'APPOINTMENT_DATE' | translate }}</label><input class="form-control" type="date" [(ngModel)]="form.appointmentDate"></div>
-          <div class="form-group"><label class="form-label">{{ 'APPOINTMENT_TIME' | translate }}</label><input class="form-control" type="time" [(ngModel)]="form.appointmentTimeStr"></div>
-          <div class="form-group"><label class="form-label">{{ 'DURATION' | translate }}</label><input class="form-control" type="number" [(ngModel)]="form.durationMinutes"></div>
+        <div class="modal-body">
+          <div class="grid grid-cols-2 gap-6 animate-in">
+            <div class="form-group">
+               <label class="form-label font-bold">{{ 'PATIENT' | translate }}*</label>
+               <select class="form-control" [(ngModel)]="form.patientId">
+                 <option *ngFor="let p of patientsList" [value]="p.id">{{ p.fullName }} ({{ p.patientCode }})</option>
+               </select>
+            </div>
+            <div class="form-group">
+               <label class="form-label font-bold">{{ 'DOCTOR' | translate }}*</label>
+               <select class="form-control" [(ngModel)]="form.doctorId">
+                 <option *ngFor="let d of doctorsList" [value]="d.id">Dr. {{ d.fullName }} ({{ d.specialization }})</option>
+               </select>
+            </div>
+            <div class="form-group">
+               <label class="form-label font-bold uppercase text-xs">{{ 'DATE' | translate }}*</label>
+               <input class="form-control" type="date" [(ngModel)]="form.appointmentDate">
+            </div>
+            <div class="form-group grid grid-cols-2 gap-3">
+               <div>
+                  <label class="form-label font-bold uppercase text-xs">{{ 'TIME' | translate }}*</label>
+                  <input class="form-control" type="time" [(ngModel)]="form.appointmentTimeStr">
+               </div>
+               <div>
+                  <label class="form-label font-bold uppercase text-xs">{{ 'DURATION' | translate }}</label>
+                  <input class="form-control" type="number" [(ngModel)]="form.durationMinutes" step="15">
+               </div>
+            </div>
+            <div class="form-group">
+               <label class="form-label uppercase text-xs font-bold">{{ 'STATUS' | translate }}</label>
+               <select class="form-control" [(ngModel)]="form.status" [disabled]="!editing">
+                 <option value="Scheduled">{{ 'SCHEDULED' | translate }}</option>
+                 <option value="Confirmed">{{ 'CONFIRMED' | translate }}</option>
+                 <option value="InProgress">{{ 'IN_PROGRESS' | translate }}</option>
+                 <option value="Completed">{{ 'COMPLETED' | translate }}</option>
+                 <option value="Cancelled">{{ 'CANCELLED' | translate }}</option>
+               </select>
+            </div>
+            <div class="form-group">
+               <label class="form-label uppercase text-xs font-bold">{{ 'FEE' | translate }}</label>
+               <div class="flex items-center gap-2">
+                 <input class="form-control font-bold text-lg" type="number" [(ngModel)]="form.fee">
+                 <span class="text-muted font-bold">{{ 'EGP' | translate }}</span>
+               </div>
+            </div>
+            
+            <div class="form-group col-span-2">
+               <label class="form-label uppercase text-xs font-bold">{{ 'NOTES' | translate }}</label>
+               <textarea class="form-control" [(ngModel)]="form.notes" rows="2" placeholder="Reason for visit..."></textarea>
+            </div>
+            
+            <ng-container *ngIf="editing">
+               <div class="form-group col-span-2">
+                  <label class="form-label uppercase text-xs font-bold">{{ 'DIAGNOSIS' | translate }}</label>
+                  <textarea class="form-control" [(ngModel)]="form.diagnosis" rows="2"></textarea>
+               </div>
+               <div class="form-group col-span-2">
+                  <label class="form-label uppercase text-xs font-bold">{{ 'PRESCRIPTION' | translate }}</label>
+                  <textarea class="form-control" [(ngModel)]="form.prescription" rows="2"></textarea>
+               </div>
+            </ng-container>
+          </div>
         </div>
-        <div class="form-row mt-4">
-          <div class="form-group"><label class="form-label">Fee</label><input class="form-control" type="number" [(ngModel)]="form.fee"></div>
-          <div class="form-group" *ngIf="editing"><label class="form-label">{{ 'STATUS' | translate }}</label><select class="form-control" [(ngModel)]="form.status"><option value="Scheduled">Scheduled</option><option value="Confirmed">Confirmed</option><option value="InProgress">In Progress</option><option value="Completed">Completed</option><option value="Cancelled">Cancelled</option></select></div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="showForm=false">{{ 'CANCEL' | translate }}</button>
+          <button class="btn btn-primary" (click)="save()" [disabled]="saving || !form.patientId || !form.doctorId || !form.appointmentDate">
+            <span class="spinner spinner-sm mr-2" *ngIf="saving"></span>
+            <span class="material-icons-round mr-1">save</span> {{ 'SAVE' | translate }}
+          </button>
         </div>
-        <div class="form-group mt-4" *ngIf="editing"><label class="form-label">{{ 'DIAGNOSIS' | translate }}</label><textarea class="form-control" [(ngModel)]="form.diagnosis" rows="2"></textarea></div>
-        <div class="form-group mt-4" *ngIf="editing"><label class="form-label">{{ 'PRESCRIPTION' | translate }}</label><textarea class="form-control" [(ngModel)]="form.prescription" rows="2"></textarea></div>
-        <div class="form-group mt-4"><label class="form-label">{{ 'NOTES' | translate }}</label><textarea class="form-control" [(ngModel)]="form.notes" rows="2"></textarea></div>
       </div>
-      <div class="modal-footer"><button class="btn btn-secondary" (click)="showForm=false">{{ 'CANCEL' | translate }}</button><button class="btn btn-primary" (click)="save()" [disabled]="saving"><span class="spinner spinner-sm" *ngIf="saving"></span> {{ 'SAVE' | translate }}</button></div>
-    </div></div>
-  `,
-  styles: [`
-    .view-toggle { display: flex; border-radius: 10px; border: 1px solid var(--border); overflow: hidden; }
-    .view-toggle button { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border: none; background: none; color: var(--text-secondary); cursor: pointer; font-family: var(--font-family); font-size: 0.8rem; font-weight: 500; transition: var(--transition); }
-    .view-toggle button.active { background: rgba(99,102,241,0.15); color: var(--primary-light); }
-    .view-toggle button:hover:not(.active) { background: rgba(255,255,255,0.05); }
-    .view-toggle button .material-icons-round { font-size: 18px; }
-
-    .calendar-container { display: flex; flex-direction: column; gap: 16px; }
-    .calendar-nav { display: flex; align-items: center; gap: 12px; }
-    .calendar-month-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); min-width: 180px; text-align: center; }
-    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
-    .calendar-day-header { background: var(--bg-sidebar); padding: 10px 8px; text-align: center; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
-    .calendar-cell { min-height: 110px; padding: 8px; cursor: pointer; transition: background 0.15s; display: flex; flex-direction: column; gap: 4px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-    .calendar-cell:nth-child(7n) { border-right: none; }
-    .calendar-cell:hover { background: rgba(99,102,241,0.06); }
-    .calendar-cell.other-month { background: rgba(0,0,0,0.15); opacity: 0.5; }
-    .calendar-cell.today { background: rgba(99,102,241,0.08); }
-    .cell-day { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); line-height: 1; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; }
-    .cell-day.today-num { background: var(--primary); color: white; border-radius: 50%; font-weight: 800; }
-    .cell-events { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow: hidden; }
-    .cal-event { font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
-    .cal-event-scheduled { background: rgba(59,130,246,0.2); color: #93c5fd; border-left: 3px solid #3b82f6; }
-    .cal-event-confirmed { background: rgba(99,102,241,0.2); color: #a5b4fc; border-left: 3px solid #6366f1; }
-    .cal-event-completed { background: rgba(16,185,129,0.2); color: #6ee7b7; border-left: 3px solid #10b981; }
-    .cal-event-cancelled { background: rgba(239,68,68,0.2); color: #fca5a5; border-left: 3px solid #ef4444; }
-    .cal-event-inprogress { background: rgba(245,158,11,0.2); color: #fcd34d; border-left: 3px solid #f59e0b; }
-    .cal-more { font-size: 0.68rem; color: var(--text-muted); padding: 2px 6px; }
-    .calendar-legend { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .legend-chip { font-size: 0.75rem; padding: 4px 10px; border-radius: 6px; font-weight: 500; }
-  `]
+    </div>
+  `
 })
 export class AppointmentsComponent implements OnInit {
   appointments: any[] = [];
@@ -176,12 +273,13 @@ export class AppointmentsComponent implements OnInit {
   viewMode = 'list';
   calendarDate = new Date();
   calendarCells: any[] = [];
-  dayHeaders = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  dayHeaders = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 
   constructor(
     private svc: AppointmentService,
     private patientSvc: PatientService,
     private doctorSvc: DoctorService,
+    private translate: TranslateService,
     private toast: ToastService,
     private exportSvc: ExportService
   ) { }
@@ -203,15 +301,15 @@ export class AppointmentsComponent implements OnInit {
   }
 
   loadLookups() {
-    this.patientSvc.getAll({ pageSize: 500 }).subscribe(r => this.patientsList = r.items);
-    this.doctorSvc.getAll({ pageSize: 500 }).subscribe(r => this.doctorsList = r.items);
+    this.patientSvc.getAll({ pageSize: 1000 }).subscribe(r => this.patientsList = r.items);
+    this.doctorSvc.getAll({ pageSize: 1000 }).subscribe(r => this.doctorsList = r.items);
   }
 
   openForm(a?: any) {
     this.editing = a || null;
     this.form = a
       ? { ...a, appointmentDate: a.appointmentDate?.split('T')[0], appointmentTimeStr: a.appointmentTime?.substring(0, 5) }
-      : { durationMinutes: 30, fee: 0, appointmentDate: '', appointmentTimeStr: '09:00' };
+      : { durationMinutes: 30, fee: 0, appointmentDate: '', appointmentTimeStr: '09:00', status: 'Scheduled' };
     this.showForm = true;
   }
 
@@ -221,23 +319,25 @@ export class AppointmentsComponent implements OnInit {
     const data = { ...this.form, appointmentTime: this.form.appointmentTimeStr + ':00' };
     const obs = this.editing ? this.svc.update(this.editing.id, data) : this.svc.create(data);
     obs.subscribe({
-      next: () => { this.toast.success('Saved'); this.showForm = false; this.saving = false; this.loadData(); },
-      error: () => { this.toast.error('Error'); this.saving = false; }
+      next: () => {
+        this.toast.success(this.translate.instant('SUCCESS_SAVE'));
+        this.showForm = false;
+        this.saving = false;
+        this.loadData();
+      },
+      error: () => {
+        this.toast.error(this.translate.instant('ERROR_OCCURRED'));
+        this.saving = false;
+      }
     });
   }
 
   deleteAppt(a: any) {
-    if (confirm('Delete?')) this.svc.delete(a.id).subscribe({ next: () => { this.toast.success('Deleted'); this.loadData(); } });
-  }
-
-  getStatusClass(s: string): string {
-    switch (s) {
-      case 'Scheduled': return 'badge-info';
-      case 'Confirmed': return 'badge-primary';
-      case 'InProgress': return 'badge-warning';
-      case 'Completed': return 'badge-success';
-      case 'Cancelled': return 'badge-danger';
-      default: return 'badge-secondary';
+    if (confirm(this.translate.instant('CONFIRM_DELETE'))) {
+      this.svc.delete(a.id).subscribe({
+        next: () => { this.toast.success(this.translate.instant('SUCCESS_DELETE')); this.loadData(); },
+        error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+      });
     }
   }
 
@@ -265,19 +365,15 @@ export class AppointmentsComponent implements OnInit {
     const lastDay = new Date(year, month + 1, 0);
     const today = new Date(); today.setHours(0, 0, 0, 0);
 
-    // Monday-based: 0=Mon … 6=Sun
-    let startDow = firstDay.getDay();
-    const offset = startDow === 0 ? 6 : startDow - 1;
+    let startDow = firstDay.getDay(); // 0=Sun
+    const offset = startDow === 0 ? 6 : startDow - 1; // Mon=0, Sun=6
 
     const cells: any[] = [];
-
-    // Previous month padding cells
     for (let i = offset - 1; i >= 0; i--) {
       const d = new Date(year, month, -i);
-      cells.push({ date: d, day: d.getDate(), currentMonth: false, isToday: false, events: [] });
+      cells.push({ date: d, day: d.getDate(), currentMonth: false });
     }
 
-    // Current month cells
     for (let d = 1; d <= lastDay.getDate(); d++) {
       const date = new Date(year, month, d);
       date.setHours(0, 0, 0, 0);
@@ -286,13 +382,11 @@ export class AppointmentsComponent implements OnInit {
       cells.push({ date, day: d, currentMonth: true, isToday: date.getTime() === today.getTime(), events });
     }
 
-    // Next month padding cells to complete final row
     const remaining = (7 - cells.length % 7) % 7;
     for (let i = 1; i <= remaining; i++) {
       const d = new Date(year, month + 1, i);
-      cells.push({ date: d, day: d.getDate(), currentMonth: false, isToday: false, events: [] });
+      cells.push({ date: d, day: d.getDate(), currentMonth: false });
     }
-
     this.calendarCells = cells;
   }
 
@@ -311,8 +405,9 @@ export class AppointmentsComponent implements OnInit {
     this.buildCalendar();
   }
 
-  selectDate(date: Date) {
-    this.dateFilter = date.toISOString().split('T')[0];
+  selectDate(cellDate: Date) {
+    if (!cellDate) return;
+    this.dateFilter = cellDate.toISOString().split('T')[0];
     this.viewMode = 'list';
     this.loadData();
   }

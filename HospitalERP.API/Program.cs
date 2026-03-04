@@ -4,6 +4,7 @@ using HospitalERP.Application.Services;
 using HospitalERP.API.Hubs;
 using HospitalERP.Infrastructure.Data;
 using HospitalERP.Infrastructure.UnitOfWork;
+using HospitalERP.API.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -31,6 +32,12 @@ builder.Services.AddScoped<IPurchaseService, PurchaseService>();
 builder.Services.AddScoped<ISalesService, SalesService>();
 builder.Services.AddScoped<IHRService, HRService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IReportingService, ReportingService>();
+builder.Services.AddScoped<IPdfService, PdfService>();
+builder.Services.AddScoped<ILabService, LabService>();
+builder.Services.AddScoped<IRadiologyService, RadiologyService>();
+builder.Services.AddScoped<IClinicalService, ClinicalService>();
+builder.Services.AddScoped<IPharmacyService, PharmacyService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // ── JWT Authentication ──────────────────────────────────────────
@@ -75,7 +82,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
     {
-        policy.WithOrigins("http://localhost:4200", "http://localhost:4201")
+        policy.WithOrigins("http://localhost:4200", "http://localhost:4201", "http://localhost", "http://localhost:8080")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -105,6 +112,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
@@ -113,9 +121,15 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<HospitalERPDbContext>();
     db.Database.Migrate();
+
+    // Seed comprehensive demo data on first run
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("DemoSeeder");
+    await DemoDataSeeder.SeedAsync(db, logger);
 }
 
 // ── Middleware ──────────────────────────────────────────────────
+app.UseGlobalExceptionHandler();
+
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -129,5 +143,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<NotificationHub>("/hubs/notifications");
+app.MapHealthChecks("/health");
 
 app.Run();

@@ -125,6 +125,52 @@ public class PatientService : IPatientService
         return invoices.Select(InvoiceService.ToDto);
     }
 
+    public async Task<IEnumerable<PatientVitalDto>> GetPatientVitalsAsync(int patientId)
+    {
+        var vitals = await _uow.PatientVitals.Query()
+            .Include(v => v.Patient)
+            .Where(v => v.PatientId == patientId)
+            .OrderByDescending(v => v.RecordedDate)
+            .ToListAsync();
+        return vitals.Select(ClinicalService.ToDto);
+    }
+
+    public async Task<IEnumerable<PrescriptionDto>> GetPatientPrescriptionsAsync(int patientId)
+    {
+        var prescriptions = await _uow.Prescriptions.Query()
+            .Include(p => p.Patient)
+            .Include(p => p.Doctor)
+            .Include(p => p.Items).ThenInclude(pi => pi.Item)
+            .Where(p => p.PatientId == patientId)
+            .OrderByDescending(p => p.PrescriptionDate)
+            .ToListAsync();
+        return prescriptions.Select(PharmacyService.ToDto);
+    }
+
+    public async Task<IEnumerable<LabRequestDto>> GetPatientLabRequestsAsync(int patientId)
+    {
+        var requests = await _uow.LabRequests.Query()
+            .Include(r => r.Patient)
+            .Include(r => r.Doctor)
+            .Include(r => r.Results).ThenInclude(res => res.LabTest)
+            .Where(r => r.PatientId == patientId)
+            .OrderByDescending(r => r.RequestDate)
+            .ToListAsync();
+        return requests.Select(LabService.ToRDto);
+    }
+
+    public async Task<IEnumerable<RadiologyRequestDto>> GetPatientRadiologyRequestsAsync(int patientId)
+    {
+        var requests = await _uow.RadiologyRequests.Query()
+            .Include(r => r.Patient)
+            .Include(r => r.Doctor)
+            .Include(r => r.Results).ThenInclude(res => res.RadiologyTest)
+            .Where(r => r.PatientId == patientId)
+            .OrderByDescending(r => r.RequestDate)
+            .ToListAsync();
+        return requests.Select(RadiologyService.ToRDto);
+    }
+
     internal static PatientDto ToDto(Patient p) => new(
         p.Id, p.PatientCode, p.FullName, p.NationalId, p.DateOfBirth, p.Gender,
         p.BloodType, p.PhoneNumber, p.Email, p.Address, p.EmergencyContact,

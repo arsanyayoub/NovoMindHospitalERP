@@ -101,6 +101,10 @@ Controllers/
 ├── PurchaseController.cs       # Suppliers, Purchase Invoices
 ├── SalesController.cs          # Customers, Sales Invoices
 ├── HRController.cs             # Employees, Payrolls
+├── LabController.cs            # Tests, Requests, Results
+├── RadiologyController.cs      # Imaging, Reports, Results
+├── ClinicalController.cs       # Patient Vitals
+├── PharmacyController.cs       # Prescriptions, Dispensing
 ├── DashboardController.cs      # Aggregated dashboard stats
 ├── NotificationController.cs   # User notifications
 └── ReportsController.cs        # Analytics & reporting
@@ -116,6 +120,10 @@ builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddScoped<ILabService, LabService>();
+builder.Services.AddScoped<IRadiologyService, RadiologyService>();
+builder.Services.AddScoped<IClinicalService, ClinicalService>();
+builder.Services.AddScoped<IPharmacyService, PharmacyService>();
 // ... (analogous for all services)
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddSignalR();
@@ -373,7 +381,37 @@ Returns:
 
 ## 9. Deployment
 
-### Production Build
+### Docker Deployment (Recommended)
+
+The project ships with a production-ready `docker-compose.yml` that orchestrates three services:
+
+| Service | Image | Port | Purpose |
+|---------|-------|------|---------|
+| `hospital_db` | SQL Server 2022 | 1433 | Database |
+| `hospital_api` | .NET 8 (multi-stage) | 8080 | Backend API |
+| `hospital_frontend` | Node 18 → Nginx | 80 | Angular SPA + reverse proxy |
+
+```bash
+# Launch entire stack from solution root
+docker-compose up --build -d
+
+# View logs
+docker-compose logs -f api
+
+# Tear down (keep data)
+docker-compose down
+
+# Tear down (remove SQL volume)
+docker-compose down -v
+```
+
+#### Nginx Reverse Proxy
+The frontend container includes an `nginx.conf` that:
+- Serves the Angular SPA with `try_files $uri $uri/ /index.html` for client-side routing
+- Proxies `/api/*` → `http://api:8080/api/`
+- Proxies `/hubs/*` → `http://api:8080/hubs/` with WebSocket upgrade headers
+
+### Production Build (Manual)
 
 **Backend:**
 ```bash
@@ -385,9 +423,44 @@ Run with: `dotnet HospitalERP.API.dll` (set env vars for secrets)
 ```bash
 cd hospital-erp-angular
 npm run build
-# Output in dist/hospital-erp-angular/
+# Output in dist/hospital-erp-angular/browser/
 ```
 Serve the `dist/` folder with any static server (nginx, IIS, Vercel, etc.)
+
+### Health Check
+```
+GET /health → 200 OK "Healthy"
+```
+Use this endpoint for Docker health checks, load balancer probes, or uptime monitoring.
+
+### Global Exception Middleware
+All unhandled exceptions are caught by `GlobalExceptionMiddleware` and returned as:
+```json
+{
+  "status": 500,
+  "error": "InternalServerError",
+  "message": "An unexpected error occurred.",
+  "timestamp": "2026-03-04T08:00:00Z"
+}
+```
+Specific exception types map to proper HTTP codes:
+| Exception | HTTP Status |
+|-----------|-------------|
+| `KeyNotFoundException` | 404 Not Found |
+| `UnauthorizedAccessException` | 403 Forbidden |
+| `ArgumentException` | 400 Bad Request |
+| `InvalidOperationException` | 409 Conflict |
+| All others | 500 Internal Server Error |
+
+### Demo Data Seeder
+On first startup (when no Employees exist), `DemoDataSeeder` automatically populates:
+- 10 employees, 5 doctors, 10 patients
+- 13 chart-of-accounts entries
+- 3 warehouses, 8 inventory items with stock levels
+- 2 suppliers, 2 customers
+- 15 appointments with matching invoices and payments
+
+This runs idempotently — it only seeds once.
 
 ### IIS Deployment (Windows)
 1. Install [.NET 8 Hosting Bundle](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
@@ -398,7 +471,8 @@ Serve the `dist/` folder with any static server (nginx, IIS, Vercel, etc.)
 ### Environment Variables (Production)
 Never store secrets in `appsettings.json` in production. Use:
 - **Windows**: IIS App Pool environment variables or Windows Secrets Manager
-- **Linux**: `DOTNET_*` environment variables or `dotnet user-secrets`
+- **Linux/Docker**: `ASPNETCORE_ENVIRONMENT=Production` + environment variables in `docker-compose.yml`
+- Connection string override: `ConnectionStrings__DefaultConnection=Server=...`
 
 ---
 

@@ -37,6 +37,10 @@
 | 🛒 Purchases | Suppliers, purchase invoices, payment tracking |
 | 💰 Sales | Customers, sales invoices, payment tracking |
 | 👥 HR | Employees, payroll generation and processing |
+| 🧪 Laboratory | Test catalog, lab requests, result entry & tracking |
+| ☢️ Radiology | Imaging tests, radiology requests, diagnostic reports |
+| 🏥 Clinical | Patient vitals (Temp, BP, SpO2, Heart Rate, BMI) |
+| 💊 Pharmacy | Prescriptions, medication dispensing, inventory integration |
 | 📈 Reports | Revenue, patient, appointment analytics |
 | 🔔 Notifications | Real-time SignalR push notifications with unread badge |
 | ⚙️ Settings | Profile editor, password change, language toggle |
@@ -168,7 +172,33 @@ npm run dev
 # App will be available at http://localhost:4200
 ```
 
-> **Default credentials** — registered via the `/auth/register` endpoint. First user gets Admin role.
+> **Default credentials** — Username: `admin` | Password: `Admin@123`
+>
+> On first startup the API automatically runs migrations and seeds demo data (10 patients, 5 doctors, 10 employees, chart of accounts, inventory items, warehouses, appointments, and invoices).
+
+### Docker Deployment (Recommended)
+
+The entire stack (SQL Server + API + Angular) can be launched with a single command:
+
+```bash
+# From the solution root
+docker-compose up --build -d
+```
+
+| Service | Container | Port | URL |
+|---------|-----------|------|-----|
+| SQL Server 2022 | `hospital_db` | 1433 | — |
+| .NET 8 API | `hospital_api` | 8080 | `http://localhost:8080/swagger` |
+| Angular (Nginx) | `hospital_frontend` | 80 | `http://localhost` |
+
+Nginx proxies `/api/*` and `/hubs/*` requests to the API container automatically.
+
+> ⚠️ **Production**: Change the SA password in `docker-compose.yml` and the JWT key in `appsettings.json`.
+
+To tear down:
+```bash
+docker-compose down -v   # -v removes the SQL data volume
+```
 
 ---
 
@@ -215,11 +245,16 @@ ERP Hospital NEw/
 │   ├── Entities/
 │   └── Enums/
 ├── HospitalERP.Infrastructure/     # Data Access Layer
-│   ├── Data/                       # DbContext
+│   ├── Data/                       # DbContext + DemoDataSeeder
 │   ├── Migrations/
 │   ├── Repositories/
 │   └── UnitOfWork/
+├── Dockerfile                      # Multi-stage API build
+├── docker-compose.yml              # Full-stack orchestration
+├── .dockerignore
 └── hospital-erp-angular/           # Angular 17 Frontend
+    ├── Dockerfile                  # Multi-stage build (Node → Nginx)
+    ├── nginx.conf                  # Reverse-proxy for API & SignalR
     └── src/app/
         ├── core/
         │   ├── guards/             # Auth guard
@@ -236,6 +271,10 @@ ERP Hospital NEw/
         │   ├── purchases/
         │   ├── sales/
         │   ├── hr/
+        │   ├── lab/
+        │   ├── radiology/
+        │   ├── clinical/
+        │   ├── pharmacy/
         │   ├── reports/
         │   └── settings/
         └── layout/shell/           # App shell (sidebar + header)

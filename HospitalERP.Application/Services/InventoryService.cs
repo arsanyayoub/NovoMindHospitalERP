@@ -84,14 +84,14 @@ public class InventoryService : IInventoryService
         if (warehouseId.HasValue) query = query.Where(ws => ws.WarehouseId == warehouseId.Value);
         if (itemId.HasValue) query = query.Where(ws => ws.ItemId == itemId.Value);
         var stocks = await query.ToListAsync();
-        return stocks.Select(ws => new WarehouseStockDto(ws.Id, ws.WarehouseId, ws.Warehouse.WarehouseName, ws.ItemId, ws.Item.ItemName, ws.Quantity, ws.ReorderLevel, ws.MaxLevel, ws.Quantity <= ws.ReorderLevel));
+        return stocks.Select(ws => new WarehouseStockDto(ws.Id, ws.WarehouseId, ws.Warehouse.WarehouseName, ws.ItemId, ws.Item.ItemName, ws.Quantity, ws.ReorderLevel, ws.MaxLevel, ws.Quantity <= ws.ReorderLevel, ws.Item.PurchasePrice));
     }
 
     public async Task<IEnumerable<WarehouseStockDto>> GetLowStockItemsAsync()
     {
         var stocks = await _uow.WarehouseStocks.Query().Include(ws => ws.Warehouse).Include(ws => ws.Item)
             .Where(ws => ws.Quantity <= ws.ReorderLevel).ToListAsync();
-        return stocks.Select(ws => new WarehouseStockDto(ws.Id, ws.WarehouseId, ws.Warehouse.WarehouseName, ws.ItemId, ws.Item.ItemName, ws.Quantity, ws.ReorderLevel, ws.MaxLevel, true));
+        return stocks.Select(ws => new WarehouseStockDto(ws.Id, ws.WarehouseId, ws.Warehouse.WarehouseName, ws.ItemId, ws.Item.ItemName, ws.Quantity, ws.ReorderLevel, ws.MaxLevel, true, ws.Item.PurchasePrice));
     }
 
     public async Task TransferStockAsync(StockTransferDto dto, string createdBy)
@@ -285,6 +285,32 @@ public class InventoryService : IInventoryService
         }
             
         return new BatchScanResultDto(false, null, null, "Barcode not found in inventory.");
+    }
+
+    // ── Stock Transactions (Reports) ─────────────────────────────────
+    public async Task<IEnumerable<StockTransactionDto>> GetStockTransactionsAsync(int? itemId, int? warehouseId, string? type, DateTime? from, DateTime? to)
+    {
+        var query = _uow.StockTransactions.Query()
+            .Include(t => t.Item)
+            .Include(t => t.Warehouse)
+            .Include(t => t.ItemBatch)
+            .AsQueryable();
+
+        if (itemId.HasValue) query = query.Where(t => t.ItemId == itemId.Value);
+        if (warehouseId.HasValue) query = query.Where(t => t.WarehouseId == warehouseId.Value);
+        if (!string.IsNullOrWhiteSpace(type)) query = query.Where(t => t.TransactionType == type);
+        if (from.HasValue) query = query.Where(t => t.TransactionDate >= from.Value);
+        if (to.HasValue) query = query.Where(t => t.TransactionDate <= to.Value);
+
+        var txns = await query.OrderByDescending(t => t.TransactionDate).Take(500).ToListAsync();
+        return txns.Select(t => new StockTransactionDto(
+            t.Id, t.ItemId, t.Item?.ItemName ?? "", t.Item?.ItemCode ?? "",
+            t.WarehouseId, t.Warehouse?.WarehouseName ?? "",
+            t.TransactionType, t.Quantity, t.UnitCost,
+            t.Reference, t.Notes,
+            t.ItemBatch?.BatchNumber,
+            t.TransactionDate, t.CreatedBy ?? "system"
+        ));
     }
     
     private static ItemPackagingUnitDto ToUnitDto(ItemPackagingUnit u) => new(

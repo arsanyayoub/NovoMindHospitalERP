@@ -929,6 +929,261 @@ namespace HospitalERP.Infrastructure.Migrations
                     b.ToTable("JournalEntryLines");
                 });
 
+            modelBuilder.Entity("HospitalERP.Domain.Entities.LabRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DoctorId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("RequestDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RequestNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DoctorId");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("RequestNumber")
+                        .IsUnique();
+
+                    b.ToTable("LabRequests");
+                });
+
+            modelBuilder.Entity("HospitalERP.Domain.Entities.LabResult", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("LabRequestId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LabTestId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NormalRange")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PerformedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ResultDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ResultValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Unit")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LabRequestId");
+
+                    b.HasIndex("LabTestId");
+
+                    b.ToTable("LabResults");
+                });
+
+            modelBuilder.Entity("HospitalERP.Domain.Entities.LabTest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NormalRange")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("TestCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TestCode")
+                        .IsUnique();
+
+                    b.ToTable("LabTests");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Category = "Hematology",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            IsDeleted = false,
+                            Name = "Complete Blood Count (CBC)",
+                            NameAr = "صورة دم كاملة",
+                            NormalRange = "4.5-11.0 x10^9/L",
+                            Price = 50m,
+                            TestCode = "LAB0001",
+                            Unit = "x10^9/L"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Category = "Biochemistry",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            IsDeleted = false,
+                            Name = "Blood Glucose",
+                            NameAr = "سكر الدم",
+                            NormalRange = "70-100 mg/dL",
+                            Price = 30m,
+                            TestCode = "LAB0002",
+                            Unit = "mg/dL"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Category = "Biochemistry",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            IsDeleted = false,
+                            Name = "Kidney Function Test",
+                            NameAr = "وظائف كلى",
+                            NormalRange = "0.7-1.3 mg/dL",
+                            Price = 80m,
+                            TestCode = "LAB0003",
+                            Unit = "mg/dL"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Category = "Biochemistry",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            IsDeleted = false,
+                            Name = "Liver Function Test",
+                            NameAr = "وظائف كبد",
+                            NormalRange = "Varies",
+                            Price = 100m,
+                            TestCode = "LAB0004",
+                            Unit = "U/L"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Category = "Microbiology",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            IsDeleted = false,
+                            Name = "Urinalysis",
+                            NameAr = "تحليل بول",
+                            NormalRange = "Negative",
+                            Price = 25m,
+                            TestCode = "LAB0005",
+                            Unit = "N/A"
+                        });
+                });
+
             modelBuilder.Entity("HospitalERP.Domain.Entities.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -1061,6 +1316,85 @@ namespace HospitalERP.Infrastructure.Migrations
                     b.ToTable("Patients");
                 });
 
+            modelBuilder.Entity("HospitalERP.Domain.Entities.PatientVital", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AppointmentId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("BMI")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("BloodPressureDiastolic")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BloodPressureSystolic")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("HeartRate")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("HeightCm")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PainScale")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RecordedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RecordedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("RespiratoryRate")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SpO2")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("Temperature")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("WeightKg")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("PatientVitals");
+                });
+
             modelBuilder.Entity("HospitalERP.Domain.Entities.Payment", b =>
                 {
                     b.Property<int>("Id")
@@ -1183,6 +1517,133 @@ namespace HospitalERP.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Payrolls");
+                });
+
+            modelBuilder.Entity("HospitalERP.Domain.Entities.Prescription", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AppointmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DoctorId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("PrescriptionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PrescriptionNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.HasIndex("DoctorId");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("PrescriptionNumber")
+                        .IsUnique();
+
+                    b.ToTable("Prescriptions");
+                });
+
+            modelBuilder.Entity("HospitalERP.Domain.Entities.PrescriptionItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DispensedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DispensedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Dosage")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Duration")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Frequency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Instructions")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDispensed")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PrescriptionId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("PrescriptionId");
+
+                    b.ToTable("PrescriptionItems");
                 });
 
             modelBuilder.Entity("HospitalERP.Domain.Entities.PurchaseInvoice", b =>
@@ -1308,6 +1769,236 @@ namespace HospitalERP.Infrastructure.Migrations
                     b.HasIndex("WarehouseId");
 
                     b.ToTable("PurchaseInvoiceItems");
+                });
+
+            modelBuilder.Entity("HospitalERP.Domain.Entities.RadiologyRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DoctorId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("RequestDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RequestNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DoctorId");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("RequestNumber")
+                        .IsUnique();
+
+                    b.ToTable("RadiologyRequests");
+                });
+
+            modelBuilder.Entity("HospitalERP.Domain.Entities.RadiologyResult", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Findings")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Impression")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PerformedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RadiologistName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RadiologyRequestId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RadiologyTestId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ResultDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RadiologyRequestId");
+
+                    b.HasIndex("RadiologyTestId");
+
+                    b.ToTable("RadiologyResults");
+                });
+
+            modelBuilder.Entity("HospitalERP.Domain.Entities.RadiologyTest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PreparationInstructions")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PreparationInstructionsAr")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("TestCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TestCode")
+                        .IsUnique();
+
+                    b.ToTable("RadiologyTests");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Category = "X-Ray",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            IsDeleted = false,
+                            Name = "Chest X-Ray",
+                            NameAr = "أشعة سينية على الصدر",
+                            Price = 150m,
+                            TestCode = "RAD0001"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Category = "MRI",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            IsDeleted = false,
+                            Name = "Brain MRI",
+                            NameAr = "رنين مغناطيسي على المخ",
+                            Price = 1200m,
+                            TestCode = "RAD0002"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Category = "Ultrasound",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            IsDeleted = false,
+                            Name = "Abdominal Ultrasound",
+                            NameAr = "أشعة تليفزيونية على البطن",
+                            Price = 300m,
+                            TestCode = "RAD0003"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Category = "CT Scan",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            IsDeleted = false,
+                            Name = "CT Abdomen",
+                            NameAr = "أشعة مقطعية على البطن",
+                            Price = 800m,
+                            TestCode = "RAD0004"
+                        });
                 });
 
             modelBuilder.Entity("HospitalERP.Domain.Entities.Role", b =>
@@ -1943,6 +2634,43 @@ namespace HospitalERP.Infrastructure.Migrations
                     b.Navigation("JournalEntry");
                 });
 
+            modelBuilder.Entity("HospitalERP.Domain.Entities.LabRequest", b =>
+                {
+                    b.HasOne("HospitalERP.Domain.Entities.Doctor", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HospitalERP.Domain.Entities.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("HospitalERP.Domain.Entities.LabResult", b =>
+                {
+                    b.HasOne("HospitalERP.Domain.Entities.LabRequest", "LabRequest")
+                        .WithMany("Results")
+                        .HasForeignKey("LabRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HospitalERP.Domain.Entities.LabTest", "LabTest")
+                        .WithMany()
+                        .HasForeignKey("LabTestId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("LabRequest");
+
+                    b.Navigation("LabTest");
+                });
+
             modelBuilder.Entity("HospitalERP.Domain.Entities.Notification", b =>
                 {
                     b.HasOne("HospitalERP.Domain.Entities.User", "User")
@@ -1951,6 +2679,24 @@ namespace HospitalERP.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("HospitalERP.Domain.Entities.PatientVital", b =>
+                {
+                    b.HasOne("HospitalERP.Domain.Entities.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HospitalERP.Domain.Entities.Patient", "Patient")
+                        .WithMany("Vitals")
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("Patient");
                 });
 
             modelBuilder.Entity("HospitalERP.Domain.Entities.Payment", b =>
@@ -1977,6 +2723,49 @@ namespace HospitalERP.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("HospitalERP.Domain.Entities.Prescription", b =>
+                {
+                    b.HasOne("HospitalERP.Domain.Entities.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId");
+
+                    b.HasOne("HospitalERP.Domain.Entities.Doctor", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HospitalERP.Domain.Entities.Patient", "Patient")
+                        .WithMany("Prescriptions")
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("HospitalERP.Domain.Entities.PrescriptionItem", b =>
+                {
+                    b.HasOne("HospitalERP.Domain.Entities.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HospitalERP.Domain.Entities.Prescription", "Prescription")
+                        .WithMany("Items")
+                        .HasForeignKey("PrescriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Prescription");
                 });
 
             modelBuilder.Entity("HospitalERP.Domain.Entities.PurchaseInvoice", b =>
@@ -2015,6 +2804,43 @@ namespace HospitalERP.Infrastructure.Migrations
                     b.Navigation("PurchaseInvoice");
 
                     b.Navigation("Warehouse");
+                });
+
+            modelBuilder.Entity("HospitalERP.Domain.Entities.RadiologyRequest", b =>
+                {
+                    b.HasOne("HospitalERP.Domain.Entities.Doctor", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HospitalERP.Domain.Entities.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("HospitalERP.Domain.Entities.RadiologyResult", b =>
+                {
+                    b.HasOne("HospitalERP.Domain.Entities.RadiologyRequest", "RadiologyRequest")
+                        .WithMany("Results")
+                        .HasForeignKey("RadiologyRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HospitalERP.Domain.Entities.RadiologyTest", "RadiologyTest")
+                        .WithMany()
+                        .HasForeignKey("RadiologyTestId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("RadiologyRequest");
+
+                    b.Navigation("RadiologyTest");
                 });
 
             modelBuilder.Entity("HospitalERP.Domain.Entities.SalesInvoice", b =>
@@ -2153,16 +2979,35 @@ namespace HospitalERP.Infrastructure.Migrations
                     b.Navigation("Lines");
                 });
 
+            modelBuilder.Entity("HospitalERP.Domain.Entities.LabRequest", b =>
+                {
+                    b.Navigation("Results");
+                });
+
             modelBuilder.Entity("HospitalERP.Domain.Entities.Patient", b =>
                 {
                     b.Navigation("Appointments");
 
                     b.Navigation("Invoices");
+
+                    b.Navigation("Prescriptions");
+
+                    b.Navigation("Vitals");
+                });
+
+            modelBuilder.Entity("HospitalERP.Domain.Entities.Prescription", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("HospitalERP.Domain.Entities.PurchaseInvoice", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("HospitalERP.Domain.Entities.RadiologyRequest", b =>
+                {
+                    b.Navigation("Results");
                 });
 
             modelBuilder.Entity("HospitalERP.Domain.Entities.Role", b =>

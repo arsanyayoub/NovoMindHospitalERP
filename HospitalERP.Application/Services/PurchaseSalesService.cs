@@ -59,11 +59,12 @@ public class PurchaseService : IPurchaseService
     public async Task<PurchaseInvoiceDto> CreatePurchaseInvoiceAsync(CreatePurchaseInvoiceDto dto, string createdBy)
     {
         var count = await _uow.PurchaseInvoices.CountAsync();
+        var invoiceNum = $"PI{(count + 1):D6}";
         var subTotal = dto.Items.Sum(i => i.Quantity * i.UnitPrice - i.Discount);
         var taxAmount = dto.Items.Sum(i => i.Quantity * i.UnitPrice * i.TaxRate / 100);
         var pi = new PurchaseInvoice
         {
-            InvoiceNumber = $"PI{(count + 1):D6}", SupplierId = dto.SupplierId,
+            InvoiceNumber = invoiceNum, SupplierId = dto.SupplierId,
             InvoiceDate = dto.InvoiceDate, DueDate = dto.DueDate,
             SubTotal = subTotal, TaxAmount = taxAmount, DiscountAmount = dto.DiscountAmount,
             TotalAmount = subTotal + taxAmount - dto.DiscountAmount,
@@ -71,14 +72,49 @@ public class PurchaseService : IPurchaseService
             Items = dto.Items.Select(i => new PurchaseInvoiceItem { ItemId = i.ItemId, WarehouseId = i.WarehouseId, Quantity = i.Quantity, UnitPrice = i.UnitPrice, TaxRate = i.TaxRate, Discount = i.Discount, Total = i.Quantity * i.UnitPrice - i.Discount, CreatedBy = createdBy }).ToList()
         };
         await _uow.PurchaseInvoices.AddAsync(pi);
-        // Update stock
-        foreach (var item in dto.Items)
+
+        // Update stock & auto-create batches for batch-tracked items
+        var batchCount = await _uow.ItemBatches.CountAsync();
+        var dateStr = DateTime.UtcNow.ToString("yyyyMMdd");
+        foreach (var lineDto in dto.Items)
         {
-            var stock = await _uow.WarehouseStocks.Query().FirstOrDefaultAsync(ws => ws.WarehouseId == item.WarehouseId && ws.ItemId == item.ItemId);
-            if (stock is null) await _uow.WarehouseStocks.AddAsync(new WarehouseStock { WarehouseId = item.WarehouseId, ItemId = item.ItemId, Quantity = item.Quantity, CreatedBy = createdBy });
-            else { stock.Quantity += item.Quantity; _uow.WarehouseStocks.Update(stock); }
-            await _uow.StockTransactions.AddAsync(new StockTransaction { ItemId = item.ItemId, WarehouseId = item.WarehouseId, TransactionType = "IN", Quantity = item.Quantity, UnitCost = item.UnitPrice, Reference = $"PI{(count + 1):D6}", TransactionDate = DateTime.UtcNow, CreatedBy = createdBy });
+            var invItem = await _uow.Items.GetByIdAsync(lineDto.ItemId);
+            var stock = await _uow.WarehouseStocks.Query().FirstOrDefaultAsync(ws => ws.WarehouseId == lineDto.WarehouseId && ws.ItemId == lineDto.ItemId);
+            if (stock is null) await _uow.WarehouseStocks.AddAsync(new WarehouseStock { WarehouseId = lineDto.WarehouseId, ItemId = lineDto.ItemId, Quantity = lineDto.Quantity, CreatedBy = createdBy });
+            else { stock.Quantity += lineDto.Quantity; _uow.WarehouseStocks.Update(stock); }
+
+            await _uow.StockTransactions.AddAsync(new StockTransaction
+            {
+                ItemId = lineDto.ItemId, WarehouseId = lineDto.WarehouseId,
+                TransactionType = "IN", Quantity = lineDto.Quantity, UnitCost = lineDto.UnitPrice,
+                Reference = invoiceNum, TransactionDate = DateTime.UtcNow, CreatedBy = createdBy
+            });
+
+            // Auto-create ItemBatch for batch-tracked items
+            if (invItem?.TrackBatches == true)
+            {
+                batchCount++;
+                var newBatch = new ItemBatch
+                {
+                    ItemId = lineDto.ItemId,
+                    SupplierId = dto.SupplierId,
+                    WarehouseId = lineDto.WarehouseId,
+                    BatchNumber = $"BAT-{dateStr}-{batchCount:D4}",
+                    Barcode = $"B{dateStr}{batchCount:D4}",
+                    ManufactureDate = DateTime.UtcNow,
+                    ExpiryDate = DateTime.UtcNow.AddYears(2), // Default — update via Batches tab
+                    QuantityReceived = lineDto.Quantity,
+                    QuantityRemaining = lineDto.Quantity,
+                    UnitCost = lineDto.UnitPrice,
+                    Status = "Active",
+                    Notes = $"Auto-created from {invoiceNum}",
+                    ReceivedDate = DateTime.UtcNow,
+                    CreatedBy = createdBy
+                };
+                await _uow.ItemBatches.AddAsync(newBatch);
+            }
         }
+
         // Update supplier balance
         var supplier = await _uow.Suppliers.GetByIdAsync(dto.SupplierId);
         if (supplier is not null) { supplier.Balance += pi.TotalAmount; _uow.Suppliers.Update(supplier); }
@@ -154,11 +190,12 @@ public class SalesService : ISalesService
     public async Task<SalesInvoiceDto> CreateSalesInvoiceAsync(CreateSalesInvoiceDto dto, string createdBy)
     {
         var count = await _uow.SalesInvoices.CountAsync();
+        var invoiceNum = $"SI{(count + 1):D6}";
         var subTotal = dto.Items.Sum(i => i.Quantity * i.UnitPrice - i.Discount);
         var taxAmount = dto.Items.Sum(i => i.Quantity * i.UnitPrice * i.TaxRate / 100);
         var si = new SalesInvoice
         {
-            InvoiceNumber = $"SI{(count + 1):D6}", CustomerId = dto.CustomerId,
+            InvoiceNumber = invoiceNum, CustomerId = dto.CustomerId,
             InvoiceDate = dto.InvoiceDate, DueDate = dto.DueDate,
             SubTotal = subTotal, TaxAmount = taxAmount, DiscountAmount = dto.DiscountAmount,
             TotalAmount = subTotal + taxAmount - dto.DiscountAmount,
@@ -166,14 +203,47 @@ public class SalesService : ISalesService
             Items = dto.Items.Select(i => new SalesInvoiceItem { ItemId = i.ItemId, WarehouseId = i.WarehouseId, Quantity = i.Quantity, UnitPrice = i.UnitPrice, TaxRate = i.TaxRate, Discount = i.Discount, Total = i.Quantity * i.UnitPrice - i.Discount, CreatedBy = createdBy }).ToList()
         };
         await _uow.SalesInvoices.AddAsync(si);
-        // Deduct stock
-        foreach (var item in dto.Items)
+
+        // Deduct stock — FIFO batch deduction for batch-tracked items
+        foreach (var lineDto in dto.Items)
         {
-            var stock = await _uow.WarehouseStocks.Query().FirstOrDefaultAsync(ws => ws.WarehouseId == item.WarehouseId && ws.ItemId == item.ItemId);
-            if (stock is null || stock.Quantity < item.Quantity) throw new InvalidOperationException($"Insufficient stock for item {item.ItemId}.");
-            stock.Quantity -= item.Quantity; _uow.WarehouseStocks.Update(stock);
-            await _uow.StockTransactions.AddAsync(new StockTransaction { ItemId = item.ItemId, WarehouseId = item.WarehouseId, TransactionType = "OUT", Quantity = item.Quantity, UnitCost = item.UnitPrice, Reference = $"SI{(count + 1):D6}", TransactionDate = DateTime.UtcNow, CreatedBy = createdBy });
+            var invItem = await _uow.Items.GetByIdAsync(lineDto.ItemId);
+            var stock = await _uow.WarehouseStocks.Query().FirstOrDefaultAsync(ws => ws.WarehouseId == lineDto.WarehouseId && ws.ItemId == lineDto.ItemId);
+            if (stock is null || stock.Quantity < lineDto.Quantity)
+                throw new InvalidOperationException($"Insufficient stock for item {invItem?.ItemName ?? lineDto.ItemId.ToString()}.");
+
+            stock.Quantity -= lineDto.Quantity;
+            _uow.WarehouseStocks.Update(stock);
+
+            // FIFO: deduct from active batches ordered by soonest expiry
+            if (invItem?.TrackBatches == true)
+            {
+                var remaining = lineDto.Quantity;
+                var batches = await _uow.ItemBatches.Query()
+                    .Where(b => b.ItemId == lineDto.ItemId && b.WarehouseId == lineDto.WarehouseId
+                             && b.Status == "Active" && b.QuantityRemaining > 0)
+                    .OrderBy(b => b.ExpiryDate)
+                    .ToListAsync();
+
+                foreach (var batch in batches)
+                {
+                    if (remaining <= 0) break;
+                    var deduct = Math.Min(batch.QuantityRemaining, remaining);
+                    batch.QuantityRemaining -= deduct;
+                    remaining -= deduct;
+                    if (batch.QuantityRemaining <= 0) batch.Status = "Exhausted";
+                    _uow.ItemBatches.Update(batch);
+                }
+            }
+
+            await _uow.StockTransactions.AddAsync(new StockTransaction
+            {
+                ItemId = lineDto.ItemId, WarehouseId = lineDto.WarehouseId,
+                TransactionType = "OUT", Quantity = lineDto.Quantity, UnitCost = lineDto.UnitPrice,
+                Reference = invoiceNum, TransactionDate = DateTime.UtcNow, CreatedBy = createdBy
+            });
         }
+
         var customer = await _uow.Customers.GetByIdAsync(dto.CustomerId);
         if (customer is not null) { customer.Balance += si.TotalAmount; _uow.Customers.Update(customer); }
         await _uow.SaveChangesAsync();

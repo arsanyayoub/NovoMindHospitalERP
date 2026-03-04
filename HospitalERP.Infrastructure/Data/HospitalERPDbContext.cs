@@ -50,6 +50,22 @@ public class HospitalERPDbContext : DbContext
     public DbSet<Asset> Assets => Set<Asset>();
     public DbSet<Notification> Notifications => Set<Notification>();
 
+    // Lab
+    public DbSet<LabTest> LabTests => Set<LabTest>();
+    public DbSet<LabRequest> LabRequests => Set<LabRequest>();
+    public DbSet<LabResult> LabResults => Set<LabResult>();
+    
+    // Radiology
+    public DbSet<RadiologyTest> RadiologyTests => Set<RadiologyTest>();
+    public DbSet<RadiologyRequest> RadiologyRequests => Set<RadiologyRequest>();
+    public DbSet<RadiologyResult> RadiologyResults => Set<RadiologyResult>();
+
+    // Clinical & Pharmacy
+    public DbSet<PatientVital> PatientVitals => Set<PatientVital>();
+    public DbSet<Prescription> Prescriptions => Set<Prescription>();
+    public DbSet<PrescriptionItem> PrescriptionItems => Set<PrescriptionItem>();
+    public DbSet<ClinicalEncounter> ClinicalEncounters => Set<ClinicalEncounter>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -74,6 +90,16 @@ public class HospitalERPDbContext : DbContext
         modelBuilder.Entity<Employee>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Expense>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Asset>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<LabTest>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<LabRequest>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<LabResult>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<RadiologyTest>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<RadiologyRequest>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<RadiologyResult>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<PatientVital>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Prescription>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<PrescriptionItem>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<ClinicalEncounter>().HasQueryFilter(e => !e.IsDeleted);
 
         // ── Decimal precision ────────────────────────────────────────
         foreach (var property in modelBuilder.Model.GetEntityTypes()
@@ -168,11 +194,69 @@ public class HospitalERPDbContext : DbContext
             e.HasOne(p => p.Employee).WithMany(emp => emp.Payrolls).HasForeignKey(p => p.EmployeeId).OnDelete(DeleteBehavior.Restrict);
         });
 
-        // ── Notification ──────────────────────────────────────────────
         modelBuilder.Entity<Notification>(e =>
         {
             e.HasOne(n => n.User).WithMany(u => u.Notifications).HasForeignKey(n => n.UserId).OnDelete(DeleteBehavior.SetNull);
         });
+
+        // ── Lab ───────────────────────────────────────────────────────
+        modelBuilder.Entity<LabRequest>(e =>
+        {
+            e.HasIndex(r => r.RequestNumber).IsUnique();
+            e.HasOne(r => r.Patient).WithMany().HasForeignKey(r => r.PatientId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(r => r.Doctor).WithMany().HasForeignKey(r => r.DoctorId).OnDelete(DeleteBehavior.SetNull);
+            e.HasMany(r => r.Results).WithOne(res => res.LabRequest).HasForeignKey(res => res.LabRequestId).OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<LabResult>(e =>
+        {
+            e.HasOne(res => res.LabTest).WithMany().HasForeignKey(res => res.LabTestId).OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<LabTest>(e =>
+        {
+            e.HasIndex(t => t.TestCode).IsUnique();
+        });
+
+        // ── Radiology ────────────────────────────────────────────────
+        modelBuilder.Entity<RadiologyRequest>(e =>
+        {
+            e.HasIndex(r => r.RequestNumber).IsUnique();
+            e.HasOne(r => r.Patient).WithMany().HasForeignKey(r => r.PatientId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(r => r.Doctor).WithMany().HasForeignKey(r => r.DoctorId).OnDelete(DeleteBehavior.SetNull);
+            e.HasMany(r => r.Results).WithOne(res => res.RadiologyRequest).HasForeignKey(res => res.RadiologyRequestId).OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<RadiologyResult>(e =>
+        {
+            e.HasOne(res => res.RadiologyTest).WithMany().HasForeignKey(res => res.RadiologyTestId).OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<RadiologyTest>(e =>
+        {
+            e.HasIndex(t => t.TestCode).IsUnique();
+        });
+
+        // ── Clinical & Pharmacy ───────────────────────────────────────
+        modelBuilder.Entity<PatientVital>(e =>
+        {
+            e.HasOne(v => v.Patient).WithMany(p => p.Vitals).HasForeignKey(v => v.PatientId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(v => v.Appointment).WithMany().HasForeignKey(v => v.AppointmentId).OnDelete(DeleteBehavior.SetNull);
+        });
+        modelBuilder.Entity<Prescription>(e =>
+        {
+            e.HasIndex(p => p.PrescriptionNumber).IsUnique();
+            e.HasOne(p => p.Patient).WithMany(p => p.Prescriptions).HasForeignKey(p => p.PatientId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(p => p.Doctor).WithMany().HasForeignKey(p => p.DoctorId).OnDelete(DeleteBehavior.SetNull);
+            e.HasMany(p => p.Items).WithOne(pi => pi.Prescription).HasForeignKey(pi => pi.PrescriptionId).OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<PrescriptionItem>(e =>
+        {
+            e.HasOne(pi => pi.Item).WithMany().HasForeignKey(pi => pi.ItemId).OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<ClinicalEncounter>(e =>
+        {
+            e.HasOne(ce => ce.Patient).WithMany().HasForeignKey(ce => ce.PatientId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(ce => ce.Doctor).WithMany().HasForeignKey(ce => ce.DoctorId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(ce => ce.Appointment).WithMany().HasForeignKey(ce => ce.AppointmentId).OnDelete(DeleteBehavior.SetNull);
+        });
+        
 
         // ── Seed Data ─────────────────────────────────────────────────
         SeedData(modelBuilder);
@@ -196,6 +280,21 @@ public class HospitalERPDbContext : DbContext
                 FullName = "System Administrator", RoleId = 1,
                 CreatedDate = new DateTime(2024, 1, 1), CreatedBy = "system"
             }
+        );
+
+        modelBuilder.Entity<LabTest>().HasData(
+            new LabTest { Id = 1, TestCode = "LAB0001", Name = "Complete Blood Count (CBC)", NameAr = "صورة دم كاملة", Category = "Hematology", NormalRange = "4.5-11.0 x10^9/L", Unit = "x10^9/L", Price = 50, CreatedDate = new DateTime(2024, 1, 1), CreatedBy = "system" },
+            new LabTest { Id = 2, TestCode = "LAB0002", Name = "Blood Glucose", NameAr = "سكر الدم", Category = "Biochemistry", NormalRange = "70-100 mg/dL", Unit = "mg/dL", Price = 30, CreatedDate = new DateTime(2024, 1, 1), CreatedBy = "system" },
+            new LabTest { Id = 3, TestCode = "LAB0003", Name = "Kidney Function Test", NameAr = "وظائف كلى", Category = "Biochemistry", NormalRange = "0.7-1.3 mg/dL", Unit = "mg/dL", Price = 80, CreatedDate = new DateTime(2024, 1, 1), CreatedBy = "system" },
+            new LabTest { Id = 4, TestCode = "LAB0004", Name = "Liver Function Test", NameAr = "وظائف كبد", Category = "Biochemistry", NormalRange = "Varies", Unit = "U/L", Price = 100, CreatedDate = new DateTime(2024, 1, 1), CreatedBy = "system" },
+            new LabTest { Id = 5, TestCode = "LAB0005", Name = "Urinalysis", NameAr = "تحليل بول", Category = "Microbiology", NormalRange = "Negative", Unit = "N/A", Price = 25, CreatedDate = new DateTime(2024, 1, 1), CreatedBy = "system" }
+        );
+
+        modelBuilder.Entity<RadiologyTest>().HasData(
+            new RadiologyTest { Id = 1, TestCode = "RAD0001", Name = "Chest X-Ray", NameAr = "أشعة سينية على الصدر", Category = "X-Ray", Price = 150, CreatedDate = new DateTime(2024, 1, 1), CreatedBy = "system" },
+            new RadiologyTest { Id = 2, TestCode = "RAD0002", Name = "Brain MRI", NameAr = "رنين مغناطيسي على المخ", Category = "MRI", Price = 1200, CreatedDate = new DateTime(2024, 1, 1), CreatedBy = "system" },
+            new RadiologyTest { Id = 3, TestCode = "RAD0003", Name = "Abdominal Ultrasound", NameAr = "أشعة تليفزيونية على البطن", Category = "Ultrasound", Price = 300, CreatedDate = new DateTime(2024, 1, 1), CreatedBy = "system" },
+            new RadiologyTest { Id = 4, TestCode = "RAD0004", Name = "CT Abdomen", NameAr = "أشعة مقطعية على البطن", Category = "CT Scan", Price = 800, CreatedDate = new DateTime(2024, 1, 1), CreatedBy = "system" }
         );
     }
 }

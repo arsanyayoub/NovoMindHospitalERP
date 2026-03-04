@@ -1,523 +1,402 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PatientService, InvoiceService, AppointmentService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
 @Component({
-  selector: 'app-patients',
-  standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
-  template: `
+   selector: 'app-patients',
+   standalone: true,
+   imports: [CommonModule, FormsModule, TranslateModule],
+   styles: [`
+    .patient-tab-nav { display: flex; gap: 4px; background: rgba(0,0,0,0.15); padding: 5px; border-radius: 14px; margin-bottom: 24px; width: fit-content; border: 1px solid var(--border); }
+    .patient-tab-btn { padding: 10px 20px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+    .patient-tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3); }
+
+    .patient-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    .patient-card { background: rgba(var(--card-bg-rgb), 0.4); border: 1px solid var(--border); border-radius: 24px; padding: 20px; transition: 0.3s; position: relative; overflow: hidden; }
+    .patient-card:hover { transform: translateY(-5px); border-color: var(--primary); background: rgba(var(--card-bg-rgb), 0.6); box-shadow: var(--shadow-lg); }
+    .patient-avatar { width: 56px; height: 56px; border-radius: 18px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; text-transform: uppercase; }
+
+    .history-drawer { position: fixed; right: 0; top: 0; bottom: 0; width: 600px; background: var(--bg-card); border-left: 1px solid var(--border); z-index: 1000; box-shadow: -10px 0 30px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
+    .drawer-header { padding: 30px; border-bottom: 1px solid var(--border); background: var(--bg-page); }
+    .drawer-nav { display: flex; overflow-x: auto; padding: 0 20px; gap: 4px; background: rgba(0,0,0,0.1); border-bottom: 1px solid var(--border); }
+    .drawer-nav-item { padding: 16px 20px; border: none; background: none; color: var(--text-muted); font-weight: 700; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; white-space: nowrap; font-size: 0.8rem; }
+    .drawer-nav-item.active { color: var(--primary); border-bottom-color: var(--primary); background: rgba(var(--primary-rgb), 0.05); }
+
+    .vitals-pill { background: rgba(var(--primary-rgb), 0.05); border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; }
+    .vitals-val { font-weight: 800; font-size: 1.1rem; color: var(--primary); }
+    .vitals-unit { font-size: 0.65rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; }
+  `],
+   template: `
     <div class="page-header">
       <div>
-        <h1 class="page-title">{{ 'PATIENTS' | translate }}</h1>
+        <h1 class="page-title">{{ 'PATIENT_MANAGEMENT' | translate }}</h1>
+        <p class="page-subtitle">{{ 'PATIENT_MODULE_DESC' | translate }}</p>
       </div>
-      <div class="flex gap-2">
-        <button class="btn" [class.btn-primary]="tab==='patients'" [class.btn-secondary]="tab!=='patients'" (click)="tab='patients'">{{ 'PATIENTS' | translate }}</button>
-        <button class="btn" [class.btn-primary]="tab==='invoices'" [class.btn-secondary]="tab!=='invoices'" (click)="tab='invoices';loadInvoices()">Patient Invoices (Billing)</button>
+      <div class="flex gap-3">
+        <div class="search-bar h-12" style="width:300px">
+           <span class="material-icons-round search-icon">search</span>
+           <input class="form-control rounded-xl border-0 bg-transparent" [placeholder]="'SEARCH_BY_NAME_ID' | translate" [(ngModel)]="search" (input)="page=1;loadData()">
+        </div>
+        <button class="btn btn-primary px-6 rounded-xl shadow-primary font-black" (click)="openForm()">
+          <span class="material-icons-round mr-1">person_add</span> {{ 'ADD_NEW_PATIENT' | translate }}
+        </button>
       </div>
     </div>
 
-    <!-- Patients Tab -->
-    <div *ngIf="tab==='patients'">
-      <div class="filter-bar mb-4">
-        <div class="search-bar">
-          <span class="material-icons-round search-icon">search</span>
-          <input class="form-control" [placeholder]="'SEARCH' | translate"
-                 [(ngModel)]="search" (input)="loadData()">
-        </div>
-        <button class="btn btn-primary" (click)="openForm()">
-          <span class="material-icons-round">add</span> {{ 'ADD_NEW' | translate }}
-        </button>
-      </div>
-
-      <div class="card" style="padding:0;">
-        <div *ngIf="loading" class="loading-container"><div class="spinner"></div></div>
-        <div class="table-container" *ngIf="!loading">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>{{ 'PATIENT_CODE' | translate }}</th>
-                <th>{{ 'PATIENT_NAME' | translate }}</th>
-                <th>{{ 'PHONE' | translate }}</th>
-                <th>{{ 'GENDER' | translate }}</th>
-                <th>{{ 'DATE_OF_BIRTH' | translate }}</th>
-                <th>{{ 'STATUS' | translate }}</th>
-                <th>{{ 'ACTIONS' | translate }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let p of patients">
-                <td><span class="badge badge-primary">{{ p.patientCode }}</span></td>
-                <td class="font-semibold">{{ p.fullName }}</td>
-                <td>{{ p.phoneNumber || '—' }}</td>
-                <td>{{ p.gender }}</td>
-                <td>{{ p.dateOfBirth | date:'mediumDate' }}</td>
-                <td><span class="badge" [ngClass]="p.isActive ? 'badge-success' : 'badge-secondary'">{{ (p.isActive ? 'ACTIVE' : 'INACTIVE') | translate }}</span></td>
-                <td>
-                  <div class="flex gap-1">
-                    <button class="btn btn-sm btn-info" (click)="openHistory(p)" title="History"><span class="material-icons-round" style="font-size:16px">history</span></button>
-                    <button class="btn btn-sm btn-secondary" (click)="openForm(p)"><span class="material-icons-round" style="font-size:16px">edit</span></button>
-                    <button class="btn btn-sm btn-danger" (click)="deletePatient(p)"><span class="material-icons-round" style="font-size:16px">delete</span></button>
-                  </div>
-                </td>
-              </tr>
-              <tr *ngIf="patients.length === 0">
-                <td colspan="7">
-                  <div class="empty-state"><span class="material-icons-round empty-icon">personal_injury</span><span class="empty-title">{{ 'NO_DATA' | translate }}</span></div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="pagination" *ngIf="totalPages > 1">
-          <span class="pagination-info">Page {{ page }} of {{ totalPages }}</span>
-          <div class="pagination-buttons">
-            <button class="page-btn" (click)="page = page - 1; loadData()" [disabled]="page <= 1"><span class="material-icons-round">chevron_left</span></button>
-            <button class="page-btn" (click)="page = page + 1; loadData()" [disabled]="page >= totalPages"><span class="material-icons-round">chevron_right</span></button>
-          </div>
-        </div>
-      </div>
+    <div class="patient-tab-nav animate-in">
+       <button class="patient-tab-btn" [class.active]="tab==='patients'" (click)="tab='patients';loadData()">
+          <span class="material-icons-round">groups</span> {{ 'PATIENTS' | translate }}
+       </button>
+       <button class="patient-tab-btn" [class.active]="tab==='invoices'" (click)="tab='invoices';loadInvoices()">
+          <span class="material-icons-round">receipt_long</span> {{ 'BILLING_CENTER' | translate }}
+       </button>
     </div>
 
-    <!-- Invoices Tab -->
-    <div *ngIf="tab==='invoices'">
-      <div class="flex justify-between items-center mb-4">
-        <div class="filter-bar">
-          <select class="form-control" style="min-width:160px" [(ngModel)]="invoiceFilter" (change)="loadInvoices()">
-            <option value="">All Statuses</option>
-            <option value="Pending">Pending</option>
-            <option value="PartiallyPaid">Partially Paid</option>
-            <option value="Paid">Paid</option>
-          </select>
-        </div>
-        <button class="btn btn-primary btn-sm" (click)="openInvoiceForm()"><span class="material-icons-round">add</span> New Bill</button>
-      </div>
-      <div class="card" style="padding:0">
-        <div class="table-container">
-          <table class="table">
-            <thead><tr><th>Invoice #</th><th>Patient</th><th>Date</th><th>Due Date</th><th>Total</th><th>Paid</th><th>Remaining</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody><tr *ngFor="let i of invoices">
-              <td><span class="badge badge-info">{{ i.invoiceNumber }}</span></td>
-              <td class="font-semibold">{{ i.patientName }}</td>
-              <td>{{ i.invoiceDate | date:'mediumDate' }}</td>
-              <td>{{ i.dueDate | date:'mediumDate' }}</td>
-              <td>{{ i.totalAmount | currency }}</td>
-              <td class="text-success">{{ i.paidAmount | currency }}</td>
-              <td [class.text-danger]="(i.totalAmount - i.paidAmount)>0">{{ (i.totalAmount - i.paidAmount) | currency }}</td>
-              <td><span class="badge" [ngClass]="i.status==='Paid'?'badge-success':i.status==='PartiallyPaid'?'badge-warning':'badge-danger'">{{ i.status }}</span></td>
-              <td>
-                <button *ngIf="i.status!=='Paid'" class="btn btn-sm btn-success" (click)="openPayModal(i)"><span class="material-icons-round" style="font-size:16px">payments</span> Pay</button>
-              </td>
-            </tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Patient Modal -->
-    <div class="modal-overlay" *ngIf="showForm" (click)="showForm = false">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h3 class="modal-title">{{ editing ? ('EDIT' | translate) : ('ADD_NEW' | translate) }} {{ 'PATIENTS' | translate }}</h3>
-          <button class="btn btn-sm btn-secondary" (click)="showForm = false"><span class="material-icons-round">close</span></button>
-        </div>
-        <div class="modal-body">
-          <div class="form-row">
-            <div class="form-group"><label class="form-label">{{ 'FULL_NAME' | translate }} *</label><input class="form-control" [(ngModel)]="form.fullName" required></div>
-            <div class="form-group"><label class="form-label">{{ 'PHONE' | translate }}</label><input class="form-control" [(ngModel)]="form.phoneNumber"></div>
-          </div>
-          <div class="form-row mt-4">
-            <div class="form-group"><label class="form-label">{{ 'EMAIL' | translate }}</label><input class="form-control" [(ngModel)]="form.email" type="email"></div>
-            <div class="form-group"><label class="form-label">National ID</label><input class="form-control" [(ngModel)]="form.nationalId"></div>
-          </div>
-          <div class="form-row mt-4">
-            <div class="form-group"><label class="form-label">{{ 'DATE_OF_BIRTH' | translate }}</label><input class="form-control" [(ngModel)]="form.dateOfBirth" type="date"></div>
-            <div class="form-group"><label class="form-label">{{ 'GENDER' | translate }}</label>
-              <select class="form-control" [(ngModel)]="form.gender"><option value="Male">{{ 'MALE' | translate }}</option><option value="Female">{{ 'FEMALE' | translate }}</option></select>
-            </div>
-          </div>
-          <div class="form-row mt-4">
-            <div class="form-group"><label class="form-label">{{ 'BLOOD_TYPE' | translate }}</label>
-              <select class="form-control" [(ngModel)]="form.bloodType"><option value="">—</option><option *ngFor="let bt of bloodTypes" [value]="bt">{{ bt }}</option></select>
-            </div>
-            <div class="form-group"><label class="form-label">{{ 'EMERGENCY_CONTACT' | translate }}</label><input class="form-control" [(ngModel)]="form.emergencyContact"></div>
-          </div>
-          <div class="form-group mt-4"><label class="form-label">{{ 'ALLERGIES' | translate }}</label><textarea class="form-control" [(ngModel)]="form.allergies" rows="2"></textarea></div>
-          <div class="form-group mt-4"><label class="form-label">{{ 'MEDICAL_HISTORY' | translate }}</label><textarea class="form-control" [(ngModel)]="form.medicalHistory" rows="2"></textarea></div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" (click)="showForm = false">{{ 'CANCEL' | translate }}</button>
-          <button class="btn btn-primary" (click)="save()" [disabled]="saving">
-            <span class="spinner spinner-sm" *ngIf="saving"></span>
-            {{ 'SAVE' | translate }}
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Create Invoice Modal -->
-    <div class="modal-overlay" *ngIf="showInvoiceForm" (click)="showInvoiceForm=false"><div class="modal modal-lg" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>New Patient Bill</h3>
-        <button class="btn btn-sm btn-secondary" (click)="showInvoiceForm=false"><span class="material-icons-round">close</span></button>
-      </div>
-      <div class="modal-body">
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Patient *</label>
-            <select class="form-control" [(ngModel)]="invoiceForm.patientId">
-              <option [ngValue]="null">— Select Patient —</option>
-              <option *ngFor="let p of patients" [ngValue]="p.id">{{ p.fullName }} ({{ p.patientCode }})</option>
-            </select>
-          </div>
-          <div class="form-group"><label class="form-label">Invoice Date</label><input class="form-control" type="date" [(ngModel)]="invoiceForm.invoiceDate"></div>
-          <div class="form-group"><label class="form-label">Due Date</label><input class="form-control" type="date" [(ngModel)]="invoiceForm.dueDate"></div>
-        </div>
-        <div class="form-group mt-4"><label class="form-label">Notes</label><input class="form-control" [(ngModel)]="invoiceForm.notes" placeholder="Optional notes..."></div>
-
-        <div class="divider"></div>
-        <div class="flex justify-between items-center mb-4">
-          <h4>Bill Items / Services</h4>
-          <button class="btn btn-sm btn-secondary" (click)="addLine()"><span class="material-icons-round" style="font-size:16px">add</span> Add Item</button>
-        </div>
-        <div class="inv-lines">
-          <div *ngFor="let line of invoiceForm.items; let i = index" class="inv-line">
-            <div class="form-group" style="flex:2">
-              <label class="form-label" *ngIf="i===0">Description</label>
-              <input class="form-control" [(ngModel)]="line.description" placeholder="Consultation, X-Ray, etc.">
-            </div>
-            <div class="form-group" style="flex:0.8">
-              <label class="form-label" *ngIf="i===0">Qty</label>
-              <input class="form-control" type="number" [(ngModel)]="line.quantity" (input)="calcLine(line)" min="1">
-            </div>
-            <div class="form-group" style="flex:1">
-              <label class="form-label" *ngIf="i===0">Amount</label>
-              <input class="form-control" type="number" [(ngModel)]="line.unitPrice" (input)="calcLine(line)">
-            </div>
-            <div class="form-group" style="flex:0.8">
-              <label class="form-label" *ngIf="i===0">Discount</label>
-              <input class="form-control" type="number" [(ngModel)]="line.discount" (input)="calcLine(line)">
-            </div>
-            <div class="form-group" style="flex:1">
-              <label class="form-label" *ngIf="i===0">Total</label>
-              <div class="form-control" style="background:rgba(255,255,255,0.03);color:var(--success);font-weight:700">{{ line._total | currency }}</div>
-            </div>
-            <div style="display:flex; align-items:flex-end; padding-bottom:2px">
-              <button class="btn btn-sm btn-danger" (click)="removeLine(i)"><span class="material-icons-round" style="font-size:16px">delete</span></button>
-            </div>
-          </div>
-        </div>
-
-        <div class="inv-summary">
-          <div class="summary-row"><span>Sub Total:</span><span>{{ getSubTotal() | currency }}</span></div>
-          <div class="summary-row"><span>Tax Amount:</span>
-            <input type="number" class="form-control" style="width:120px;text-align:end" [(ngModel)]="invoiceForm.taxAmount">
-          </div>
-          <div class="summary-row"><span>Global Discount:</span>
-            <input type="number" class="form-control" style="width:120px;text-align:end" [(ngModel)]="invoiceForm.discountAmount">
-          </div>
-          <div class="summary-row total"><span>Total:</span><span>{{ getTotal() | currency }}</span></div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="showInvoiceForm=false">{{ 'CANCEL' | translate }}</button>
-        <button class="btn btn-primary" (click)="saveInvoice()" [disabled]="saving">
-          <span *ngIf="saving" class="spinner spinner-sm"></span>
-          <span *ngIf="!saving"><span class="material-icons-round" style="font-size:16px">save</span> Save Bill</span>
-        </button>
-      </div>
-    </div></div>
-
-    <!-- Patient History Modal -->
-    <div class="modal-overlay" *ngIf="showHistory" (click)="showHistory=false"><div class="modal modal-xl" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div>
-          <h3 class="modal-title">{{ 'PATIENT_HISTORY' | translate }}</h3>
-          <p class="text-muted text-sm" style="margin-top:4px">{{ historyPatient?.fullName }} &mdash; {{ historyPatient?.patientCode }}</p>
-        </div>
-        <button class="btn btn-sm btn-secondary" (click)="showHistory=false"><span class="material-icons-round">close</span></button>
-      </div>
-      <div class="history-tabs">
-        <button [class.active]="historyTab==='appointments'" (click)="historyTab='appointments'">
-          <span class="material-icons-round">calendar_month</span>{{ 'APPOINTMENT_HISTORY' | translate }}
-          <span class="badge badge-info" style="margin-left:6px">{{ historyAppointments.length }}</span>
-        </button>
-        <button [class.active]="historyTab==='invoices'" (click)="historyTab='invoices'">
-          <span class="material-icons-round">receipt_long</span>{{ 'INVOICE_HISTORY' | translate }}
-          <span class="badge badge-warning" style="margin-left:6px">{{ historyInvoices.length }}</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div *ngIf="historyLoading" class="loading-container"><div class="spinner"></div></div>
-        <!-- Appointments Timeline -->
-        <div *ngIf="!historyLoading && historyTab==='appointments'">
-          <div *ngIf="historyAppointments.length===0" class="empty-state"><span class="material-icons-round empty-icon">event_busy</span><span class="empty-title">{{ 'NO_APPOINTMENTS' | translate }}</span></div>
-          <div class="timeline" *ngIf="historyAppointments.length>0">
-            <div *ngFor="let a of historyAppointments" class="timeline-item">
-              <div class="timeline-dot" [ngClass]="getApptDotClass(a.status)"></div>
-              <div class="timeline-content card">
-                <div class="timeline-header">
-                  <div><span class="font-semibold">{{ a.appointmentDate | date:'mediumDate' }}</span><span class="text-muted text-sm" style="margin-left:8px">{{ a.appointmentTime }}</span></div>
-                  <span class="badge" [ngClass]="getApptBadge(a.status)">{{ a.status }}</span>
+    <!-- PATIENT LIST CARDS -->
+    <div *ngIf="tab==='patients'" class="animate-in">
+       <div class="patient-grid">
+          <div *ngFor="let p of patients" class="patient-card animate-in">
+             <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-4">
+                   <div class="patient-avatar shadow-primary">{{ (p.fullName || 'P')[0] }}</div>
+                   <div>
+                      <div class="font-black text-xl tracking-tighter">{{ p.fullName }}</div>
+                      <div class="text-[0.65rem] font-black uppercase text-primary tracking-widest">{{ p.patientCode }}</div>
+                   </div>
                 </div>
-                <div class="text-sm" style="margin-top:8px"><span class="text-muted">Doctor: </span><strong>{{ a.doctorName }}</strong></div>
-                <div class="text-sm" style="margin-top:4px" *ngIf="a.diagnosis"><span class="text-muted">Diagnosis: </span>{{ a.diagnosis }}</div>
-                <div class="text-sm" style="margin-top:4px" *ngIf="a.prescription"><span class="text-muted">Prescription: </span>{{ a.prescription }}</div>
-                <div class="text-sm" style="margin-top:4px" *ngIf="a.notes"><span class="text-muted">Notes: </span>{{ a.notes }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Invoices List -->
-        <div *ngIf="!historyLoading && historyTab==='invoices'">
-          <div *ngIf="historyInvoices.length===0" class="empty-state"><span class="material-icons-round empty-icon">receipt</span><span class="empty-title">{{ 'NO_INVOICES' | translate }}</span></div>
-          <div class="table-container" *ngIf="historyInvoices.length>0">
-            <table class="table">
-              <thead><tr><th>Invoice #</th><th>Date</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead>
-              <tbody>
-                <tr *ngFor="let inv of historyInvoices">
-                  <td><span class="badge badge-info">{{ inv.invoiceNumber }}</span></td>
-                  <td>{{ inv.invoiceDate | date:'mediumDate' }}</td>
-                  <td>{{ inv.totalAmount | currency }}</td>
-                  <td class="text-success">{{ inv.paidAmount | currency }}</td>
-                  <td [class.text-danger]="inv.balanceDue>0">{{ inv.balanceDue | currency }}</td>
-                  <td><span class="badge" [ngClass]="inv.status==='Paid'?'badge-success':inv.status==='PartiallyPaid'?'badge-warning':'badge-danger'">{{ inv.status }}</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div></div>
+                <div class="flex gap-1">
+                   <button class="btn btn-icon btn-xs text-muted" (click)="openHistory(p)"><span class="material-icons-round">history</span></button>
+                   <button class="btn btn-icon btn-xs text-primary" (click)="openForm(p)"><span class="material-icons-round">edit</span></button>
+                </div>
+             </div>
+             
+             <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-glass p-3 rounded-2xl border">
+                   <div class="text-[0.55rem] font-black text-muted uppercase tracking-widest mb-1">{{ 'GENDER' | translate }}</div>
+                   <div class="font-bold flex items-center gap-1 text-sm"><span class="material-icons-round text-xs">{{ p.gender === 'Male' ? 'male' : 'female' }}</span> {{ p.gender | translate }}</div>
+                </div>
+                <div class="bg-glass p-3 rounded-2xl border">
+                   <div class="text-[0.55rem] font-black text-muted uppercase tracking-widest mb-1">{{ 'CONTACT' | translate }}</div>
+                   <div class="font-bold text-sm truncate">{{ p.phoneNumber || 'N/A' }}</div>
+                </div>
+             </div>
 
-    <!-- Payment Modal -->
-    <div class="modal-overlay" *ngIf="showPayModal" (click)="showPayModal=false"><div class="modal" style="max-width:420px" (click)="$event.stopPropagation()">
-      <div class="modal-header"><h3>Record Payment</h3><button class="btn btn-sm btn-secondary" (click)="showPayModal=false"><span class="material-icons-round">close</span></button></div>
-      <div class="modal-body">
-        <div class="pay-info-card">
-          <div class="pay-row"><span class="text-muted">Invoice</span><span class="font-semibold">{{ selectedInvoice?.invoiceNumber }}</span></div>
-          <div class="pay-row"><span class="text-muted">Patient</span><span>{{ selectedInvoice?.patientName }}</span></div>
-          <div class="pay-row"><span class="text-muted">Total Amount</span><span>{{ selectedInvoice?.totalAmount | currency }}</span></div>
-          <div class="pay-row"><span class="text-muted">Paid So Far</span><span class="text-success">{{ selectedInvoice?.paidAmount | currency }}</span></div>
-          <div class="pay-row"><span class="text-muted">Remaining</span><span class="text-danger font-semibold">{{ (selectedInvoice?.totalAmount - selectedInvoice?.paidAmount) | currency }}</span></div>
-        </div>
-        <div class="form-group mt-4">
-          <label class="form-label">Payment Amount *</label>
-          <input class="form-control" type="number" [(ngModel)]="payAmount" [max]="selectedInvoice?.totalAmount - selectedInvoice?.paidAmount" min="0.01" placeholder="Enter amount...">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="showPayModal=false">{{ 'CANCEL' | translate }}</button>
-        <button class="btn btn-success" (click)="confirmPay()"><span class="material-icons-round" style="font-size:16px">payments</span> Confirm Payment</button>
-      </div>
-    </div></div>
-  `,
-  styles: [`
-    .inv-lines { display: flex; flex-direction: column; gap: 8px; }
-    .inv-line { display: flex; gap: 8px; align-items: flex-start; }
-    .inv-line .form-group { margin: 0; }
-    .inv-summary { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-    .summary-row { display: flex; align-items: center; gap: 16px; font-size: 0.9rem; }
-    .summary-row span:first-child { color: var(--text-secondary); min-width: 100px; text-align: end; }
-    .summary-row.total { font-size: 1.1rem; font-weight: 700; color: var(--primary-light); border-top: 1px solid var(--border); padding-top: 8px; margin-top: 4px; }
-    .pay-info-card { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-    .pay-row { display: flex; justify-content: space-between; font-size: 0.9rem; }
-    /* History Modal */
-    .history-tabs { display: flex; gap: 2px; padding: 0 24px; background: var(--bg-card); border-bottom: 1px solid var(--border); }
-    .history-tabs button { display: flex; align-items: center; gap: 8px; padding: 14px 18px; border: none; background: none; color: var(--text-secondary); cursor: pointer; font-family: var(--font-family); font-size: 0.875rem; font-weight: 500; border-bottom: 2px solid transparent; transition: var(--transition); }
-    .history-tabs button.active { color: var(--primary-light); border-bottom-color: var(--primary-light); }
-    .history-tabs button .material-icons-round { font-size: 18px; }
-    .timeline { display: flex; flex-direction: column; gap: 0; padding-left: 8px; }
-    .timeline-item { display: flex; gap: 16px; padding-bottom: 20px; position: relative; }
-    .timeline-item:not(:last-child)::before { content: ''; position: absolute; left: 7px; top: 20px; bottom: 0; width: 2px; background: var(--border); }
-    .timeline-dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; border: 2px solid; }
-    .timeline-dot.dot-scheduled { background: rgba(59,130,246,0.3); border-color: #3b82f6; }
-    .timeline-dot.dot-confirmed { background: rgba(99,102,241,0.3); border-color: #6366f1; }
-    .timeline-dot.dot-completed { background: rgba(16,185,129,0.3); border-color: #10b981; }
-    .timeline-dot.dot-cancelled { background: rgba(239,68,68,0.3); border-color: #ef4444; }
-    .timeline-dot.dot-inprogress { background: rgba(245,158,11,0.3); border-color: #f59e0b; }
-    .timeline-content { flex: 1; padding: 14px 16px; }
-    .timeline-header { display: flex; justify-content: space-between; align-items: center; }
-    .btn-info { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
-    .btn-info:hover { background: rgba(59,130,246,0.25); }
-  `]
+             <div class="flex items-center justify-between border-top pt-4">
+                <div class="text-[0.6rem] font-black uppercase text-muted">{{ 'REGISTERED' | translate }}: {{ p.createdAt | date:'mediumDate' }}</div>
+                <button class="btn btn-secondary btn-sm px-4 rounded-lg font-black text-[0.7rem]" (click)="openHistory(p)">{{ 'VIEW_FULL_PROFILE' | translate }}</button>
+             </div>
+          </div>
+       </div>
+
+       <div *ngIf="!loading && !patients.length" class="p-20 text-center card bg-glass">
+          <span class="material-icons-round text-6xl opacity-20 mb-4">person_search</span>
+          <h3 class="font-black uppercase tracking-widest">{{ 'NO_PATIENTS_FOUND' | translate }}</h3>
+       </div>
+
+       <!-- Pagination -->
+       <div class="flex items-center justify-between mt-10" *ngIf="totalPages > 1">
+          <div class="text-xs font-black uppercase text-muted tracking-widest">{{ 'PAGE'|translate }} {{ page }} / {{ totalPages }}</div>
+          <div class="flex gap-2">
+             <button class="btn btn-secondary h-11 w-11 rounded-xl" [disabled]="page <= 1" (click)="page=page-1;loadData()"><span class="material-icons-round">arrow_back</span></button>
+             <button class="btn btn-secondary h-11 w-11 rounded-xl" [disabled]="page >= totalPages" (click)="page=page+1;loadData()"><span class="material-icons-round">arrow_forward</span></button>
+          </div>
+       </div>
+    </div>
+
+    <!-- BILLING CENTER -->
+    <div *ngIf="tab==='invoices'" class="animate-in">
+       <div class="card p-0 overflow-hidden shadow-2xl">
+          <div class="table-container">
+             <table class="table">
+                <thead>
+                   <tr>
+                      <th>{{ 'INV' | translate }} #</th>
+                      <th>{{ 'PATIENT_NAME' | translate }}</th>
+                      <th class="text-end">{{ 'BILLED_AMOUNT' | translate }}</th>
+                      <th class="text-end">{{ 'PAID' | translate }}</th>
+                      <th class="text-center">{{ 'STATUS' | translate }}</th>
+                      <th class="text-end">{{ 'ACTIONS' | translate }}</th>
+                   </tr>
+                </thead>
+                <tbody>
+                   <tr *ngFor="let i of invoices" class="hover-row">
+                      <td><span class="badge badge-info font-mono">{{ i.invoiceNumber }}</span></td>
+                      <td>
+                         <div class="font-bold">{{ i.patientName }}</div>
+                         <div class="text-[0.6rem] text-muted">{{ i.invoiceDate | date:'medium' }}</div>
+                      </td>
+                      <td class="text-end font-black text-lg">{{ i.totalAmount | currency }}</td>
+                      <td class="text-end font-black text-success">{{ i.paidAmount | currency }}</td>
+                      <td class="text-center">
+                         <span class="badge uppercase text-[0.6rem] font-black tracking-widest" [ngClass]="i.status==='Paid'?'badge-success':i.status==='PartiallyPaid'?'badge-warning':'badge-danger'">
+                            {{ i.status | translate }}
+                         </span>
+                      </td>
+                      <td class="text-end">
+                         <div class="flex justify-end gap-1">
+                            <button *ngIf="i.status!=='Paid'" class="btn btn-icon btn-xs text-success" (click)="openPayModal(i)" [title]="'PAY' | translate"><span class="material-icons-round">payments</span></button>
+                            <button class="btn btn-icon btn-xs text-primary"><span class="material-icons-round">print</span></button>
+                         </div>
+                      </td>
+                   </tr>
+                </tbody>
+             </table>
+          </div>
+       </div>
+    </div>
+
+    <!-- HISTORY DRAWER (RTL-friendly slide-in) -->
+    <div class="modal-overlay" *ngIf="showHistory" (click)="showHistory=false" style="background:rgba(0,0,0,0.6)">
+       <div class="history-drawer animate-in" (click)="$event.stopPropagation()">
+          <div class="drawer-header">
+             <div class="flex items-center gap-6">
+                <div class="w-16 h-16 rounded-3xl bg-primary bg-opacity-10 flex items-center justify-center text-primary font-black text-2xl shadow-inner shadow-primary">
+                   {{ (historyPatient?.fullName || 'P')[0] }}
+                </div>
+                <div>
+                   <h2 class="font-black text-2xl tracking-tighter">{{ historyPatient?.fullName }}</h2>
+                   <div class="flex gap-4 text-[0.65rem] font-black uppercase text-muted tracking-widest mt-1">
+                      <span class="text-primary">{{ historyPatient?.patientCode }}</span>
+                      <span>{{ historyPatient?.gender | translate }}</span>
+                      <span>{{ historyPatient?.dateOfBirth | date:'yyyy' }}</span>
+                   </div>
+                </div>
+                <button class="btn btn-icon text-muted ml-auto" (click)="showHistory=false"><span class="material-icons-round">close</span></button>
+             </div>
+          </div>
+
+          <div class="drawer-nav">
+             <button class="drawer-nav-item" [class.active]="historyTab==='appointments'" (click)="historyTab='appointments'">{{ 'APPOINTMENTS' | translate }}</button>
+             <button class="drawer-nav-item" [class.active]="historyTab==='vitals'" (click)="historyTab='vitals'">{{ 'VITALS' | translate }}</button>
+             <button class="drawer-nav-item" [class.active]="historyTab==='prescriptions'" (click)="historyTab='prescriptions'">{{ 'PHARMACY' | translate }}</button>
+             <button class="drawer-nav-item" [class.active]="historyTab==='lab'" (click)="historyTab='lab'">{{ 'LABORATORY' | translate }}</button>
+             <button class="drawer-nav-item" [class.active]="historyTab==='radiology'" (click)="historyTab='radiology'">{{ 'IMAGING' | translate }}</button>
+             <button class="drawer-nav-item" [class.active]="historyTab==='invoices'" (click)="historyTab='invoices'">{{ 'BILLING' | translate }}</button>
+          </div>
+
+          <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+             <div *ngIf="historyLoading" class="flex flex-col items-center justify-center h-full opacity-30grayscale">
+                <span class="spinner mb-4"></span>
+                <p class="font-black uppercase text-xs tracking-widest">{{ 'FETCHING_RECORDS'|translate }}</p>
+             </div>
+
+             <div *ngIf="!historyLoading" class="animate-in">
+                <!-- VITALS PREVIEW -->
+                <div *ngIf="historyTab==='vitals'" class="grid gap-6">
+                   <div *ngFor="let v of historyVitals" class="p-6 bg-glass border rounded-3xl animate-in">
+                      <div class="flex justify-between items-center mb-6">
+                         <div class="flex items-center gap-2"><span class="material-icons-round text-primary">vitals</span> <span class="font-black text-sm">{{ 'MEDICAL_VITALS' | translate }}</span></div>
+                         <div class="text-[0.65rem] font-black text-muted">{{ v.recordedDate | date:'medium' }}</div>
+                      </div>
+                      <div class="grid grid-cols-2 gap-4">
+                         <div class="vitals-pill">
+                            <span class="vitals-val">{{ v.bloodPressureSystolic }}/{{ v.bloodPressureDiastolic }}</span>
+                            <span class="vitals-unit">mmHg</span>
+                         </div>
+                         <div class="vitals-pill">
+                            <span class="vitals-val">{{ v.temperature }}</span>
+                            <span class="vitals-unit">°C</span>
+                         </div>
+                         <div class="vitals-pill">
+                            <span class="vitals-val">{{ v.heartRate }}</span>
+                            <span class="vitals-unit">bpm</span>
+                         </div>
+                         <div class="vitals-pill">
+                            <span class="vitals-val">{{ v.spO2 }}</span>
+                            <span class="vitals-unit">% SpO2</span>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+
+                <!-- GENERIC LISTING FOR OTHER TABS -->
+                <div *ngIf="historyTab !== 'vitals'">
+                   <div *ngIf="!getHistoryData()?.length" class="p-20 text-center opacity-30 italic font-black text-xs uppercase tracking-widest">{{ 'NO_RECORDS_YET' | translate }}</div>
+                   <div *ngFor="let item of getHistoryData()" class="mb-6 p-6 border rounded-3xl bg-glass animate-in">
+                      <div class="flex justify-between mb-4">
+                         <div class="badge badge-primary font-mono">{{ item.appointmentDate || item.prescriptionNumber || item.requestNumber || item.invoiceNumber }}</div>
+                         <div class="text-[0.65rem] font-black text-muted uppercase">{{ (item.appointmentDate || item.prescriptionDate || item.requestDate || item.invoiceDate) | date:'mediumDate' }}</div>
+                      </div>
+                      <div class="font-bold text-lg mb-1">{{ item.description || item.doctorName || item.status }}</div>
+                      <div class="text-xs font-black text-primary uppercase opacity-60">{{ item.notes || item.diagnosis || 'DETAILS' | translate }}</div>
+                   </div>
+                </div>
+             </div>
+          </div>
+       </div>
+    </div>
+
+    <!-- PATIENT FORM MODAL -->
+    <div class="modal-overlay" *ngIf="showForm" (click)="showForm=false">
+       <div class="modal modal-lg animate-in" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+             <h3 class="modal-title font-black uppercase tracking-tighter">{{ (editing ? 'EDIT_PATIENT_IDENTITY' : 'NEW_PATIENT_ONBOARDING') | translate }}</h3>
+             <button (click)="showForm=false" class="btn-close">×</button>
+          </div>
+          <div class="modal-body p-8">
+             <div class="grid grid-cols-2 gap-8">
+                <div class="form-group col-span-2"><label class="form-label font-black text-xs uppercase">{{ 'FULL_NAME_LEGAL'|translate }}*</label><input class="form-control h-14 rounded-2xl text-lg font-bold" [(ngModel)]="form.fullName"></div>
+                <div class="form-group"><label class="form-label font-black text-xs uppercase">{{ 'MOBILE_NUMBER'|translate }}</label><input class="form-control h-12 rounded-xl" [(ngModel)]="form.phoneNumber"></div>
+                <div class="form-group"><label class="form-label font-black text-xs uppercase">{{ 'EMAIL_ADDRESS'|translate }}</label><input class="form-control h-12 rounded-xl" [(ngModel)]="form.email"></div>
+                <div class="form-group">
+                   <label class="form-label font-black text-xs uppercase">{{ 'BIRTH_DATE'|translate }}</label>
+                   <input class="form-control h-12 rounded-xl" type="date" [(ngModel)]="form.dateOfBirth">
+                </div>
+                <div class="form-group">
+                   <label class="form-label font-black text-xs uppercase">{{ 'GENDER'|translate }}</label>
+                   <select class="form-control h-12 rounded-xl" [(ngModel)]="form.gender">
+                      <option value="Male">{{ 'MALE' | translate }}</option>
+                      <option value="Female">{{ 'FEMALE' | translate }}</option>
+                   </select>
+                </div>
+                <div class="form-group col-span-2"><label class="form-label font-black text-xs uppercase">{{ 'RELEVANT_MEDICAL_HISTORY'|translate }}</label><textarea class="form-control rounded-2xl p-4" rows="3" [(ngModel)]="form.medicalHistory"></textarea></div>
+             </div>
+          </div>
+          <div class="modal-footer bg-glass">
+             <button class="btn btn-secondary px-8 rounded-xl font-bold" (click)="showForm=false">{{ 'CANCEL'|translate }}</button>
+             <button class="btn btn-primary px-12 rounded-xl font-black shadow-primary h-12" (click)="save()">{{ 'PERSIST_PATIENT_RECORD'|translate }}</button>
+          </div>
+       </div>
+    </div>
+
+    <!-- PAYMENT MODAL -->
+    <div class="modal-overlay" *ngIf="showPayModal" (click)="showPayModal=false">
+       <div class="modal animate-in" (click)="$event.stopPropagation()" style="max-width:400px">
+          <div class="modal-body p-10 text-center">
+             <div class="w-20 h-20 rounded-full bg-success bg-opacity-10 text-success mx-auto flex items-center justify-center mb-6 shadow-inner shadow-success"><span class="material-icons-round text-4xl">payments</span></div>
+             <h3 class="font-black text-2xl tracking-tighter mb-2 uppercase">{{ 'PROCESS_PAYMENT' | translate }}</h3>
+             <p class="text-xs font-black uppercase tracking-widest text-muted mb-8">{{ selectedInvoice?.invoiceNumber }} &bull; {{ selectedInvoice?.patientName }}</p>
+             
+             <div class="form-group mb-12">
+                <label class="form-label font-black text-[0.6rem] uppercase tracking-widest text-success">{{ 'INPUT_AMOUNT' | translate }}</label>
+                <input class="form-control text-4xl font-black text-center border-0 bg-transparent h-20 text-success" type="number" [(ngModel)]="payAmount">
+                <div class="text-[0.6rem] font-black uppercase text-danger mt-2">{{ 'OUTSTANDING'|translate }}: {{ (selectedInvoice?.totalAmount - selectedInvoice?.paidAmount) | currency }}</div>
+             </div>
+
+             <button class="btn btn-success w-full h-16 rounded-2xl shadow-lg shadow-success text-lg font-black uppercase tracking-widest" (click)="confirmPay()">{{ 'POST_PAYMENT'|translate }}</button>
+             <button class="btn btn-text mt-4 font-bold opacity-40 hover:opacity-100 uppercase text-xs tracking-widest" (click)="showPayModal=false">{{ 'ABORT'|translate }}</button>
+          </div>
+       </div>
+    </div>
+  `
 })
 export class PatientsComponent implements OnInit {
-  tab = 'patients';
-  patients: any[] = [];
-  invoices: any[] = [];
-  loading = true;
-  search = '';
-  invoiceFilter = '';
-  page = 1;
-  totalPages = 1;
-  showForm = false;
-  showInvoiceForm = false;
-  showPayModal = false;
-  editing: any = null;
-  saving = false;
-  form: any = {};
-  invoiceForm: any = this.freshInvoiceForm();
-  selectedInvoice: any = null;
-  payAmount = 0;
-  showHistory = false;
-  historyPatient: any = null;
-  historyTab = 'appointments';
-  historyAppointments: any[] = [];
-  historyInvoices: any[] = [];
-  historyLoading = false;
-  private _historyLoads = 0;
-  bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+   tab = 'patients';
+   patients: any[] = [];
+   invoices: any[] = [];
+   loading = true;
+   search = '';
+   page = 1;
+   totalPages = 1;
+   showForm = false;
+   showPayModal = false;
+   editing: any = null;
+   form: any = {};
+   selectedInvoice: any = null;
+   payAmount = 0;
+   showHistory = false;
+   historyPatient: any = null;
+   historyTab = 'appointments';
+   historyAppointments: any[] = [];
+   historyInvoices: any[] = [];
+   historyVitals: any[] = [];
+   historyPrescriptions: any[] = [];
+   historyLab: any[] = [];
+   historyRadiology: any[] = [];
+   historyLoading = false;
+   private _historyLoads = 0;
+   private readonly TOTAL_HISTORY_TABS = 6;
 
-  constructor(
-    private svc: PatientService,
-    private invSvc: InvoiceService,
-    private apptSvc: AppointmentService,
-    private toast: ToastService
-  ) { }
+   constructor(
+      private svc: PatientService,
+      private invSvc: InvoiceService,
+      private translate: TranslateService,
+      private toast: ToastService
+   ) { }
 
-  ngOnInit() { this.loadData(); }
+   ngOnInit() { this.loadData(); }
 
-  loadData() {
-    this.loading = true;
-    this.svc.getAll({ page: this.page, pageSize: 20, search: this.search }).subscribe({
-      next: (r) => { this.patients = r.items; this.totalPages = r.totalPages; this.loading = false; },
-      error: () => { this.loading = false; }
-    });
-  }
+   loadData() {
+      this.loading = true;
+      this.svc.getAll({ page: this.page, pageSize: 20, search: this.search }).subscribe({
+         next: (r) => { this.patients = r.items; this.totalPages = r.totalPages; this.loading = false; },
+         error: () => { this.loading = false; }
+      });
+   }
 
-  loadInvoices() {
-    this.invSvc.getAll({}, this.invoiceFilter || undefined, 'Hospital').subscribe({
-      next: r => this.invoices = r.items
-    });
-  }
+   loadInvoices() {
+      this.invSvc.getAll({}, 'Pending', 'Hospital').subscribe({
+         next: r => this.invoices = r.items
+      });
+   }
 
-  freshInvoiceForm() {
-    const today = new Date().toISOString().split('T')[0];
-    const due = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
-    return { patientId: null, invoiceDate: today, dueDate: due, notes: '', discountAmount: 0, taxAmount: 0, invoiceType: 'Hospital', items: [this.freshLine()] };
-  }
+   openForm(patient?: any) {
+      this.editing = patient || null;
+      this.form = patient ? { ...patient, dateOfBirth: patient.dateOfBirth?.split('T')[0] } : { gender: 'Male', isActive: true };
+      this.showForm = true;
+   }
 
-  freshLine() { return { description: '', quantity: 1, unitPrice: 0, taxRate: 0, discount: 0, _total: 0 }; }
+   openPayModal(inv: any) {
+      this.selectedInvoice = inv;
+      this.payAmount = +(inv.totalAmount - inv.paidAmount).toFixed(2);
+      this.showPayModal = true;
+   }
 
-  openForm(patient?: any) {
-    this.editing = patient || null;
-    this.form = patient ? { ...patient, dateOfBirth: patient.dateOfBirth?.split('T')[0] } : { gender: 'Male', dateOfBirth: '' };
-    this.showForm = true;
-  }
+   save() {
+      if (!this.form.fullName) return;
+      const obs = this.editing ? this.svc.update(this.editing.id, this.form) : this.svc.create(this.form);
+      obs.subscribe({
+         next: () => {
+            this.toast.success(this.translate.instant('SUCCESS_SAVE'));
+            this.showForm = false;
+            this.loadData();
+         },
+         error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
 
-  openInvoiceForm() {
-    if (this.patients.length === 0) this.loadData();
-    this.invoiceForm = this.freshInvoiceForm();
-    this.showInvoiceForm = true;
-  }
+   confirmPay() {
+      this.invSvc.recordPayment({ invoiceId: this.selectedInvoice.id, patientId: this.selectedInvoice.patientId, amount: this.payAmount, paymentMethod: 'Cash' }).subscribe({
+         next: () => {
+            this.toast.success(this.translate.instant('SUCCESS_PAYMENT'));
+            this.showPayModal = false;
+            this.loadInvoices();
+         },
+         error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
 
-  openPayModal(inv: any) {
-    this.selectedInvoice = inv;
-    this.payAmount = +(inv.totalAmount - inv.paidAmount).toFixed(2);
-    this.showPayModal = true;
-  }
+   openHistory(patient: any) {
+      this.historyPatient = patient;
+      this.historyTab = 'appointments';
+      this.historyLoading = true;
+      this._historyLoads = 0;
+      this.showHistory = true;
 
-  addLine() { this.invoiceForm.items.push(this.freshLine()); }
-  removeLine(i: number) { if (this.invoiceForm.items.length > 1) this.invoiceForm.items.splice(i, 1); }
+      this.svc.getAppointments(patient.id).subscribe({ next: r => { this.historyAppointments = r; this._checkHistoryDone(); }, error: () => this._checkHistoryDone() });
+      this.svc.getInvoices(patient.id).subscribe({ next: r => { this.historyInvoices = r; this._checkHistoryDone(); }, error: () => this._checkHistoryDone() });
+      this.svc.getVitals(patient.id).subscribe({ next: r => { this.historyVitals = r; this._checkHistoryDone(); }, error: () => this._checkHistoryDone() });
+      this.svc.getPrescriptions(patient.id).subscribe({ next: r => { this.historyPrescriptions = r; this._checkHistoryDone(); }, error: () => this._checkHistoryDone() });
+      this.svc.getLabRequests(patient.id).subscribe({ next: r => { this.historyLab = r; this._checkHistoryDone(); }, error: () => this._checkHistoryDone() });
+      this.svc.getRadiologyRequests(patient.id).subscribe({ next: r => { this.historyRadiology = r; this._checkHistoryDone(); }, error: () => this._checkHistoryDone() });
+   }
 
-  calcLine(line: any) {
-    const qty = +line.quantity || 0;
-    const price = +line.unitPrice || 0;
-    const disc = +line.discount || 0;
-    line._total = qty * price - disc;
-  }
+   private _checkHistoryDone() {
+      this._historyLoads++;
+      if (this._historyLoads >= this.TOTAL_HISTORY_TABS) this.historyLoading = false;
+   }
 
-  getSubTotal(): number { return this.invoiceForm.items.reduce((s: number, l: any) => s + (+l.quantity * +l.unitPrice - +l.discount), 0); }
-  getTotal(): number { return this.getSubTotal() + (+this.invoiceForm.taxAmount || 0) - (+this.invoiceForm.discountAmount || 0); }
-
-  save() {
-    if (!this.form.fullName) return;
-    this.saving = true;
-    const obs = this.editing
-      ? this.svc.update(this.editing.id, this.form)
-      : this.svc.create(this.form);
-    obs.subscribe({
-      next: () => { this.toast.success('Saved successfully'); this.showForm = false; this.saving = false; this.loadData(); },
-      error: () => { this.toast.error('Error saving'); this.saving = false; }
-    });
-  }
-
-  saveInvoice() {
-    if (!this.invoiceForm.patientId) { this.toast.error('Please select a patient'); return; }
-    if (!this.invoiceForm.items.some((l: any) => l.description)) { this.toast.error('Add at least one item description'); return; }
-    this.saving = true;
-    const payload = {
-      ...this.invoiceForm,
-      taxAmount: +this.invoiceForm.taxAmount,
-      discountAmount: +this.invoiceForm.discountAmount,
-      items: this.invoiceForm.items.filter((l: any) => l.description).map((l: any) => ({
-        description: l.description, quantity: +l.quantity,
-        unitPrice: +l.unitPrice, taxRate: +l.taxRate, discount: +l.discount
-      }))
-    };
-    this.invSvc.create(payload).subscribe({
-      next: () => { this.toast.success('Bill created'); this.showInvoiceForm = false; this.saving = false; this.tab = 'invoices'; this.loadInvoices(); },
-      error: (e: any) => { this.toast.error(e.error?.message || 'Error creating bill'); this.saving = false; }
-    });
-  }
-
-  confirmPay() {
-    if (!this.payAmount || this.payAmount <= 0) { this.toast.error('Enter a valid amount'); return; }
-    this.invSvc.recordPayment({ invoiceId: this.selectedInvoice.id, patientId: this.selectedInvoice.patientId, amount: this.payAmount, paymentMethod: 'Cash' }).subscribe({
-      next: () => { this.toast.success('Payment recorded'); this.showPayModal = false; this.loadInvoices(); },
-      error: () => this.toast.error('Payment failed')
-    });
-  }
-
-  openHistory(patient: any) {
-    this.historyPatient = patient;
-    this.historyTab = 'appointments';
-    this.historyAppointments = [];
-    this.historyInvoices = [];
-    this._historyLoads = 0;
-    this.historyLoading = true;
-    this.showHistory = true;
-    this.svc.getAppointments(patient.id).subscribe({
-      next: r => { this.historyAppointments = Array.isArray(r) ? r : (r as any).items || []; this._checkHistoryDone(); },
-      error: () => this._checkHistoryDone()
-    });
-    this.svc.getInvoices(patient.id).subscribe({
-      next: r => { this.historyInvoices = Array.isArray(r) ? r : (r as any).items || []; this._checkHistoryDone(); },
-      error: () => this._checkHistoryDone()
-    });
-  }
-
-  private _checkHistoryDone() {
-    this._historyLoads++;
-    if (this._historyLoads >= 2) { this.historyLoading = false; }
-  }
-
-  getApptDotClass(s: string): string {
-    switch (s) {
-      case 'Scheduled': return 'dot-scheduled';
-      case 'Confirmed': return 'dot-confirmed';
-      case 'Completed': return 'dot-completed';
-      case 'Cancelled': return 'dot-cancelled';
-      default: return 'dot-inprogress';
-    }
-  }
-
-  getApptBadge(s: string): string {
-    switch (s) {
-      case 'Scheduled': return 'badge-info';
-      case 'Confirmed': return 'badge-primary';
-      case 'Completed': return 'badge-success';
-      case 'Cancelled': return 'badge-danger';
-      default: return 'badge-warning';
-    }
-  }
-
-  deletePatient(p: any) {
-    if (confirm('Delete patient?')) {
-      this.svc.delete(p.id).subscribe({ next: () => { this.toast.success('Deleted'); this.loadData(); } });
-    }
-  }
+   getHistoryData(): any[] {
+      switch (this.historyTab) {
+         case 'appointments': return this.historyAppointments;
+         case 'invoices': return this.historyInvoices;
+         case 'prescriptions': return this.historyPrescriptions;
+         case 'lab': return this.historyLab;
+         case 'radiology': return this.historyRadiology;
+         default: return [];
+      }
+   }
 }

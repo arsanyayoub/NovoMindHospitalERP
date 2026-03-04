@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("HospitalERP.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+35848839c9cfa1f5f9be018f4d3cafcfdf19bdd3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8727d7d8ffdf734ca351b00d02a58a599cbf816c")]
 [assembly: System.Reflection.AssemblyProductAttribute("HospitalERP.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("HospitalERP.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

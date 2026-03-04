@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { InvoiceService, PatientService, SalesService, InventoryService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 import { ExportService } from '../../core/services/export.service';
@@ -10,207 +10,260 @@ import { ExportService } from '../../core/services/export.service';
   selector: 'app-invoices',
   standalone: true,
   imports: [CommonModule, FormsModule, TranslateModule],
+  styles: [`
+    .inv-card { background: rgba(var(--card-bg-rgb), 0.3); border: 1px solid var(--border); border-radius: 18px; transition: 0.2s; overflow: hidden; }
+    .inv-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+    
+    .pricing-summary { background: rgba(var(--primary-rgb), 0.05); border: 1.5px solid var(--border); border-radius: 20px; padding: 24px; }
+    .pricing-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-weight: 700; color: var(--text-secondary); }
+    .pricing-total { border-top: 2px solid var(--border); padding-top: 16px; margin-top: 16px; font-size: 1.25rem; color: var(--primary); }
+
+    .status-badge { p: 4px 12px; border-radius: 20px; font-weight: 800; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .status-paid { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .status-unpaid { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .status-partial { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .status-draft { background: rgba(107, 114, 128, 0.1); color: #6b7280; }
+  `],
   template: `
     <div class="page-header">
-      <div><h1 class="page-title">{{ 'INVOICES' | translate }}</h1></div>
-      <button class="btn btn-primary" (click)="openForm()"><span class="material-icons-round">add</span> {{ 'ADD_NEW' | translate }}</button>
-    </div>
-    
-    <div class="filter-bar mb-4">
-      <div class="search-bar"><span class="material-icons-round search-icon">search</span><input class="form-control" [placeholder]="'SEARCH' | translate" [(ngModel)]="search" (input)="loadData()"></div>
-      <select class="form-control" style="width:auto;" [(ngModel)]="statusFilter" (change)="loadData()">
-        <option value="">All Status</option>
-        <option value="Draft">Draft</option>
-        <option value="Unpaid">Unpaid</option>
-        <option value="PartiallyPaid">Partially Paid</option>
-        <option value="Paid">Paid</option>
-        <option value="Cancelled">Cancelled</option>
-      </select>
-      <select class="form-control" style="width:auto;" [(ngModel)]="typeFilter" (change)="loadData()">
-        <option value="">All Types</option>
-        <option value="Patient">Patient</option>
-        <option value="Customer">Customer</option>
-      </select>
-      <button class="btn btn-secondary" (click)="exportCsv()"><span class="material-icons-round">download</span> {{ 'EXPORT' | translate }}</button>
-    </div>
-    
-    <div class="card" style="padding:0;">
-      <div *ngIf="loading" class="loading-container"><div class="spinner"></div></div>
-      <div class="table-container" *ngIf="!loading">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>{{ 'INVOICE_NUM' | translate }}</th>
-              <th>Client</th>
-              <th>Type</th>
-              <th>Date</th>
-              <th>Total</th>
-              <th>Paid</th>
-              <th>Balance</th>
-              <th>{{ 'STATUS' | translate }}</th>
-              <th>{{ 'ACTIONS' | translate }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let inv of invoices">
-              <td><span class="badge badge-info">{{ inv.invoiceNumber }}</span></td>
-              <td class="font-semibold">{{ inv.patientName || inv.customerName }}</td>
-              <td>{{ inv.invoiceType }}</td>
-              <td>{{ inv.invoiceDate | date:'mediumDate' }}</td>
-              <td>{{ inv.totalAmount | currency }}</td>
-              <td class="text-success">{{ inv.paidAmount | currency }}</td>
-              <td class="text-danger">{{ inv.balanceDue | currency }}</td>
-              <td><span class="badge" [ngClass]="getStatusClass(inv.status)">{{ inv.status | translate }}</span></td>
-              <td>
-                <div class="flex gap-1">
-                  <button class="btn btn-sm btn-secondary" (click)="printInvoice(inv)" title="{{ 'PRINT' | translate }}"><span class="material-icons-round" style="font-size:16px">print</span></button>
-                  <button class="btn btn-sm btn-primary" *ngIf="inv.balanceDue > 0" (click)="openPaymentForm(inv)" title="Record Payment">
-                    <span class="material-icons-round" style="font-size:16px">payments</span>
-                  </button>
-                  <button class="btn btn-sm btn-danger" (click)="deleteInvoice(inv)">
-                    <span class="material-icons-round" style="font-size:16px">delete</span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr *ngIf="invoices.length === 0"><td colspan="9"><div class="empty-state"><span class="material-icons-round empty-icon">receipt_long</span><span class="empty-title">{{ 'NO_DATA' | translate }}</span></div></td></tr>
-          </tbody>
-        </table>
+      <div>
+        <h1 class="page-title">{{ 'BILLING_INVOICES' | translate }}</h1>
+        <p class="page-subtitle">{{ 'INVOICE_MANAGEMENT_SUBTITLE' | translate }}</p>
       </div>
-      <div class="pagination" *ngIf="totalPages > 1"><span class="pagination-info">Page {{ page }} of {{ totalPages }}</span><div class="pagination-buttons"><button class="page-btn" (click)="page=page-1;loadData()" [disabled]="page<=1"><span class="material-icons-round">chevron_left</span></button><button class="page-btn" (click)="page=page+1;loadData()" [disabled]="page>=totalPages"><span class="material-icons-round">chevron_right</span></button></div></div>
+      <div class="flex gap-3">
+        <button class="btn btn-secondary px-4" (click)="exportCsv()">
+          <span class="material-icons-round mr-1">download</span> {{ 'EXPORT' | translate }}
+        </button>
+        <button class="btn btn-primary px-4 shadow-primary" (click)="openForm()">
+          <span class="material-icons-round mr-1">post_add</span> {{ 'NEW_INVOICE' | translate }}
+        </button>
+      </div>
     </div>
 
-    <!-- Invoice Form Modal -->
+    <div class="filter-bar gray-glass p-3 rounded-2xl mb-6 flex gap-3 animate-in">
+       <div class="search-bar flex-grow" style="max-width:350px">
+          <span class="material-icons-round search-icon">search</span>
+          <input class="form-control" [placeholder]="'SEARCH_BY_NUM_OR_CLIENT' | translate" [(ngModel)]="search" (input)="loadData()">
+       </div>
+       <select class="form-control" style="width:160px" [(ngModel)]="statusFilter" (change)="loadData()">
+          <option value="">{{ 'ALL_STATUSES' | translate }}</option>
+          <option value="Paid">{{ 'PAID' | translate }}</option>
+          <option value="Unpaid">{{ 'UNPAID' | translate }}</option>
+          <option value="PartiallyPaid">{{ 'PARTIAL' | translate }}</option>
+       </select>
+       <select class="form-control" style="width:160px" [(ngModel)]="typeFilter" (change)="loadData()">
+          <option value="">{{ 'ALL_TYPES' | translate }}</option>
+          <option value="Patient">{{ 'PATIENT_INVOICE' | translate }}</option>
+          <option value="Customer">{{ 'CUSTOMER_INVOICE' | translate }}</option>
+       </select>
+    </div>
+
+    <div class="card p-0 overflow-hidden animate-in">
+       <div *ngIf="loading" class="flex items-center justify-center p-20 grayscale opacity-50"><span class="spinner"></span></div>
+       <div class="table-container" *ngIf="!loading">
+          <table class="table">
+             <thead>
+                <tr>
+                   <th># {{ 'INVOICE' | translate }}</th>
+                   <th>{{ 'CLIENT' | translate }}</th>
+                   <th>{{ 'DATE' | translate }}</th>
+                   <th class="text-end">{{ 'TOTAL' | translate }}</th>
+                   <th class="text-end">{{ 'PAID' | translate }}</th>
+                   <th class="text-end">{{ 'BALANCE' | translate }}</th>
+                   <th>{{ 'STATUS' | translate }}</th>
+                   <th class="text-end">{{ 'ACTIONS' | translate }}</th>
+                </tr>
+             </thead>
+             <tbody>
+                <tr *ngFor="let inv of invoices" class="hover-row">
+                   <td><span class="badge badge-secondary font-mono">{{ inv.invoiceNumber }}</span></td>
+                   <td>
+                      <div class="font-bold">{{ inv.patientName || inv.customerName }}</div>
+                      <div class="text-[0.6rem] font-black uppercase text-primary opacity-60">{{ inv.invoiceType | translate }}</div>
+                   </td>
+                   <td class="text-sm font-semibold">{{ inv.invoiceDate | date:'mediumDate' }}</td>
+                   <td class="text-end font-bold">{{ inv.totalAmount | currency }}</td>
+                   <td class="text-end text-success font-bold">{{ inv.paidAmount | currency }}</td>
+                   <td class="text-end text-danger font-black">{{ inv.balanceDue | currency }}</td>
+                   <td>
+                      <span class="status-badge" [ngClass]="'status-' + inv.status.toLowerCase().replace('lypaid','-partial')">
+                         {{ inv.status | translate }}
+                      </span>
+                   </td>
+                   <td class="text-end">
+                      <div class="flex justify-end gap-1">
+                         <button class="btn btn-icon btn-xs text-primary" (click)="downloadPdf(inv)" [title]="'DOWNLOAD_PDF' | translate">
+                           <span class="material-icons-round">picture_as_pdf</span>
+                         </button>
+                         <button class="btn btn-icon btn-xs text-success" *ngIf="inv.balanceDue > 0" (click)="openPaymentForm(inv)" [title]="'RECORD_PAYMENT' | translate">
+                           <span class="material-icons-round">payments</span>
+                         </button>
+                         <button class="btn btn-icon btn-xs text-danger" (click)="deleteInvoice(inv)">
+                           <span class="material-icons-round">delete_outline</span>
+                         </button>
+                      </div>
+                   </td>
+                </tr>
+                <tr *ngIf="!invoices.length"><td colspan="8" class="p-20 text-center text-muted"><span class="material-icons-round text-5xl opacity-10 mb-2">receipt_long</span><p>{{ 'NO_DATA' | translate }}</p></td></tr>
+             </tbody>
+          </table>
+       </div>
+    </div>
+
+    <!-- NEW INVOICE MODAL -->
     <div class="modal-overlay" *ngIf="showForm" (click)="showForm=false">
-      <div class="modal modal-xl" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h3 class="modal-title">{{ 'ADD_NEW_INVOICE' | translate }}</h3>
-          <button class="btn btn-sm btn-secondary" (click)="showForm=false"><span class="material-icons-round">close</span></button>
-        </div>
-        <div class="modal-body">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Type *</label>
-              <select class="form-control" [(ngModel)]="form.invoiceType" (change)="form.patientId=null; form.customerId=null;">
-                <option value="Patient">Patient</option>
-                <option value="Customer">Customer</option>
-              </select>
-            </div>
-            <div class="form-group" *ngIf="form.invoiceType === 'Patient'">
-              <label class="form-label">{{ 'PATIENT' | translate }} *</label>
-              <select class="form-control" [(ngModel)]="form.patientId">
-                <option *ngFor="let p of patientsList" [value]="p.id">{{ p.fullName }} ({{ p.patientCode }})</option>
-              </select>
-            </div>
-            <div class="form-group" *ngIf="form.invoiceType === 'Customer'">
-              <label class="form-label">{{ 'CUSTOMER' | translate }} *</label>
-              <select class="form-control" [(ngModel)]="form.customerId">
-                <option *ngFor="let c of customersList" [value]="c.id">{{ c.customerName }}</option>
-              </select>
-            </div>
+       <div class="modal modal-xl animate-in" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+             <h3 class="modal-title font-black">{{ 'CREATE_NEW_INVOICE' | translate }}</h3>
+             <button (click)="showForm=false" class="btn-close">×</button>
           </div>
-          <div class="form-row mt-4">
-            <div class="form-group"><label class="form-label">Date *</label><input class="form-control" type="date" [(ngModel)]="form.invoiceDate"></div>
-            <div class="form-group"><label class="form-label">Due Date</label><input class="form-control" type="date" [(ngModel)]="form.dueDate"></div>
-          </div>
-          
-          <div class="mt-4">
-            <h4 class="font-semibold mb-2">Items</h4>
-            <div class="table-container">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>Item</th>
-                    <th>Description</th>
-                    <th style="width:100px">Qty</th>
-                    <th style="width:120px">Price</th>
-                    <th style="width:100px">Tax (%)</th>
-                    <th style="width:100px">Disc</th>
-                    <th style="width:120px">Total</th>
-                    <th style="width:50px"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let item of form.items; let i = index">
-                    <td>
-                      <select class="form-control form-control-sm" [(ngModel)]="item.itemId" (change)="onItemChange(item)">
-                        <option [ngValue]="null">Custom Item</option>
-                        <option *ngFor="let invItem of itemsList" [value]="invItem.id">{{ invItem.itemName }}</option>
-                      </select>
-                    </td>
-                    <td><input class="form-control form-control-sm" [(ngModel)]="item.description"></td>
-                    <td><input class="form-control form-control-sm" type="number" [(ngModel)]="item.quantity" (ngModelChange)="calculateFormTotals()"></td>
-                    <td><input class="form-control form-control-sm" type="number" [(ngModel)]="item.unitPrice" (ngModelChange)="calculateFormTotals()"></td>
-                    <td><input class="form-control form-control-sm" type="number" [(ngModel)]="item.taxRate" (ngModelChange)="calculateFormTotals()"></td>
-                    <td><input class="form-control form-control-sm" type="number" [(ngModel)]="item.discount" (ngModelChange)="calculateFormTotals()"></td>
-                    <td class="font-semibold">{{ ((item.quantity * item.unitPrice) - item.discount) * (1 + item.taxRate/100) | currency }}</td>
-                    <td>
-                      <button class="btn-icon text-danger" (click)="removeItem(i)"><span class="material-icons-round" style="font-size:18px">close</span></button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              <button class="btn btn-sm btn-secondary mt-2" (click)="addItem()">+ Add Item</button>
-            </div>
-          </div>
-          
-          <div class="flex mt-4" style="justify-content: flex-end;">
-             <div style="width: 300px;">
-                <div class="flex mb-2" style="justify-content: space-between;"><span>Subtotal:</span><span class="font-semibold">{{ calculation.subTotal | currency }}</span></div>
-                <div class="flex mb-2" style="justify-content: space-between;"><span>Total Tax:</span><span class="font-semibold">{{ calculation.taxTotal | currency }}</span></div>
-                <div class="flex mb-2" style="justify-content: space-between;"><span>Total Discount:</span><span class="font-semibold text-danger">-{{ calculation.discountTotal | currency }}</span></div>
-                <div class="flex mb-2 border-t pt-2 mt-2" style="justify-content: space-between;"><span class="font-semibold text-lg">Total Amount:</span><span class="font-semibold text-lg text-primary">{{ calculation.grandTotal | currency }}</span></div>
+          <div class="modal-body">
+             <div class="grid grid-cols-3 gap-6 mb-8 p-6 bg-glass border rounded-3xl">
+                <div class="form-group">
+                   <label class="form-label font-bold uppercase text-xs">{{ 'INVOICE_TYPE' | translate }}*</label>
+                   <select class="form-control h-12" [(ngModel)]="form.invoiceType">
+                      <option value="Patient">{{ 'PATIENT_BILLING' | translate }}</option>
+                      <option value="Customer">{{ 'GENERAL_SALES' | translate }}</option>
+                   </select>
+                </div>
+                <div class="form-group">
+                   <label class="form-label font-bold uppercase text-xs">{{ 'SELECT_CLIENT' | translate }}*</label>
+                   <select *ngIf="form.invoiceType === 'Patient'" class="form-control h-12" [(ngModel)]="form.patientId">
+                      <option *ngFor="let p of patientsList" [value]="p.id">{{ p.fullName }} ({{ p.patientCode }})</option>
+                   </select>
+                   <select *ngIf="form.invoiceType === 'Customer'" class="form-control h-12" [(ngModel)]="form.customerId">
+                      <option *ngFor="let c of customersList" [value]="c.id">{{ c.customerName }}</option>
+                   </select>
+                </div>
+                <div class="form-group">
+                   <label class="form-label font-bold uppercase text-xs">{{ 'INVOICE_DATE' | translate }}</label>
+                   <input class="form-control h-12" type="date" [(ngModel)]="form.invoiceDate">
+                </div>
+             </div>
+
+             <div class="mb-6 flex justify-between items-center">
+                <h4 class="font-black text-lg flex items-center gap-2"><span class="material-icons-round text-primary">list_alt</span> {{ 'BILLING_ITEMS' | translate }}</h4>
+                <button class="btn btn-secondary btn-sm font-bold" (click)="addItem()">+ {{ 'ADD_LINE_ITEM' | translate }}</button>
+             </div>
+
+             <div class="table-container border rounded-2xl mb-8">
+                <table class="table table-sm">
+                   <thead class="bg-glass">
+                      <tr>
+                         <th style="width:240px">{{ 'ITEM_SERVICE' | translate }}</th>
+                         <th>{{ 'DESCRIPTION' | translate }}</th>
+                         <th style="width:80px">{{ 'QTY' | translate }}</th>
+                         <th style="width:120px">{{ 'UNIT_PRICE' | translate }}</th>
+                         <th style="width:80px">{{ 'TAX' | translate }}%</th>
+                         <th style="width:100px">{{ 'DISCOUNT' | translate }}</th>
+                         <th style="width:120px" class="text-end">{{ 'TOTAL' | translate }}</th>
+                         <th style="width:50px"></th>
+                      </tr>
+                   </thead>
+                   <tbody>
+                      <tr *ngFor="let item of form.items; let i = index" class="animate-in">
+                         <td>
+                            <select class="form-control form-control-sm" [(ngModel)]="item.itemId" (change)="onItemChange(item)">
+                               <option [ngValue]="null">[{{ 'CUSTOM_ITEM' | translate }}]</option>
+                               <option *ngFor="let invItem of itemsList" [value]="invItem.id">{{ invItem.itemName }}</option>
+                            </select>
+                         </td>
+                         <td><input class="form-control form-control-sm" [(ngModel)]="item.description"></td>
+                         <td><input class="form-control form-control-sm font-bold text-center" type="number" [(ngModel)]="item.quantity" (ngModelChange)="calculateFormTotals()"></td>
+                         <td><input class="form-control form-control-sm font-bold" type="number" [(ngModel)]="item.unitPrice" (ngModelChange)="calculateFormTotals()"></td>
+                         <td><input class="form-control form-control-sm" type="number" [(ngModel)]="item.taxRate" (ngModelChange)="calculateFormTotals()"></td>
+                         <td><input class="form-control form-control-sm" type="number" [(ngModel)]="item.discount" (ngModelChange)="calculateFormTotals()"></td>
+                         <td class="text-end font-black text-primary">{{ ((item.quantity * item.unitPrice) - item.discount) * (1 + item.taxRate/100) | currency }}</td>
+                         <td><button class="btn btn-icon btn-xs text-danger" (click)="removeItem(i)"><span class="material-icons-round">delete_outline</span></button></td>
+                      </tr>
+                   </tbody>
+                </table>
+             </div>
+
+             <div class="grid grid-cols-2 gap-10">
+                <div class="form-group">
+                   <label class="form-label font-bold uppercase text-xs">{{ 'REMARKS_NOTES' | translate }}</label>
+                   <textarea class="form-control" [(ngModel)]="form.notes" rows="6" placeholder="Payment instructions, clinical notes ref..."></textarea>
+                </div>
+                <div class="pricing-summary">
+                   <div class="pricing-row"><span>{{ 'SUBTOTAL' | translate }}</span><span>{{ calculation.subTotal | currency }}</span></div>
+                   <div class="pricing-row text-danger"><span>{{ 'TOTAL_DISCOUNTS' | translate }}</span><span>-{{ calculation.discountTotal | currency }}</span></div>
+                   <div class="pricing-row text-info"><span>{{ 'ESTIMATED_TAXES' | translate }}</span><span>+{{ calculation.taxTotal | currency }}</span></div>
+                   <div class="pricing-total font-black flex justify-between">
+                      <span class="uppercase tracking-widest">{{ 'GRAND_TOTAL' | translate }}</span>
+                      <span>{{ calculation.grandTotal | currency }}</span>
+                   </div>
+                </div>
              </div>
           </div>
-
-          <div class="form-group mt-4"><label class="form-label">{{ 'NOTES' | translate }}</label><textarea class="form-control" [(ngModel)]="form.notes" rows="2"></textarea></div>
-        </div>
-        <div class="modal-footer"><button class="btn btn-secondary" (click)="showForm=false">{{ 'CANCEL' | translate }}</button><button class="btn btn-primary" (click)="save()" [disabled]="saving || !isValid()"><span class="spinner spinner-sm" *ngIf="saving"></span> {{ 'SAVE' | translate }}</button></div>
-      </div>
+          <div class="modal-footer">
+             <button class="btn btn-secondary px-8 rounded-xl" (click)="showForm=false">{{ 'CANCEL' | translate }}</button>
+             <button class="btn btn-primary px-10 rounded-xl shadow-primary font-black" (click)="save()" [disabled]="saving || !isValid()">
+                <span class="material-icons-round mr-2">check_circle</span> {{ 'FINALIZE_INVOICE' | translate }}
+             </button>
+          </div>
+       </div>
     </div>
 
-    <!-- Payment Modal -->
+    <!-- PAYMENT MODAL -->
     <div class="modal-overlay" *ngIf="showPaymentForm" (click)="showPaymentForm=false">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h3 class="modal-title">Record Payment</h3>
-          <button class="btn btn-sm btn-secondary" (click)="showPaymentForm=false"><span class="material-icons-round">close</span></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-4">
-             <div class="text-sm text-muted">Invoice Balance Due</div>
-             <div class="text-2xl font-semibold text-danger">{{ paymentForm.maxAmount | currency }}</div>
+       <div class="modal animate-in" (click)="$event.stopPropagation()" style="max-width:450px">
+          <div class="modal-header border-0 pb-0">
+             <h3 class="modal-title font-black">{{ 'RECEIVE_PAYMENT' | translate }}</h3>
+             <button (click)="showPaymentForm=false" class="btn-close">×</button>
           </div>
-          <div class="form-group">
-            <label class="form-label">Payment Amount *</label>
-            <input class="form-control" type="number" [(ngModel)]="paymentForm.amount" max="{{ paymentForm.maxAmount }}">
+          <div class="modal-body">
+             <div class="p-6 bg-success bg-opacity-10 border border-success border-opacity-20 rounded-3xl mb-6 text-center">
+                <div class="text-xs font-bold text-success uppercase tracking-widest mb-1">{{ 'DUE_FOR_SETTLEMENT' | translate }}</div>
+                <div class="text-3xl font-black text-success">{{ paymentForm.maxAmount | currency }}</div>
+             </div>
+
+             <div class="form-group mb-4">
+                <label class="form-label font-bold text-xs uppercase">{{ 'PAYMENT_AMOUNT' | translate }}*</label>
+                <input class="form-control text-2xl font-black h-16 text-center text-success" type="number" [(ngModel)]="paymentForm.amount">
+             </div>
+
+             <div class="form-group mb-4">
+                <label class="form-label font-bold text-xs uppercase">{{ 'PAYMENT_METHOD' | translate }}*</label>
+                <select class="form-control font-bold" [(ngModel)]="paymentForm.paymentMethod">
+                   <option value="Cash">{{ 'CASH' | translate }}</option>
+                   <option value="Credit Card">{{ 'CREDIT_CARD' | translate }}</option>
+                   <option value="Bank Transfer">{{ 'BANK_TRANSFER' | translate }}</option>
+                </select>
+             </div>
+
+             <div class="form-group">
+                <label class="form-label font-bold text-xs uppercase">{{ 'REFERENCE_CODE' | translate }}</label>
+                <input class="form-control" [(ngModel)]="paymentForm.referenceNumber" placeholder="TXN-XXXXXX">
+             </div>
           </div>
-          <div class="form-group mt-4">
-            <label class="form-label">Payment Method *</label>
-            <select class="form-control" [(ngModel)]="paymentForm.paymentMethod">
-               <option value="Cash">Cash</option>
-               <option value="Credit Card">Credit Card</option>
-               <option value="Bank Transfer">Bank Transfer</option>
-               <option value="Cheque">Cheque</option>
-            </select>
+          <div class="modal-footer flex-col border-0 pt-0">
+             <button class="btn btn-success w-full h-14 shadow-success font-black text-lg rounded-2xl" (click)="savePayment()" [disabled]="savingPayment || paymentForm.amount <= 0">
+                {{ 'CONFIRM_PAYMENT' | translate }}
+             </button>
           </div>
-          <div class="form-group mt-4">
-             <label class="form-label">Reference Number</label>
-             <input class="form-control" [(ngModel)]="paymentForm.referenceNumber">
-          </div>
-        </div>
-        <div class="modal-footer"><button class="btn btn-secondary" (click)="showPaymentForm=false">{{ 'CANCEL' | translate }}</button><button class="btn btn-success" (click)="savePayment()" [disabled]="savingPayment || paymentForm.amount <= 0 || paymentForm.amount > paymentForm.maxAmount"><span class="spinner spinner-sm" *ngIf="savingPayment"></span> Record Payment</button></div>
-      </div>
+       </div>
     </div>
   `
 })
 export class InvoicesComponent implements OnInit {
-  invoices: any[] = []; loading = true; search = ''; statusFilter = ''; typeFilter = '';
-  page = 1; totalPages = 1; showForm = false; saving = false;
+  invoices: any[] = [];
+  loading = true;
+  search = '';
+  statusFilter = '';
+  typeFilter = '';
+  page = 1;
+  totalPages = 1;
+  showForm = false;
+  saving = false;
   form: any = {};
-  showPaymentForm = false; savingPayment = false; paymentForm: any = {};
+  showPaymentForm = false;
+  savingPayment = false;
+  paymentForm: any = {};
 
-  patientsList: any[] = []; customersList: any[] = []; itemsList: any[] = [];
+  patientsList: any[] = [];
+  customersList: any[] = [];
+  itemsList: any[] = [];
   calculation = { subTotal: 0, taxTotal: 0, discountTotal: 0, grandTotal: 0 };
 
   constructor(
@@ -219,6 +272,7 @@ export class InvoicesComponent implements OnInit {
     private salesSvc: SalesService,
     private inventorySvc: InventoryService,
     private toast: ToastService,
+    private translate: TranslateService,
     private exportSvc: ExportService
   ) { }
 
@@ -272,10 +326,10 @@ export class InvoicesComponent implements OnInit {
   calculateFormTotals() {
     let sub = 0; let tax = 0; let disc = 0;
     this.form.items.forEach((i: any) => {
-      const lineGross = i.quantity * i.unitPrice;
+      const lineGross = (i.quantity || 0) * (i.unitPrice || 0);
       const lineDisc = i.discount || 0;
       const lineNet = lineGross - lineDisc;
-      const lineTax = lineNet * (i.taxRate / 100);
+      const lineTax = lineNet * ((i.taxRate || 0) / 100);
       sub += lineGross;
       disc += lineDisc;
       tax += lineTax;
@@ -306,20 +360,20 @@ export class InvoicesComponent implements OnInit {
 
     this.svc.create(data).subscribe({
       next: () => {
-        this.toast.success('Invoice created');
+        this.toast.success(this.translate.instant('SUCCESS_SAVE'));
         this.showForm = false;
         this.saving = false;
         this.loadData();
       },
-      error: () => { this.toast.error('Error creating invoice'); this.saving = false; }
+      error: () => { this.toast.error(this.translate.instant('ERROR_OCCURRED')); this.saving = false; }
     });
   }
 
   deleteInvoice(inv: any) {
-    if (confirm('Are you sure you want to delete this invoice?')) {
+    if (confirm(this.translate.instant('CONFIRM_DELETE'))) {
       this.svc.delete(inv.id).subscribe({
-        next: () => { this.toast.success('Deleted successfully'); this.loadData(); },
-        error: () => this.toast.error('Could not delete invoice')
+        next: () => { this.toast.success(this.translate.instant('SUCCESS_DELETE')); this.loadData(); },
+        error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
       });
     }
   }
@@ -340,96 +394,40 @@ export class InvoicesComponent implements OnInit {
     this.savingPayment = true;
     this.svc.recordPayment(this.paymentForm).subscribe({
       next: () => {
-        this.toast.success('Payment recorded');
+        this.toast.success(this.translate.instant('SUCCESS_SAVE'));
         this.showPaymentForm = false;
         this.savingPayment = false;
         this.loadData();
       },
-      error: () => { this.toast.error('Error recording payment'); this.savingPayment = false; }
+      error: () => { this.toast.error(this.translate.instant('ERROR_OCCURRED')); this.savingPayment = false; }
     });
   }
 
-  getStatusClass(s: string): string {
-    switch (s) {
-      case 'Draft': return 'badge-secondary';
-      case 'Unpaid': return 'badge-warning';
-      case 'PartiallyPaid': return 'badge-info';
-      case 'Paid': return 'badge-success';
-      case 'Cancelled': return 'badge-danger';
-      default: return 'badge-secondary';
-    }
-  }
-
-  printInvoice(inv: any) {
-    const now = new Date().toLocaleDateString();
-    const itemRows = (inv.items || []).map((item: any) => {
-      const lineTotal = ((item.quantity || 0) * (item.unitPrice || 0) - (item.discount || 0)) * (1 + (item.taxRate || 0) / 100);
-      return `<tr><td>${item.description || '—'}</td><td>${item.quantity}</td><td>$${(item.unitPrice || 0).toFixed(2)}</td><td>${item.taxRate || 0}%</td><td>-$${(item.discount || 0).toFixed(2)}</td><td><strong>$${lineTotal.toFixed(2)}</strong></td></tr>`;
-    }).join('');
-    const win = window.open('', '_blank', 'width=900,height=700');
-    if (!win) return;
-    win.document.write(`<!DOCTYPE html><html><head><title>Invoice ${inv.invoiceNumber}</title>
-      <style>
-        *{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;color:#1a1a2e;padding:40px;font-size:14px}
-        .top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:24px;border-bottom:2px solid #e5e7eb}
-        .brand{font-size:28px;font-weight:800;color:#6366f1}.brand span{color:#8b5cf6}
-        .inv-badge{font-size:36px;font-weight:800;color:#6366f1;letter-spacing:2px;text-transform:uppercase}
-        .meta{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
-        .meta-box{background:#f8f9ff;border-radius:8px;padding:16px}
-        .meta-box h4{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin-bottom:8px}
-        .meta-box p{margin:3px 0}
-        table{width:100%;border-collapse:collapse;margin:20px 0}
-        th{background:#6366f1;color:white;padding:10px 12px;text-align:left;font-size:12px}
-        td{padding:10px 12px;border-bottom:1px solid #e5e7eb}
-        tr:last-child td{border-bottom:none}
-        .totals{text-align:right;margin-top:24px;padding-top:16px;border-top:2px solid #e5e7eb}
-        .t-row{display:flex;justify-content:flex-end;gap:60px;padding:5px 0;font-size:14px}
-        .t-grand{font-size:20px;font-weight:800;color:#6366f1;border-top:2px solid #6366f1;padding-top:10px;margin-top:6px}
-        .footer{margin-top:40px;text-align:center;font-size:11px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:16px}
-        .badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700}
-        .Paid{background:#d1fae5;color:#065f46}.Unpaid{background:#fef3c7;color:#92400e}.Draft{background:#f3f4f6;color:#6b7280}.Cancelled{background:#fee2e2;color:#991b1b}
-        @media print{body{padding:20px}}
-      </style></head><body>
-      <div class="top">
-        <div><div class="brand">Novo<span>Mind</span></div><div style="font-size:12px;color:#6b7280;margin-top:4px">Hospital ERP System</div></div>
-        <div style="text-align:right"><div class="inv-badge">Invoice</div><div style="color:#6b7280;font-size:14px;margin-top:4px"># ${inv.invoiceNumber}</div></div>
-      </div>
-      <div class="meta">
-        <div class="meta-box"><h4>Bill To</h4><p><strong>${inv.patientName || inv.customerName || '—'}</strong></p><p>Type: ${inv.invoiceType}</p></div>
-        <div class="meta-box"><h4>Invoice Details</h4><p><strong>Date:</strong> ${new Date(inv.invoiceDate).toLocaleDateString()}</p>${inv.dueDate ? `<p><strong>Due:</strong> ${new Date(inv.dueDate).toLocaleDateString()}</p>` : ''}<p><strong>Status:</strong> <span class="badge ${inv.status}">${inv.status}</span></p></div>
-      </div>
-      <table><thead><tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Tax %</th><th>Discount</th><th>Line Total</th></tr></thead>
-      <tbody>${itemRows || '<tr><td colspan="6">—</td></tr>'}</tbody></table>
-      <div class="totals">
-        <div class="t-row"><span>Subtotal</span><span>$${(inv.subTotal || 0).toFixed(2)}</span></div>
-        <div class="t-row"><span>Tax</span><span>$${(inv.taxAmount || 0).toFixed(2)}</span></div>
-        <div class="t-row"><span>Discount</span><span>-$${(inv.discountAmount || 0).toFixed(2)}</span></div>
-        <div class="t-row t-grand"><span>TOTAL</span><span>$${(inv.totalAmount || 0).toFixed(2)}</span></div>
-        <div class="t-row" style="color:#065f46"><span>Paid</span><span>$${(inv.paidAmount || 0).toFixed(2)}</span></div>
-        ${inv.balanceDue > 0 ? `<div class="t-row" style="color:#c00"><span>Balance Due</span><span>$${(inv.balanceDue || 0).toFixed(2)}</span></div>` : ''}
-      </div>
-      ${inv.notes ? `<p style="margin-top:20px;font-size:13px;color:#6b7280"><strong>Notes:</strong> ${inv.notes}</p>` : ''}
-      <div class="footer">Generated by NovoMind Hospital ERP &bull; ${now}</div>
-    </body></html>`);
-    win.document.close();
-    win.onload = () => { win.focus(); win.print(); };
+  downloadPdf(inv: any) {
+    this.svc.downloadPdf(inv.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Invoice_${inv.invoiceNumber}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+    });
   }
 
   exportCsv() {
-    this.exportSvc.toCSV(
-      this.invoices,
-      'invoices',
-      [
-        { key: 'invoiceNumber', header: 'Invoice #' },
-        { key: 'patientName', header: 'Patient' },
-        { key: 'customerName', header: 'Customer' },
-        { key: 'invoiceType', header: 'Type' },
-        { key: 'invoiceDate', header: 'Date' },
-        { key: 'totalAmount', header: 'Total' },
-        { key: 'paidAmount', header: 'Paid' },
-        { key: 'balanceDue', header: 'Balance' },
-        { key: 'status', header: 'Status' }
-      ]
-    );
+    this.exportSvc.toCSV(this.invoices, 'invoices', [
+      { key: 'invoiceNumber', header: 'Invoice #' },
+      { key: 'patientName', header: 'Patient' },
+      { key: 'customerName', header: 'Customer' },
+      { key: 'invoiceType', header: 'Type' },
+      { key: 'invoiceDate', header: 'Date' },
+      { key: 'totalAmount', header: 'Total' },
+      { key: 'paidAmount', header: 'Paid' },
+      { key: 'balanceDue', header: 'Balance' },
+      { key: 'status', header: 'Status' }
+    ]);
   }
 }

@@ -147,3 +147,4 @@ D:\Work\Projects\ERP Hospital NEw\HospitalERP.API\obj\Debug\net8.0\refint\Hospit
 D:\Work\Projects\ERP Hospital NEw\HospitalERP.API\obj\Debug\net8.0\HospitalERP.API.pdb
 D:\Work\Projects\ERP Hospital NEw\HospitalERP.API\obj\Debug\net8.0\HospitalERP.API.genruntimeconfig.cache
 D:\Work\Projects\ERP Hospital NEw\HospitalERP.API\obj\Debug\net8.0\ref\HospitalERP.API.dll
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.API\bin\Debug\net8.0\appsettings.Production.json
