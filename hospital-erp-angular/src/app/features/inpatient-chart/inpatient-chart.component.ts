@@ -29,6 +29,12 @@ import { ToastService } from '../../core/services/language.service';
              </div>
           </div>
           <div class="flex gap-4">
+             <div class="flex items-center gap-4">
+                <div class="badge badge-success px-4 py-2 uppercase tracking-widest text-[0.6rem] font-black">{{ admission?.status }}</div>
+                <button class="btn btn-sm btn-outline btn-primary" (click)="exportEmr()" [disabled]="loading">
+                   <span class="material-icons-round text-sm">picture_as_pdf</span> {{ 'EXPORT_EMR' | translate }}
+                </button>
+             </div>
              <div class="text-right">
                 <div class="text-[0.65rem] font-bold text-muted uppercase tracking-wider">Admission Date</div>
                 <div class="font-black">{{ admission.admissionDate | date:'mediumDate' }}</div>
@@ -477,6 +483,20 @@ export class InpatientChartComponent implements OnInit {
                 this.toast.error('Failed to record administration');
                 this.saving = false;
             }
+        });
+    }
+
+    exportEmr() {
+        this.clinicalSvc.exportEmr(this.admission.patientId, this.admission.id).subscribe({
+            next: (blob) => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `EMR_${this.admission.patientName}_${new Date().toISOString().split('T')[0]}.pdf`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            },
+            error: () => this.toast.error('Failed to export EMR')
         });
     }
 

@@ -46,6 +46,8 @@ public interface IUnitOfWork : IDisposable
     IRepository<Prescription> Prescriptions { get; }
     IRepository<PrescriptionItem> PrescriptionItems { get; }
     IRepository<ClinicalEncounter> ClinicalEncounters { get; }
+    IRepository<InpatientNursingAssessment> InpatientNursingAssessments { get; }
+    IRepository<MedicationAdministration> MedicationAdministrations { get; }
     
     // Bed Management
     IRepository<Ward> Wards { get; }

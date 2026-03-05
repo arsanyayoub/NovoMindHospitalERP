@@ -229,6 +229,7 @@ public interface INotificationService
 public interface IPdfService
 {
     Task<byte[]> GenerateInvoicePdfAsync(int invoiceId);
+    Task<byte[]> GenerateEmrPdfAsync(int patientId, int? admissionId = null);
 }
 
 public interface IUserService

@@ -12,7 +12,12 @@ namespace HospitalERP.API.Controllers;
 public class ClinicalController : ControllerBase
 {
     private readonly IClinicalService _service;
-    public ClinicalController(IClinicalService service) => _service = service;
+    private readonly IPdfService _pdf;
+    public ClinicalController(IClinicalService service, IPdfService pdf)
+    {
+        _service = service;
+        _pdf = pdf;
+    }
 
     [HttpGet("vitals")]
     public async Task<IActionResult> GetVitals([FromQuery] PagedRequest request, [FromQuery] int? patientId, [FromQuery] int? admissionId) =>
@@ -76,5 +81,13 @@ public class ClinicalController : ControllerBase
     {
         var recordedBy = User.FindFirstValue(ClaimTypes.Name) ?? "System";
         return Ok(await _service.CreateNursingAssessmentAsync(dto, recordedBy));
+    }
+
+    // EMR Export
+    [HttpGet("export/{patientId}")]
+    public async Task<IActionResult> ExportEMR(int patientId, [FromQuery] int? admissionId)
+    {
+        var pdf = await _pdf.GenerateEmrPdfAsync(patientId, admissionId);
+        return File(pdf, "application/pdf", $"EMR_{patientId}_{DateTime.Now:yyyyMMdd}.pdf");
     }
 }

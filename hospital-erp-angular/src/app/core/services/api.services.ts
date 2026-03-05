@@ -385,6 +385,12 @@ export class ClinicalService {
         return this.http.post<any>(`${this.API}/nursing-assessments`, dto);
     }
 
+    exportEmr(patientId: number, admissionId?: number): Observable<Blob> {
+        let p = new HttpParams();
+        if (admissionId) p = p.set('admissionId', admissionId);
+        return this.http.get(`${this.API}/export/${patientId}`, { params: p, responseType: 'blob' });
+    }
+
     // Encounters
     getEncounters(req: any, patientId?: number, doctorId?: number): Observable<any> {
         let p = new HttpParams({ fromObject: req });

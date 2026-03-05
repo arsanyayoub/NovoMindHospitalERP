@@ -451,6 +451,7 @@
     "PENDING_MEDICATIONS": "Pending Medications",
     "MAR_HISTORY": "Administration History",
     "SUCCESS_MAR": "Medication administration recorded successfully",
+    "EXPORT_EMR": "Export EMR Report",
     "PROCESS_DAILY_BILLING": "Process Daily Billing",
     "MANAGE_INPATIENT_CHARGES_AND_DAILY_BILLING": "Manage inpatient charges and automated daily billing",
     "ACTIVE_ADMISSIONS": "Active Admissions",
