@@ -429,17 +429,30 @@ public record UpdateRadiologyResultDto(string? Findings, string? Impression, str
 // ═══════════════════════════════════════════════════════════════
 //  CLINICAL & PHARMACY
 // ═══════════════════════════════════════════════════════════════
-public record PatientVitalDto(int Id, int PatientId, string PatientName, int? AppointmentId, DateTime RecordedDate, string RecordedBy, 
+public record PatientVitalDto(int Id, int PatientId, string PatientName, int? AppointmentId, int? BedAdmissionId, DateTime RecordedDate, string RecordedBy, 
     decimal? Temperature, int? BloodPressureSystolic, int? BloodPressureDiastolic, int? HeartRate, int? RespiratoryRate, int? SpO2, 
     decimal? WeightKg, decimal? HeightCm, decimal? BMI, string? PainScale, string? Notes);
 
-public record CreatePatientVitalDto(int PatientId, int? AppointmentId, decimal? Temperature, int? BloodPressureSystolic, int? BloodPressureDiastolic, 
+public record CreatePatientVitalDto(int PatientId, int? AppointmentId, int? BedAdmissionId, decimal? Temperature, int? BloodPressureSystolic, int? BloodPressureDiastolic, 
     int? HeartRate, int? RespiratoryRate, int? SpO2, decimal? WeightKg, decimal? HeightCm, string? PainScale, string? Notes);
 
-public record PrescriptionDto(int Id, string PrescriptionNumber, int PatientId, string PatientName, int? DoctorId, string? DoctorName, 
-    int? AppointmentId, DateTime PrescriptionDate, string Status, string? Notes, List<PrescriptionItemDto> Items);
+public record InpatientNursingAssessmentDto(int Id, int BedAdmissionId, DateTime AssessmentDate, string RecordedBy, string Shift,
+    string? Neurological, string? Respiratory, string? Cardiovascular, string? Gastrointestinal, string? Genitourinary,
+    string? Musculoskeletal, string? SkinIntegumentary, string? Psychological, string? NursingNotes, string? PlanOfCare);
 
-public record CreatePrescriptionDto(int PatientId, int? DoctorId, int? AppointmentId, string? Notes, List<CreatePrescriptionItemDto> Items);
+public record CreateInpatientNursingAssessmentDto(int BedAdmissionId, string Shift,
+    string? Neurological, string? Respiratory, string? Cardiovascular, string? Gastrointestinal, string? Genitourinary,
+    string? Musculoskeletal, string? SkinIntegumentary, string? Psychological, string? NursingNotes, string? PlanOfCare);
+
+public record PrescriptionDto(int Id, string PrescriptionNumber, int PatientId, string PatientName, int? DoctorId, string? DoctorName, 
+    int? AppointmentId, int? BedAdmissionId, DateTime PrescriptionDate, string Status, string? Notes, List<PrescriptionItemDto> Items);
+
+public record CreatePrescriptionDto(int PatientId, int? DoctorId, int? AppointmentId, int? BedAdmissionId, string? Notes, List<CreatePrescriptionItemDto> Items);
+
+public record MedicationAdministrationDto(int Id, int PrescriptionItemId, string MedicineName, int BedAdmissionId, DateTime AdministeredDate, 
+    string AdministeredBy, string Status, string? Dose, string? Notes);
+
+public record CreateMedicationAdministrationDto(int PrescriptionItemId, int BedAdmissionId, string Status, string? Dose, string? Notes);
 
 public record PrescriptionItemDto(int Id, int PrescriptionId, int ItemId, string ItemName, string Dosage, string Frequency, string Duration, decimal Quantity, string? Instructions, bool IsDispensed, DateTime? DispensedDate, string? DispensedBy);
 

@@ -41,8 +41,12 @@ builder.Services.AddScoped<IPharmacyService, PharmacyService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IBedManagementService, BedManagementService>();
+builder.Services.AddScoped<IBedBillingService, BedBillingService>();
 builder.Services.AddScoped<IMessagingService, MessagingService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+
+// ── Background Workers ──────────────────────────────────────────
+builder.Services.AddHostedService<HospitalERP.API.Background.AutomatedBillingWorker>();
 
 // ── JWT Authentication ──────────────────────────────────────────
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "HospitalERPSecretKey2024SuperSecure!@#$";

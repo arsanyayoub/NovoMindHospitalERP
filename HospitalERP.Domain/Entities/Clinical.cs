@@ -10,6 +10,8 @@ public class PatientVital : BaseEntity
     public Patient Patient { get; set; } = null!;
     public int? AppointmentId { get; set; }
     public Appointment? Appointment { get; set; }
+    public int? BedAdmissionId { get; set; }
+    public BedAdmission? BedAdmission { get; set; }
     
     public DateTime RecordedDate { get; set; } = DateTime.UtcNow;
     public string RecordedBy { get; set; } = string.Empty;
@@ -36,6 +38,8 @@ public class Prescription : BaseEntity
     public Doctor? Doctor { get; set; }
     public int? AppointmentId { get; set; }
     public Appointment? Appointment { get; set; }
+    public int? BedAdmissionId { get; set; }
+    public BedAdmission? BedAdmission { get; set; }
 
     public DateTime PrescriptionDate { get; set; } = DateTime.UtcNow;
     public string Status { get; set; } = "Pending"; // Pending, Dispensed, Cancelled
@@ -71,6 +75,8 @@ public class ClinicalEncounter : BaseEntity
     public Doctor? Doctor { get; set; }
     public int? AppointmentId { get; set; }
     public Appointment? Appointment { get; set; }
+    public int? BedAdmissionId { get; set; }
+    public BedAdmission? BedAdmission { get; set; }
 
     public DateTime EncounterDate { get; set; } = DateTime.UtcNow;
     
@@ -83,4 +89,43 @@ public class ClinicalEncounter : BaseEntity
     
     public string? InternalNotes { get; set; }
     public bool IsFinalized { get; set; } = false;
+}
+
+public class InpatientNursingAssessment : BaseEntity
+{
+    public int BedAdmissionId { get; set; }
+    public BedAdmission BedAdmission { get; set; } = null!;
+    
+    public DateTime AssessmentDate { get; set; } = DateTime.UtcNow;
+    public string RecordedBy { get; set; } = string.Empty;
+    public string Shift { get; set; } = string.Empty; // Day, Evening, Night
+
+    // System-wise assessment (standard nursing charting)
+    public string? Neurological { get; set; }
+    public string? Respiratory { get; set; }
+    public string? Cardiovascular { get; set; }
+    public string? Gastrointestinal { get; set; }
+    public string? Genitourinary { get; set; }
+    public string? Musculoskeletal { get; set; }
+    public string? SkinIntegumentary { get; set; }
+    public string? Psychological { get; set; }
+    
+    public string? NursingNotes { get; set; }
+    public string? PlanOfCare { get; set; }
+}
+
+public class MedicationAdministration : BaseEntity
+{
+    public int PrescriptionItemId { get; set; }
+    public PrescriptionItem PrescriptionItem { get; set; } = null!;
+    
+    public int BedAdmissionId { get; set; }
+    public BedAdmission BedAdmission { get; set; } = null!;
+
+    public DateTime AdministeredDate { get; set; } = DateTime.UtcNow;
+    public string AdministeredBy { get; set; } = string.Empty;
+    
+    public string Status { get; set; } = "Given"; // Given, Refused, Held
+    public string? Dose { get; set; }
+    public string? Notes { get; set; }
 }

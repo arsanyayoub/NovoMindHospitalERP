@@ -185,9 +185,13 @@ public interface IRadiologyService
 
 public interface IClinicalService
 {
-    Task<PagedResult<PatientVitalDto>> GetVitalsAsync(PagedRequest request, int? patientId);
+    Task<PagedResult<PatientVitalDto>> GetVitalsAsync(PagedRequest request, int? patientId, int? admissionId = null);
     Task<PatientVitalDto> CreateVitalAsync(CreatePatientVitalDto dto, string recordedBy);
     Task DeleteVitalAsync(int id, string deletedBy);
+
+    // Nursing Assessments
+    Task<IEnumerable<InpatientNursingAssessmentDto>> GetNursingAssessmentsAsync(int admissionId);
+    Task<InpatientNursingAssessmentDto> CreateNursingAssessmentAsync(CreateInpatientNursingAssessmentDto dto, string recordedBy);
 
     // Encounters
     Task<PagedResult<ClinicalEncounterDto>> GetEncountersAsync(PagedRequest request, int? patientId, int? doctorId);
@@ -199,10 +203,14 @@ public interface IClinicalService
 
 public interface IPharmacyService
 {
-    Task<PagedResult<PrescriptionDto>> GetPrescriptionsAsync(PagedRequest request, string? status);
+    Task<PagedResult<PrescriptionDto>> GetPrescriptionsAsync(PagedRequest request, string? status = null, int? patientId = null, int? admissionId = null);
     Task<PrescriptionDto?> GetPrescriptionByIdAsync(int id);
-    Task<PrescriptionDto> CreatePrescriptionAsync(CreatePrescriptionDto dto, string createdBy);
-    Task CancelPrescriptionAsync(int id, string updatedBy);
+    Task<PrescriptionDto> CreatePrescriptionAsync(CreatePrescriptionDto dto);
+    Task CancelPrescriptionAsync(int id);
+    
+    // MAR (Medication Administration Record)
+    Task<IEnumerable<MedicationAdministrationDto>> GetMedicationAdministrationsAsync(int admissionId);
+    Task<MedicationAdministrationDto> CreateMedicationAdministrationAsync(CreateMedicationAdministrationDto dto, string administeredBy);
     
     // Dispensing
     Task DispenseItemAsync(int prescriptionItemId, DispenseItemDto dto, string dispensedBy);
@@ -231,4 +239,11 @@ public interface IUserService
     Task<UserDto> UpdateUserAsync(int id, UpdateUserDto dto, string updatedBy);
     Task ToggleUserStatusAsync(int id, string updatedBy);
     Task<IEnumerable<RoleDto>> GetRolesAsync();
+}
+
+public interface IBedBillingService
+{
+    Task ProcessDailyBillingAsync(string userId);
+    Task GenerateFinalBillAsync(int admissionId, string userId);
+    Task<IEnumerable<InvoiceDto>> GetInpatientBillsAsync(int patientId);
 }

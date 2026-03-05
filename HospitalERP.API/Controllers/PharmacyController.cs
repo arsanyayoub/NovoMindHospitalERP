@@ -15,8 +15,8 @@ public class PharmacyController : ControllerBase
     public PharmacyController(IPharmacyService service) => _service = service;
 
     [HttpGet("prescriptions")]
-    public async Task<IActionResult> GetPrescriptions([FromQuery] PagedRequest request, [FromQuery] string? status) =>
-        Ok(await _service.GetPrescriptionsAsync(request, status));
+    public async Task<IActionResult> GetPrescriptions([FromQuery] PagedRequest request, [FromQuery] string? status, [FromQuery] int? patientId, [FromQuery] int? admissionId) =>
+        Ok(await _service.GetPrescriptionsAsync(request, status, patientId, admissionId));
 
     [HttpGet("prescriptions/{id}")]
     public async Task<IActionResult> GetPrescription(int id)
@@ -28,15 +28,13 @@ public class PharmacyController : ControllerBase
     [HttpPost("prescriptions")]
     public async Task<IActionResult> CreatePrescription([FromBody] CreatePrescriptionDto dto)
     {
-        var createdBy = User.FindFirstValue(ClaimTypes.Name) ?? "System";
-        return Ok(await _service.CreatePrescriptionAsync(dto, createdBy));
+        return Ok(await _service.CreatePrescriptionAsync(dto));
     }
 
     [HttpPost("prescriptions/{id}/cancel")]
     public async Task<IActionResult> CancelPrescription(int id)
     {
-        var updatedBy = User.FindFirstValue(ClaimTypes.Name) ?? "System";
-        await _service.CancelPrescriptionAsync(id, updatedBy);
+        await _service.CancelPrescriptionAsync(id);
         return NoContent();
     }
 
@@ -50,5 +48,17 @@ public class PharmacyController : ControllerBase
         var dispensedBy = User.FindFirstValue(ClaimTypes.Name) ?? "System";
         await _service.DispenseItemAsync(id, dto, dispensedBy);
         return NoContent();
+    }
+
+    // MAR (Medication Administration Record)
+    [HttpGet("mar/{admissionId}")]
+    public async Task<IActionResult> GetMAR(int admissionId) =>
+        Ok(await _service.GetMedicationAdministrationsAsync(admissionId));
+
+    [HttpPost("mar")]
+    public async Task<IActionResult> CreateMAR([FromBody] CreateMedicationAdministrationDto dto)
+    {
+        var administeredBy = User.FindFirstValue(ClaimTypes.Name) ?? "System";
+        return Ok(await _service.CreateMedicationAdministrationAsync(dto, administeredBy));
     }
 }

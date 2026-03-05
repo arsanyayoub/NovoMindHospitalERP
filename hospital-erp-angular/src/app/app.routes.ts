@@ -100,6 +100,14 @@ export const routes: Routes = [
             {
                 path: 'audit-logs',
                 loadComponent: () => import('./features/audit-logs/audit-logs.component').then(m => m.AuditLogsComponent)
+            },
+            {
+                path: 'inpatient-billing',
+                loadComponent: () => import('./features/inpatient-billing/inpatient-billing.component').then(m => m.InpatientBillingComponent)
+            },
+            {
+                path: 'inpatient-chart/:admissionId',
+                loadComponent: () => import('./features/inpatient-chart/inpatient-chart.component').then(m => m.InpatientChartComponent)
             }
         ]
     },

@@ -16,13 +16,14 @@ public class ClinicalService : IClinicalService
         _auditLog = auditLog;
     }
 
-    public async Task<PagedResult<PatientVitalDto>> GetVitalsAsync(PagedRequest request, int? patientId)
+    public async Task<PagedResult<PatientVitalDto>> GetVitalsAsync(PagedRequest request, int? patientId, int? admissionId = null)
     {
         var query = _uow.PatientVitals.Query()
             .Include(v => v.Patient)
             .AsQueryable();
 
         if (patientId.HasValue) query = query.Where(v => v.PatientId == patientId);
+        if (admissionId.HasValue) query = query.Where(v => v.BedAdmissionId == admissionId);
         if (!string.IsNullOrEmpty(request.Search))
             query = query.Where(v => v.Patient.FullName.Contains(request.Search) || v.Patient.PatientCode.Contains(request.Search));
 
@@ -31,7 +32,7 @@ public class ClinicalService : IClinicalService
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
             .Select(v => new PatientVitalDto(
-                v.Id, v.PatientId, v.Patient.FullName, v.AppointmentId, v.RecordedDate, v.RecordedBy,
+                v.Id, v.PatientId, v.Patient.FullName, v.AppointmentId, v.BedAdmissionId, v.RecordedDate, v.RecordedBy,
                 v.Temperature, v.BloodPressureSystolic, v.BloodPressureDiastolic, v.HeartRate, v.RespiratoryRate, v.SpO2,
                 v.WeightKg, v.HeightCm, v.BMI, v.PainScale, v.Notes
             )).ToListAsync();
@@ -54,6 +55,7 @@ public class ClinicalService : IClinicalService
         {
             PatientId = dto.PatientId,
             AppointmentId = dto.AppointmentId,
+            BedAdmissionId = dto.BedAdmissionId,
             RecordedBy = recordedBy,
             Temperature = dto.Temperature,
             BloodPressureSystolic = dto.BloodPressureSystolic,
@@ -190,10 +192,53 @@ public class ClinicalService : IClinicalService
         await _auditLog.LogAsync(deletedBy, deletedBy, "Delete", "ClinicalEncounter", id, $"Clinical Encounter for Patient ID {encounter.PatientId} deleted.");
     }
 
+    public async Task<IEnumerable<InpatientNursingAssessmentDto>> GetNursingAssessmentsAsync(int admissionId)
+    {
+        var assessments = await _uow.InpatientNursingAssessments.Query()
+            .Where(a => a.BedAdmissionId == admissionId)
+            .OrderByDescending(a => a.AssessmentDate)
+            .ToListAsync();
+        
+        return assessments.Select(ToDto);
+    }
+
+    public async Task<InpatientNursingAssessmentDto> CreateNursingAssessmentAsync(CreateInpatientNursingAssessmentDto dto, string recordedBy)
+    {
+        var assessment = new InpatientNursingAssessment
+        {
+            BedAdmissionId = dto.BedAdmissionId,
+            AssessmentDate = DateTime.UtcNow,
+            RecordedBy = recordedBy,
+            Shift = dto.Shift,
+            Neurological = dto.Neurological,
+            Respiratory = dto.Respiratory,
+            Cardiovascular = dto.Cardiovascular,
+            Gastrointestinal = dto.Gastrointestinal,
+            Genitourinary = dto.Genitourinary,
+            Musculoskeletal = dto.Musculoskeletal,
+            SkinIntegumentary = dto.SkinIntegumentary,
+            Psychological = dto.Psychological,
+            NursingNotes = dto.NursingNotes,
+            PlanOfCare = dto.PlanOfCare
+        };
+
+        await _uow.InpatientNursingAssessments.AddAsync(assessment);
+        await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(recordedBy, recordedBy, "Create", "InpatientNursingAssessment", assessment.Id, $"Nursing assessment recorded for Admission ID {dto.BedAdmissionId}.");
+
+        return ToDto(assessment);
+    }
+
     internal static PatientVitalDto ToDto(PatientVital v) => new(
-        v.Id, v.PatientId, v.Patient?.FullName ?? "N/A", v.AppointmentId, v.RecordedDate, v.RecordedBy,
+        v.Id, v.PatientId, v.Patient?.FullName ?? "N/A", v.AppointmentId, v.BedAdmissionId, v.RecordedDate, v.RecordedBy,
         v.Temperature, v.BloodPressureSystolic, v.BloodPressureDiastolic, v.HeartRate, v.RespiratoryRate, v.SpO2,
         v.WeightKg, v.HeightCm, v.BMI, v.PainScale, v.Notes
+    );
+
+    internal static InpatientNursingAssessmentDto ToDto(InpatientNursingAssessment a) => new(
+        a.Id, a.BedAdmissionId, a.AssessmentDate, a.RecordedBy, a.Shift,
+        a.Neurological, a.Respiratory, a.Cardiovascular, a.Gastrointestinal, a.Genitourinary,
+        a.Musculoskeletal, a.SkinIntegumentary, a.Psychological, a.NursingNotes, a.PlanOfCare
     );
 
     internal static ClinicalEncounterDto ToDto(ClinicalEncounter e) => new(

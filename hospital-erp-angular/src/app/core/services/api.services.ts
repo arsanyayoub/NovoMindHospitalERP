@@ -368,13 +368,22 @@ export class RadiologyService {
 export class ClinicalService {
     private readonly API = `${environment.apiUrl}/clinical`;
     constructor(private http: HttpClient) { }
-    getVitals(req: any, patientId?: number): Observable<any> {
+    getVitals(req: any, patientId?: number, admissionId?: number): Observable<any> {
         let p = new HttpParams({ fromObject: req });
         if (patientId) p = p.set('patientId', patientId);
+        if (admissionId) p = p.set('admissionId', admissionId);
         return this.http.get<any>(`${this.API}/vitals`, { params: p });
     }
     createVital(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/vitals`, dto); }
     deleteVital(id: number): Observable<any> { return this.http.delete(`${this.API}/vitals/${id}`); }
+
+    // Nursing Assessments
+    getNursingAssessments(admissionId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API}/nursing-assessments/${admissionId}`);
+    }
+    createNursingAssessment(dto: any): Observable<any> {
+        return this.http.post<any>(`${this.API}/nursing-assessments`, dto);
+    }
 
     // Encounters
     getEncounters(req: any, patientId?: number, doctorId?: number): Observable<any> {
@@ -393,14 +402,24 @@ export class ClinicalService {
 export class PharmacyService {
     private readonly API = `${environment.apiUrl}/pharmacy`;
     constructor(private http: HttpClient) { }
-    getPrescriptions(req: any, status?: string): Observable<any> {
+    getPrescriptions(req: any, status?: string, patientId?: number, admissionId?: number): Observable<any> {
         let p = new HttpParams({ fromObject: req });
         if (status) p = p.set('status', status);
+        if (patientId) p = p.set('patientId', patientId);
+        if (admissionId) p = p.set('admissionId', admissionId);
         return this.http.get<any>(`${this.API}/prescriptions`, { params: p });
     }
     getPrescription(id: number): Observable<any> { return this.http.get<any>(`${this.API}/prescriptions/${id}`); }
     createPrescription(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/prescriptions`, dto); }
     cancelPrescription(id: number): Observable<any> { return this.http.post<any>(`${this.API}/prescriptions/${id}/cancel`, {}); }
+
+    // MAR
+    getMAR(admissionId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API}/mar/${admissionId}`);
+    }
+    createMAR(dto: any): Observable<any> {
+        return this.http.post<any>(`${this.API}/mar`, dto);
+    }
     getPendingDispensing(patientId?: number): Observable<any> {
         let p = new HttpParams();
         if (patientId) p = p.set('patientId', patientId);
@@ -514,4 +533,14 @@ export class AuditLogService {
         if (request.search) params = params.set('search', request.search);
         return this.http.get<PagedResult<any>>(this.API, { params });
     }
+}
+
+@Injectable({ providedIn: 'root' })
+export class InpatientBillingService {
+    private readonly API = `${environment.apiUrl}/inpatientbilling`;
+    constructor(private http: HttpClient) { }
+
+    processDaily(): Observable<any> { return this.http.post<any>(`${this.API}/process-daily`, {}); }
+    getPatientBills(patientId: number): Observable<any[]> { return this.http.get<any[]>(`${this.API}/patient/${patientId}`); }
+    finalizeBill(admissionId: number): Observable<any> { return this.http.post<any>(`${this.API}/admissions/${admissionId}/finalize`, {}); }
 }

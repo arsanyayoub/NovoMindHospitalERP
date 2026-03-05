@@ -15,8 +15,8 @@ public class ClinicalController : ControllerBase
     public ClinicalController(IClinicalService service) => _service = service;
 
     [HttpGet("vitals")]
-    public async Task<IActionResult> GetVitals([FromQuery] PagedRequest request, [FromQuery] int? patientId) =>
-        Ok(await _service.GetVitalsAsync(request, patientId));
+    public async Task<IActionResult> GetVitals([FromQuery] PagedRequest request, [FromQuery] int? patientId, [FromQuery] int? admissionId) =>
+        Ok(await _service.GetVitalsAsync(request, patientId, admissionId));
 
     [HttpPost("vitals")]
     public async Task<IActionResult> CreateVital([FromBody] CreatePatientVitalDto dto)
@@ -28,7 +28,8 @@ public class ClinicalController : ControllerBase
     [HttpDelete("vitals/{id}")]
     public async Task<IActionResult> DeleteVital(int id)
     {
-        await _service.DeleteVitalAsync(id);
+        var deletedBy = User.FindFirstValue(ClaimTypes.Name) ?? "System";
+        await _service.DeleteVitalAsync(id, deletedBy);
         return NoContent();
     }
 
@@ -60,7 +61,20 @@ public class ClinicalController : ControllerBase
     [HttpDelete("encounters/{id}")]
     public async Task<IActionResult> DeleteEncounter(int id)
     {
-        await _service.DeleteEncounterAsync(id);
+        var deletedBy = User.FindFirstValue(ClaimTypes.Name) ?? "System";
+        await _service.DeleteEncounterAsync(id, deletedBy);
         return NoContent();
+    }
+
+    // Nursing Assessments
+    [HttpGet("nursing-assessments/{admissionId}")]
+    public async Task<IActionResult> GetNursingAssessments(int admissionId) =>
+        Ok(await _service.GetNursingAssessmentsAsync(admissionId));
+
+    [HttpPost("nursing-assessments")]
+    public async Task<IActionResult> CreateNursingAssessment([FromBody] CreateInpatientNursingAssessmentDto dto)
+    {
+        var recordedBy = User.FindFirstValue(ClaimTypes.Name) ?? "System";
+        return Ok(await _service.CreateNursingAssessmentAsync(dto, recordedBy));
     }
 }

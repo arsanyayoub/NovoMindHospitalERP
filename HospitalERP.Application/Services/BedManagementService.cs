@@ -11,11 +11,13 @@ public class BedManagementService : IBedManagementService
 {
     private readonly IUnitOfWork _uow;
     private readonly IAuditLogService _auditLog;
+    private readonly IBedBillingService _billingService;
 
-    public BedManagementService(IUnitOfWork uow, IAuditLogService auditLog)
+    public BedManagementService(IUnitOfWork uow, IAuditLogService auditLog, IBedBillingService billingService)
     {
         _uow = uow;
         _auditLog = auditLog;
+        _billingService = billingService;
     }
 
     public async Task<PagedResult<WardDto>> GetWardsAsync(int page, int pageSize, string search)
@@ -366,7 +368,16 @@ public class BedManagementService : IBedManagementService
         _uow.BedAdmissions.Update(adm);
         _uow.Beds.Update(adm.Bed);
         await _uow.SaveChangesAsync();
-        await _auditLog.LogAsync(userId, userId, "Patient Discharge", "BedAdmission", adm.Id, $"Patient ID {adm.PatientId} discharged from Bed {adm.Bed.BedNumber}.");
+
+        // ── Automated Final Billing ──────────────────────────────
+        try {
+            await _billingService.GenerateFinalBillAsync(admissionId, userId);
+        } catch (Exception ex) {
+            // Log but don't fail discharge if billing fails
+            // Consider proper error handling or queuing
+        }
+
+        await _auditLog.LogAsync(userId, userId, "Patient Discharge", "BedAdmission", adm.Id, $"Patient ID {adm.PatientId} discharged from Bed {adm.Bed.BedNumber}. Final bill generated.");
     }
 
     public async Task TransferPatientAsync(int admissionId, int newBedId, string userId)

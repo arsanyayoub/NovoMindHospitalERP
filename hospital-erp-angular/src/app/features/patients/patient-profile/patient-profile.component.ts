@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { PatientService, ClinicalService, LabService, PharmacyService, RadiologyService } from '../../../core/services/api.services';
+import { PatientService, ClinicalService, LabService, PharmacyService, RadiologyService, InpatientBillingService } from '../../../core/services/api.services';
 import { ToastService } from '../../../core/services/language.service';
 
 @Component({
@@ -86,6 +86,9 @@ import { ToastService } from '../../../core/services/language.service';
          </button>
          <button class="tab-item" [class.active]="tab==='pharmacy'" (click)="tab='pharmacy'">
             <span class="material-icons-round">medication</span> {{ 'Rx_HISTORY' | translate }}
+         </button>
+         <button class="tab-item" [class.active]="tab==='billing'" (click)="tab='billing'">
+            <span class="material-icons-round">receipt</span> {{ 'INPATIENT_BILLS' | translate }}
          </button>
       </div>
 
@@ -287,6 +290,34 @@ import { ToastService } from '../../../core/services/language.service';
                   </div>
                </div>
             </div>
+
+            <div *ngIf="tab==='billing'" class="animate-in">
+                <div class="flex flex-col gap-4">
+                   <div *ngFor="let bill of inpatientBills" class="card bg-glass">
+                      <div class="flex justify-between items-center mb-4">
+                         <div>
+                            <div class="font-black text-lg">{{ bill.invoiceNumber }}</div>
+                            <div class="text-[0.6rem] font-black text-muted uppercase">{{ bill.invoiceDate | date:'mediumDate' }}</div>
+                         </div>
+                         <span class="badge" [ngClass]="bill.status==='Paid'?'badge-success':'badge-danger'">{{ bill.status | translate }}</span>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                         <div *ngFor="let item of bill.invoiceItems" class="p-3 bg-glass border rounded-xl flex justify-between items-center">
+                            <div class="flex-grow">
+                               <div class="font-bold text-sm">{{ item.description }}</div>
+                               <div class="text-xs text-muted">{{ item.quantity }} x {{ item.unitPrice | currency }}</div>
+                            </div>
+                            <div class="font-black text-primary text-lg">{{ (item.quantity * item.unitPrice) | currency }}</div>
+                         </div>
+                      </div>
+                      <div class="mt-4 pt-4 border-t flex justify-between items-center">
+                         <div class="text-muted font-bold">{{ 'TOTAL_AMOUNT' | translate }}</div>
+                         <div class="text-2xl font-black text-primary">{{ bill.totalAmount | currency }}</div>
+                      </div>
+                   </div>
+                   <div *ngIf="inpatientBills.length === 0" class="p-10 text-center opacity-30 italic">No inpatient bills found</div>
+                </div>
+            </div>
          </div>
 
          <!-- RIGHT SIDEBAR -->
@@ -389,6 +420,7 @@ export class PatientProfileComponent implements OnInit {
    encounters: any[] = [];
    labRequests: any[] = [];
    radiologyRequests: any[] = [];
+   inpatientBills: any[] = [];
 
    constructor(
       private route: ActivatedRoute,
@@ -397,6 +429,7 @@ export class PatientProfileComponent implements OnInit {
       private labSvc: LabService,
       private rxSvc: PharmacyService,
       private radSvc: RadiologyService,
+      private billingSvc: InpatientBillingService,
       private toast: ToastService,
       private translate: TranslateService
    ) { }
@@ -419,6 +452,7 @@ export class PatientProfileComponent implements OnInit {
       this.patientSvc.getPrescriptions(id).subscribe(pr => this.prescriptions = pr);
       this.patientSvc.getLabRequests(id).subscribe(lr => this.labRequests = lr);
       this.patientSvc.getRadiologyRequests(id).subscribe(rr => this.radiologyRequests = rr);
+      this.billingSvc.getPatientBills(id).subscribe(ib => this.inpatientBills = ib);
       this.clinicalSvc.getEncounters({ page: 1, pageSize: 100 }, id).subscribe(r => this.encounters = r.items);
    }
 

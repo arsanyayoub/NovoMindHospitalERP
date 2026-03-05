@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { BedManagementService, PatientService, DoctorService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
@@ -8,7 +9,7 @@ import { ToastService } from '../../core/services/language.service';
 @Component({
   selector: 'app-bed-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, RouterModule],
   template: `
     <div class="page-header">
       <div>
@@ -141,6 +142,9 @@ import { ToastService } from '../../core/services/language.service';
                                 <span class="material-icons-round text-xs mr-1">swap_horiz</span> {{ 'TRANSFER' | translate || 'Transfer' }}
                             </button>
                         </div>
+                        <button class="btn btn-sm btn-primary w-full mt-2" [routerLink]="['/inpatient-chart', bed.currentAdmissionId]">
+                            <span class="material-icons-round text-xs mr-1">assignment</span> {{ 'INPATIENT_CLINICAL_CHART' | translate }}
+                        </button>
                     </div>
 
                     <div *ngIf="bed.status === 'Available'" class="mt-2 pt-3">

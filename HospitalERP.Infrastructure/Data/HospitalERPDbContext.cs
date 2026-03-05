@@ -65,6 +65,8 @@ public class HospitalERPDbContext : DbContext
     public DbSet<Prescription> Prescriptions => Set<Prescription>();
     public DbSet<PrescriptionItem> PrescriptionItems => Set<PrescriptionItem>();
     public DbSet<ClinicalEncounter> ClinicalEncounters => Set<ClinicalEncounter>();
+    public DbSet<InpatientNursingAssessment> InpatientNursingAssessments => Set<InpatientNursingAssessment>();
+    public DbSet<MedicationAdministration> MedicationAdministrations => Set<MedicationAdministration>();
 
     // Bed Management
     public DbSet<Ward> Wards => Set<Ward>();
@@ -110,6 +112,8 @@ public class HospitalERPDbContext : DbContext
         modelBuilder.Entity<Prescription>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<PrescriptionItem>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<ClinicalEncounter>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<InpatientNursingAssessment>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<MedicationAdministration>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Ward>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Room>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Bed>().HasQueryFilter(e => !e.IsDeleted);
@@ -261,13 +265,20 @@ public class HospitalERPDbContext : DbContext
         {
             e.HasOne(v => v.Patient).WithMany(p => p.Vitals).HasForeignKey(v => v.PatientId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(v => v.Appointment).WithMany().HasForeignKey(v => v.AppointmentId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(v => v.BedAdmission).WithMany().HasForeignKey(v => v.BedAdmissionId).OnDelete(DeleteBehavior.SetNull);
         });
         modelBuilder.Entity<Prescription>(e =>
         {
             e.HasIndex(p => p.PrescriptionNumber).IsUnique();
             e.HasOne(p => p.Patient).WithMany(p => p.Prescriptions).HasForeignKey(p => p.PatientId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(p => p.Doctor).WithMany().HasForeignKey(p => p.DoctorId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(p => p.BedAdmission).WithMany().HasForeignKey(p => p.BedAdmissionId).OnDelete(DeleteBehavior.SetNull);
             e.HasMany(p => p.Items).WithOne(pi => pi.Prescription).HasForeignKey(pi => pi.PrescriptionId).OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<MedicationAdministration>(e =>
+        {
+            e.HasOne(ma => ma.PrescriptionItem).WithMany().HasForeignKey(ma => ma.PrescriptionItemId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(ma => ma.BedAdmission).WithMany().HasForeignKey(ma => ma.BedAdmissionId).OnDelete(DeleteBehavior.Restrict);
         });
         modelBuilder.Entity<PrescriptionItem>(e =>
         {
@@ -278,6 +289,12 @@ public class HospitalERPDbContext : DbContext
             e.HasOne(ce => ce.Patient).WithMany().HasForeignKey(ce => ce.PatientId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(ce => ce.Doctor).WithMany().HasForeignKey(ce => ce.DoctorId).OnDelete(DeleteBehavior.SetNull);
             e.HasOne(ce => ce.Appointment).WithMany().HasForeignKey(ce => ce.AppointmentId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(ce => ce.BedAdmission).WithMany().HasForeignKey(ce => ce.BedAdmissionId).OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        modelBuilder.Entity<InpatientNursingAssessment>(e =>
+        {
+            e.HasOne(na => na.BedAdmission).WithMany().HasForeignKey(na => na.BedAdmissionId).OnDelete(DeleteBehavior.Restrict);
         });
 
         // ── Bed Management ────────────────────────────────────────────
