@@ -90,7 +90,12 @@ public class InventoryController : ControllerBase
 
     [HttpDelete("items/{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> DeleteItem(int id) { await _service.DeleteItemAsync(id); return NoContent(); }
+    public async Task<IActionResult> DeleteItem(int id)
+    {
+        var u = User.FindFirstValue(ClaimTypes.Name) ?? "system";
+        await _service.DeleteItemAsync(id, u);
+        return NoContent();
+    }
 
     [HttpGet("warehouses")]
     public async Task<IActionResult> GetWarehouses() => Ok(await _service.GetWarehousesAsync());
@@ -124,11 +129,16 @@ public class InventoryController : ControllerBase
 
     [HttpDelete("packaging-units/{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> DeletePackagingUnit(int id) { await _service.DeleteItemPackagingUnitAsync(id); return NoContent(); }
+    public async Task<IActionResult> DeletePackagingUnit(int id)
+    {
+        var u = User.FindFirstValue(ClaimTypes.Name) ?? "system";
+        await _service.DeleteItemPackagingUnitAsync(id, u);
+        return NoContent();
+    }
 
     // ---------- Batches ----------
     [HttpGet("batches")]
-    public async Task<IActionResult> GetBatches([FromQuery] PagedRequest request, [FromQuery] int? itemId, [FromQuery] int? warehouseId, [FromQuery] bool? excludeExpired, [FromQuery] bool? excludeExhausted) 
+    public async Task<IActionResult> GetBatches([FromQuery] PagedRequest request, [FromQuery] int? itemId, [FromQuery] int? warehouseId, [FromQuery] bool? excludeExpired, [FromQuery] bool? excludeExhausted)
         => Ok(await _service.GetBatchesAsync(request, itemId, warehouseId, excludeExpired, excludeExhausted));
 
     [HttpGet("batches/{id}")]
@@ -150,7 +160,12 @@ public class InventoryController : ControllerBase
 
     [HttpDelete("batches/{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> DeleteBatch(int id) { await _service.DeleteBatchAsync(id); return NoContent(); }
+    public async Task<IActionResult> DeleteBatch(int id)
+    {
+        var u = User.FindFirstValue(ClaimTypes.Name) ?? "system";
+        await _service.DeleteBatchAsync(id, u);
+        return NoContent();
+    }
 
     // ---------- Reports ----------
     [HttpGet("transactions")]
@@ -255,7 +270,12 @@ public class HRController : ControllerBase
 
     [HttpDelete("employees/{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> DeleteEmployee(int id) { await _service.DeleteEmployeeAsync(id); return NoContent(); }
+    public async Task<IActionResult> DeleteEmployee(int id)
+    {
+        var u = User.FindFirstValue(ClaimTypes.Name) ?? "system";
+        await _service.DeleteEmployeeAsync(id, u);
+        return NoContent();
+    }
 
     [HttpGet("payrolls")]
     public async Task<IActionResult> GetPayrolls([FromQuery] PagedRequest request, [FromQuery] int? year, [FromQuery] int? month) => Ok(await _service.GetPayrollsAsync(request, year, month));

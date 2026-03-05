@@ -9,7 +9,12 @@ namespace HospitalERP.Application.Services;
 public class LabService : ILabService
 {
     private readonly IUnitOfWork _uow;
-    public LabService(IUnitOfWork uow) => _uow = uow;
+    private readonly IAuditLogService _auditLog;
+    public LabService(IUnitOfWork uow, IAuditLogService auditLog) 
+    { 
+        _uow = uow; 
+        _auditLog = auditLog;
+    }
 
     // ── Tests ──────────────────────────────────────────────────────
     public async Task<PagedResult<LabTestDto>> GetTestsAsync(PagedRequest request)
@@ -34,7 +39,10 @@ public class LabService : ILabService
             Category = dto.Category, NormalRange = dto.NormalRange, Unit = dto.Unit,
             Price = dto.Price, CreatedBy = createdBy
         };
-        await _uow.LabTests.AddAsync(test); await _uow.SaveChangesAsync(); return ToDto(test);
+        await _uow.LabTests.AddAsync(test); 
+        await _uow.SaveChangesAsync(); 
+        await _auditLog.LogAsync(createdBy, createdBy, "Create", "LabTest", test.Id, $"Lab Test {test.Name} ({test.TestCode}) created.");
+        return ToDto(test);
     }
 
     public async Task<LabTestDto> UpdateTestAsync(int id, CreateLabTestDto dto, string updatedBy)
@@ -42,13 +50,19 @@ public class LabService : ILabService
         var test = await _uow.LabTests.GetByIdAsync(id) ?? throw new KeyNotFoundException();
         test.Name = dto.Name; test.NameAr = dto.NameAr; test.Category = dto.Category;
         test.NormalRange = dto.NormalRange; test.Unit = dto.Unit; test.Price = dto.Price;
-        test.UpdatedBy = updatedBy; _uow.LabTests.Update(test); await _uow.SaveChangesAsync(); return ToDto(test);
+        test.UpdatedBy = updatedBy; 
+        _uow.LabTests.Update(test); 
+        await _uow.SaveChangesAsync(); 
+        await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "LabTest", test.Id, $"Lab Test {test.Name} updated.");
+        return ToDto(test);
     }
 
-    public async Task DeleteTestAsync(int id)
+    public async Task DeleteTestAsync(int id, string deletedBy)
     {
         var test = await _uow.LabTests.GetByIdAsync(id) ?? throw new KeyNotFoundException();
-        _uow.LabTests.SoftDelete(test); await _uow.SaveChangesAsync();
+        _uow.LabTests.SoftDelete(test); 
+        await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(deletedBy, deletedBy, "Delete", "LabTest", id, $"Lab Test ID {id} deleted.");
     }
 
     // ── Requests ──────────────────────────────────────────────────
@@ -86,7 +100,10 @@ public class LabService : ILabService
             req.TotalAmount += test.Price;
         }
 
-        await _uow.LabRequests.AddAsync(req); await _uow.SaveChangesAsync(); return ToRDto(req);
+        await _uow.LabRequests.AddAsync(req); 
+        await _uow.SaveChangesAsync(); 
+        await _auditLog.LogAsync(createdBy, createdBy, "Create", "LabRequest", req.Id, $"Lab Request {req.RequestNumber} created for Patient ID {req.PatientId}.");
+        return ToRDto(req);
     }
 
     public async Task<LabRequestDto> UpdateResultAsync(int resultId, UpdateLabResultDto dto, string updatedBy)
@@ -94,7 +111,9 @@ public class LabService : ILabService
         var res = await _uow.LabResults.GetByIdAsync(resultId) ?? throw new KeyNotFoundException();
         res.ResultValue = dto.ResultValue; res.Remarks = dto.Remarks; res.PerformedBy = dto.PerformedBy;
         res.ResultDate = DateTime.UtcNow; res.UpdatedBy = updatedBy;
-        _uow.LabResults.Update(res); await _uow.SaveChangesAsync();
+        _uow.LabResults.Update(res); 
+        await _uow.SaveChangesAsync(); 
+        await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "LabResult", resultId, $"Lab Result updated for Lab Request ID {res.LabRequestId}.");
 
         var req = await _uow.LabRequests.Query().Include(r => r.Patient).Include(r => r.Doctor).Include(r => r.Results).ThenInclude(res => res.LabTest).FirstOrDefaultAsync(x => x.Id == res.LabRequestId);
         return ToRDto(req!);
@@ -104,7 +123,9 @@ public class LabService : ILabService
     {
         var req = await _uow.LabRequests.GetByIdAsync(requestId) ?? throw new KeyNotFoundException();
         req.Status = "Completed"; req.UpdatedBy = updatedBy;
-        _uow.LabRequests.Update(req); await _uow.SaveChangesAsync();
+        _uow.LabRequests.Update(req); 
+        await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(updatedBy, updatedBy, "Complete", "LabRequest", requestId, $"Lab Request {req.RequestNumber} marked as Completed.");
     }
 
     internal static LabTestDto ToDto(LabTest t) => new(t.Id, t.TestCode, t.Name, t.NameAr, t.Category, t.NormalRange, t.Unit, t.Price, t.IsActive);

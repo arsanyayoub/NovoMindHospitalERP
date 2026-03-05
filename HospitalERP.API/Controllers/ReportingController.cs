@@ -53,4 +53,10 @@ public class ReportingController : ControllerBase
     {
         return Ok(await _reportingService.GetHRAnalyticsAsync(year));
     }
+
+    [HttpGet("beds")]
+    public async Task<IActionResult> GetBedAnalytics([FromQuery] DateTime from, [FromQuery] DateTime to)
+    {
+        return Ok(await _reportingService.GetBedAnalyticsAsync(from, to));
+    }
 }

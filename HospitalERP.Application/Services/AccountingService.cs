@@ -10,7 +10,12 @@ namespace HospitalERP.Application.Services;
 public class AccountingService : IAccountingService
 {
     private readonly IUnitOfWork _uow;
-    public AccountingService(IUnitOfWork uow) => _uow = uow;
+    private readonly IAuditLogService _auditLog;
+    public AccountingService(IUnitOfWork uow, IAuditLogService auditLog) 
+    { 
+        _uow = uow; 
+        _auditLog = auditLog;
+    }
 
     public async Task<IEnumerable<AccountDto>> GetChartOfAccountsAsync()
     {
@@ -40,6 +45,7 @@ public class AccountingService : IAccountingService
         };
         await _uow.Accounts.AddAsync(account);
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(createdBy, createdBy, "Create", "Account", account.Id, $"Account {account.AccountName} ({account.AccountCode}) created.");
         return ToDto(account);
     }
 
@@ -56,6 +62,7 @@ public class AccountingService : IAccountingService
         account.UpdatedBy = updatedBy;
         _uow.Accounts.Update(account);
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "Account", account.Id, $"Account {account.AccountName} updated.");
         return ToDto(account);
     }
 
@@ -108,6 +115,7 @@ public class AccountingService : IAccountingService
         };
         await _uow.JournalEntries.AddAsync(je);
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(createdBy, createdBy, "Create", "JournalEntry", je.Id, $"Journal Entry {je.EntryNumber} created.");
         return (await GetJournalEntryByIdAsync(je.Id))!;
     }
 
@@ -130,6 +138,7 @@ public class AccountingService : IAccountingService
         }
         _uow.JournalEntries.Update(je);
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(postedBy, postedBy, "Post", "JournalEntry", id, $"Journal Entry {je.EntryNumber} posted.");
     }
 
     public async Task<FinancialReportDto> GetFinancialReportAsync(DateTime from, DateTime to)

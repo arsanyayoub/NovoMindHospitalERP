@@ -46,5 +46,16 @@ public interface IUnitOfWork : IDisposable
     IRepository<Prescription> Prescriptions { get; }
     IRepository<PrescriptionItem> PrescriptionItems { get; }
     IRepository<ClinicalEncounter> ClinicalEncounters { get; }
+    
+    // Bed Management
+    IRepository<Ward> Wards { get; }
+    IRepository<Room> Rooms { get; }
+    IRepository<Bed> Beds { get; }
+    IRepository<BedAdmission> BedAdmissions { get; }
+    
+    // Messaging & Audit
+    IRepository<Message> Messages { get; }
+    IRepository<AuditLog> AuditLogs { get; }
+
     Task<int> SaveChangesAsync();
 }

@@ -351,7 +351,9 @@ public record DashboardDto(
     int PendingLabRequests = 0,
     int PendingRadiologyRequests = 0,
     decimal PharmacyMonthlyRevenue = 0,
-    decimal TotalStockValue = 0);
+    decimal TotalStockValue = 0,
+    int TotalBeds = 0,
+    int OccupiedBeds = 0);
 
 public record RecentActivityDto(string Type, string Description, DateTime Date);
 public record MonthlyRevenueDto(string Month, decimal Revenue, decimal Expenses);
@@ -375,6 +377,18 @@ public record GroupCountDto(string GroupName, int Count);
 public record PharmacyAnalyticsDto(int TotalPrescriptions, decimal TotalRevenue, List<GroupCountDto> TopMedicines, List<MonthlyCountDto> RxTrend);
 public record InventoryAnalyticsDto(int TotalItems, decimal TotalValue, int LowStockItems, List<GroupCountDto> CategoryDistribution);
 public record HRAnalyticsDto(int TotalEmployees, decimal MonthlyPayroll, List<GroupCountDto> DepartmentDistribution, List<MonthlyCountDto> PayrollTrend);
+
+public record BedAnalyticsDto(
+    int TotalWards,
+    int TotalRooms,
+    int TotalBeds,
+    int OccupiedBeds,
+    int MaintenanceBeds,
+    decimal OccupancyRate,
+    List<GroupCountDto> WardOccupancy,
+    List<GroupCountDto> RoomTypeOccupancy,
+    List<MonthlyCountDto> AdmissionTrend
+);
 
 // ═══════════════════════════════════════════════════════════════
 //  STOCK TRANSACTIONS (INVENTORY REPORTS)

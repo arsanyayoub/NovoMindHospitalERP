@@ -4,10 +4,10 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DashboardService } from '../../core/services/api.services';
 
 @Component({
-  selector: 'app-dashboard',
-  standalone: true,
-  imports: [CommonModule, TranslateModule],
-  styles: [`
+   selector: 'app-dashboard',
+   standalone: true,
+   imports: [CommonModule, TranslateModule],
+   styles: [`
     .stats-wrapper { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px; }
     .dash-grid { display: grid; grid-template-columns: 1.8fr 1fr; gap: 24px; }
     @media (max-width: 1200px) { .dash-grid { grid-template-columns: 1fr; } }
@@ -40,7 +40,7 @@ import { DashboardService } from '../../core/services/api.services';
     .rank-2 { border-color: #9ca3af; color: #9ca3af; background: rgba(156, 163, 175, 0.1); }
     .rank-3 { border-color: #d97706; color: #d97706; background: rgba(217, 119, 6, 0.1); }
   `],
-  template: `
+   template: `
     <div class="page-header">
       <div>
         <h1 class="page-title">{{ 'HOSPITAL_DASHBOARD' | translate }}</h1>
@@ -88,6 +88,15 @@ import { DashboardService } from '../../core/services/api.services';
            <div class="stat-icon secondary shadow-secondary"><span class="material-icons-round">groups</span></div>
            <div class="stat-value">{{ (data?.totalDoctors + data?.totalEmployees) || 0 }}</div>
            <div class="stat-label uppercase">{{ 'TOTAL_STAFF' | translate }}</div>
+        </div>
+        <!-- BED OCCUPANCY -->
+        <div class="stat-card glass-info" style="background: rgba(14, 165, 233, 0.1); border-color: rgba(14, 165, 233, 0.2);">
+           <div class="stat-icon" style="background: #0ea5e9; color: white; box-shadow: 0 8px 16px rgba(14, 165, 233, 0.3);"><span class="material-icons-round">hotel</span></div>
+           <div class="stat-value">{{ data?.occupiedBeds || 0 }}/{{ data?.totalBeds || 0 }}</div>
+           <div class="stat-label uppercase">{{ 'BED_OCCUPANCY' | translate || 'Bed Occupancy' }}</div>
+           <div class="w-full bg-gray-200 dark:bg-gray-700 h-1 rounded-full mt-2 overflow-hidden">
+              <div class="h-full bg-info" [style.width.%]="(data?.occupiedBeds / data?.totalBeds) * 100 || 0" style="background: #0ea5e9;"></div>
+           </div>
         </div>
       </div>
 
@@ -232,36 +241,36 @@ import { DashboardService } from '../../core/services/api.services';
   `
 })
 export class DashboardComponent implements OnInit {
-  data: any = null;
-  loading = true;
-  today = new Date();
-  maxRevenue = 1;
+   data: any = null;
+   loading = true;
+   today = new Date();
+   maxRevenue = 1;
 
-  constructor(
-    private dashboardService: DashboardService,
-    private translate: TranslateService
-  ) { }
+   constructor(
+      private dashboardService: DashboardService,
+      private translate: TranslateService
+   ) { }
 
-  ngOnInit() {
-    this.refresh();
-  }
+   ngOnInit() {
+      this.refresh();
+   }
 
-  refresh() {
-    this.loading = true;
-    this.dashboardService.get().subscribe({
-      next: (data) => {
-        this.data = data;
-        const allValues = data.monthlyRevenues.flatMap((m: any) => [m.revenue, m.expenses]);
-        this.maxRevenue = Math.max(1, ...allValues);
-        this.loading = false;
-      },
-      error: () => { this.loading = false; }
-    });
-  }
+   refresh() {
+      this.loading = true;
+      this.dashboardService.get().subscribe({
+         next: (data) => {
+            this.data = data;
+            const allValues = data.monthlyRevenues.flatMap((m: any) => [m.revenue, m.expenses]);
+            this.maxRevenue = Math.max(1, ...allValues);
+            this.loading = false;
+         },
+         error: () => { this.loading = false; }
+      });
+   }
 
-  getBarHeight(val: number): number {
-    if (!this.data?.monthlyRevenues?.length) return 4;
-    const max = Math.max(1, ...this.data.monthlyRevenues.map((m: any) => Math.max(m.revenue, m.expenses)));
-    return Math.max(4, (val / max) * 100);
-  }
+   getBarHeight(val: number): number {
+      if (!this.data?.monthlyRevenues?.length) return 4;
+      const max = Math.max(1, ...this.data.monthlyRevenues.map((m: any) => Math.max(m.revenue, m.expenses)));
+      return Math.max(4, (val / max) * 100);
+   }
 }

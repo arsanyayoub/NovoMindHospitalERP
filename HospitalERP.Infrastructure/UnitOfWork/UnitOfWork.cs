@@ -49,6 +49,12 @@ public class UnitOfWork : IUnitOfWork
         Prescriptions = new Repository<Prescription>(context);
         PrescriptionItems = new Repository<PrescriptionItem>(context);
         ClinicalEncounters = new Repository<ClinicalEncounter>(context);
+        Wards = new Repository<Ward>(context);
+        Rooms = new Repository<Room>(context);
+        Beds = new Repository<Bed>(context);
+        BedAdmissions = new Repository<BedAdmission>(context);
+        Messages = new Repository<Message>(context);
+        AuditLogs = new Repository<AuditLog>(context);
     }
 
     public IRepository<User> Users { get; }
@@ -89,6 +95,12 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<Prescription> Prescriptions { get; }
     public IRepository<PrescriptionItem> PrescriptionItems { get; }
     public IRepository<ClinicalEncounter> ClinicalEncounters { get; }
+    public IRepository<Ward> Wards { get; }
+    public IRepository<Room> Rooms { get; }
+    public IRepository<Bed> Beds { get; }
+    public IRepository<BedAdmission> BedAdmissions { get; }
+    public IRepository<Message> Messages { get; }
+    public IRepository<AuditLog> AuditLogs { get; }
 
     public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
 

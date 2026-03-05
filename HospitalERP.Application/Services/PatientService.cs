@@ -10,11 +10,13 @@ public class PatientService : IPatientService
 {
     private readonly IUnitOfWork _uow;
     private readonly INotificationService _notificationService;
+    private readonly IAuditLogService _auditLog;
 
-    public PatientService(IUnitOfWork uow, INotificationService notificationService)
+    public PatientService(IUnitOfWork uow, INotificationService notificationService, IAuditLogService auditLog)
     {
         _uow = uow;
         _notificationService = notificationService;
+        _auditLog = auditLog;
     }
 
     public async Task<PagedResult<PatientDto>> GetAllAsync(PagedRequest request)
@@ -72,6 +74,9 @@ public class PatientService : IPatientService
             "New Patient Registered",
             $"Patient {patient.FullName} ({patient.PatientCode}) has been registered.",
             "PatientCreated", entityType: "Patient", entityId: patient.Id);
+
+        await _auditLog.LogAsync(createdBy, createdBy, "Create", "Patient", patient.Id, $"Patient {patient.FullName} created.");
+
         return ToDto(patient);
     }
 
@@ -98,15 +103,20 @@ public class PatientService : IPatientService
         patient.UpdatedBy = updatedBy;
         _uow.Patients.Update(patient);
         await _uow.SaveChangesAsync();
+
+        await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "Patient", patient.Id, $"Patient {patient.FullName} updated.");
+
         return ToDto(patient);
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
         var patient = await _uow.Patients.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"Patient {id} not found.");
         _uow.Patients.SoftDelete(patient);
         await _uow.SaveChangesAsync();
+
+        await _auditLog.LogAsync(deletedBy, deletedBy, "Delete", "Patient", patient.Id, $"Patient {patient.FullName} soft-deleted.");
     }
 
     public async Task<IEnumerable<AppointmentDto>> GetPatientAppointmentsAsync(int patientId)

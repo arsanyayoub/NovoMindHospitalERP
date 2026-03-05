@@ -69,6 +69,9 @@ import { ToastService } from '../../core/services/language.service';
       <button class="report-tab-btn" [class.active]="tab==='hr_stats'" (click)="loadHR()">
         <span class="material-icons-round">badge</span> {{ 'HUMAN_RESOURCES' | translate }}
       </button>
+      <button class="report-tab-btn" [class.active]="tab==='bed_stats'" (click)="loadBeds()">
+        <span class="material-icons-round">hotel</span> {{ 'BEDS' | translate }}
+      </button>
     </div>
 
     <!-- FILTERS -->
@@ -328,6 +331,62 @@ import { ToastService } from '../../core/services/language.service';
           </div>
        </div>
 
+      <!-- BED ANALYTICS -->
+      <div *ngIf="tab==='bed_stats' && bedData">
+         <div class="rep-summary-grid mb-8">
+            <div class="rep-card glass-primary">
+               <div class="rep-icon"><span class="material-icons-round">hotel</span></div>
+               <div class="text-[0.65rem] font-black uppercase tracking-widest">{{ 'TOTAL_BEDS' | translate }}</div>
+               <div class="text-3xl font-black">{{ bedData.totalBeds }}</div>
+            </div>
+            <div class="rep-card glass-warning">
+               <div class="rep-icon"><span class="material-icons-round">person_outline</span></div>
+               <div class="text-[0.65rem] font-black uppercase tracking-widest text-warning">{{ 'OCCUPIED_BEDS' | translate }}</div>
+               <div class="text-3xl font-black text-warning">{{ bedData.occupiedBeds }}</div>
+            </div>
+            <div class="rep-card glass-info">
+               <div class="rep-icon"><span class="material-icons-round">percentage</span></div>
+               <div class="text-[0.65rem] font-black uppercase tracking-widest text-info">{{ 'OCCUPANCY_RATE' | translate }}</div>
+               <div class="text-3xl font-black text-info">{{ bedData.occupancyRate.toFixed(1) }}%</div>
+            </div>
+            <div class="rep-card glass-secondary">
+               <div class="rep-icon"><span class="material-icons-round">build</span></div>
+               <div class="text-[0.65rem] font-black uppercase tracking-widest text-secondary">{{ 'MAINTENANCE_BEDS' | translate }}</div>
+               <div class="text-3xl font-black text-secondary">{{ bedData.maintenanceBeds }}</div>
+            </div>
+         </div>
+         <div class="grid grid-cols-2 gap-8 mb-8">
+            <div class="card">
+               <h3 class="font-black text-lg mb-6 flex items-center gap-2"><span class="material-icons-round text-primary">analytics</span> {{ 'ADMISSION_TREND' | translate }}</h3>
+               <div class="rep-chart-box">
+                  <div *ngFor="let m of bedData.admissionTrend" class="rep-bar" 
+                       [style.height.%]="getBarHeight(m.count, bedData.admissionTrend)" 
+                       [attr.data-label]="m.month">
+                  </div>
+               </div>
+            </div>
+            <div class="card">
+               <h3 class="font-black text-lg mb-6 flex items-center gap-2"><span class="material-icons-round text-accent">pie_chart</span> {{ 'WARD_OCCUPANCY' | translate }}</h3>
+               <div class="flex flex-col gap-6">
+                  <div *ngFor="let g of bedData.wardOccupancy" class="flex flex-col gap-2">
+                     <div class="flex justify-between font-bold text-xs"><span>{{ g.groupName }}</span><span>{{ g.count }}</span></div>
+                     <div class="progress-bar mini"><div class="progress-fill" [style.width.%]="(g.count/bedData.occupiedBeds)*100"></div></div>
+                  </div>
+                  <div *ngIf="!bedData.wardOccupancy?.length" class="text-center text-muted italic text-sm py-10">{{ 'NO_OCCUPIED_BEDS' | translate }}</div>
+               </div>
+            </div>
+         </div>
+         <div class="card">
+            <h3 class="font-black text-lg mb-4">{{ 'ROOM_TYPE_DISTRIBUTION' | translate }}</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+               <div *ngFor="let g of bedData.roomTypeOccupancy" class="p-4 bg-glass border rounded-2xl animate-in">
+                  <div class="text-[0.6rem] font-black uppercase text-muted mb-1">{{ g.groupName | translate }}</div>
+                  <div class="text-2xl font-black text-primary">{{ g.count }}</div>
+               </div>
+            </div>
+         </div>
+      </div>
+
        <div *ngIf="tabIsEmpty()" class="p-20 text-center card bg-glass grayscale opacity-30">
           <span class="material-icons-round text-6xl mb-4">analytics</span>
           <h3 class="font-black uppercase tracking-widest">{{ 'NO_DATA_GENERATED' | translate }}</h3>
@@ -349,6 +408,7 @@ export class ReportsComponent implements OnInit {
    rxData: any = null;
    invData: any = null;
    hrData: any = null;
+   bedData: any = null;
    report: any = null;
    trialBalance: any[] = [];
 
@@ -371,6 +431,7 @@ export class ReportsComponent implements OnInit {
    loadPharmacy() { this.tab = 'rx_stats'; this.load(); }
    loadInventory() { this.tab = 'inv_stats'; this.load(); }
    loadHR() { this.tab = 'hr_stats'; this.load(); }
+   loadBeds() { this.tab = 'bed_stats'; this.load(); }
 
    load() {
       this.loading = true;
@@ -387,6 +448,7 @@ export class ReportsComponent implements OnInit {
             else if (this.tab === 'rx_stats') this.rxData = r;
             else if (this.tab === 'inv_stats') this.invData = r;
             else if (this.tab === 'hr_stats') this.hrData = r;
+            else if (this.tab === 'bed_stats') this.bedData = r;
             this.loading = false;
          },
          error: () => { this.loading = false; this.toast.error(this.translate.instant('ERROR_REFRESHING')); }
@@ -403,6 +465,7 @@ export class ReportsComponent implements OnInit {
          case 'rx_stats': return this.reportsSvc.getPharmacy(this.from, this.to);
          case 'inv_stats': return this.reportsSvc.getInventory();
          case 'hr_stats': return this.reportsSvc.getHR(new Date(this.to).getFullYear());
+         case 'bed_stats': return this.reportsSvc.getBeds(this.from, this.to);
          default: return null;
       }
    }
@@ -427,6 +490,7 @@ export class ReportsComponent implements OnInit {
       if (this.tab === 'rx_stats') return !this.rxData;
       if (this.tab === 'inv_stats') return !this.invData;
       if (this.tab === 'hr_stats') return !this.hrData;
+      if (this.tab === 'bed_stats') return !this.bedData;
       return true;
    }
 

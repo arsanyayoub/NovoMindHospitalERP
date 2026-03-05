@@ -10,7 +10,13 @@ public class InventoryService : IInventoryService
 {
     private readonly IUnitOfWork _uow;
     private readonly INotificationService _notif;
-    public InventoryService(IUnitOfWork uow, INotificationService notif) { _uow = uow; _notif = notif; }
+    private readonly IAuditLogService _auditLog;
+    public InventoryService(IUnitOfWork uow, INotificationService notif, IAuditLogService auditLog) 
+    { 
+        _uow = uow; 
+        _notif = notif; 
+        _auditLog = auditLog;
+    }
 
     public async Task<PagedResult<ItemDto>> GetItemsAsync(PagedRequest request)
     {
@@ -40,6 +46,7 @@ public class InventoryService : IInventoryService
         };
         await _uow.Items.AddAsync(item);
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(createdBy, createdBy, "Create", "Item", item.Id, $"Item {item.ItemName} ({item.ItemCode}) created.");
         return ToDto(item);
     }
 
@@ -53,14 +60,16 @@ public class InventoryService : IInventoryService
         item.Description = dto.Description; item.TrackBatches = dto.TrackBatches; item.UpdatedBy = updatedBy;
         _uow.Items.Update(item);
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "Item", item.Id, $"Item {item.ItemName} updated.");
         return ToDto(item);
     }
 
-    public async Task DeleteItemAsync(int id)
+    public async Task DeleteItemAsync(int id, string deletedBy)
     {
         var item = await _uow.Items.GetByIdAsync(id) ?? throw new KeyNotFoundException();
         _uow.Items.SoftDelete(item);
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(deletedBy, deletedBy, "Delete", "Item", id, $"Item {item.ItemName} soft-deleted.");
     }
 
     public async Task<IEnumerable<WarehouseDto>> GetWarehousesAsync()
@@ -75,6 +84,7 @@ public class InventoryService : IInventoryService
         var wh = new Warehouse { WarehouseCode = $"WH{(count + 1):D3}", WarehouseName = dto.WarehouseName, Location = dto.Location, CreatedBy = createdBy };
         await _uow.Warehouses.AddAsync(wh);
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(createdBy, createdBy, "Create", "Warehouse", wh.Id, $"Warehouse {wh.WarehouseName} created.");
         return new WarehouseDto(wh.Id, wh.WarehouseCode, wh.WarehouseName, wh.Location, wh.IsActive);
     }
 
@@ -119,6 +129,7 @@ public class InventoryService : IInventoryService
         await _uow.StockTransactions.AddAsync(new StockTransaction { ItemId = dto.ItemId, WarehouseId = dto.ToWarehouseId, TransactionType = "IN", Quantity = dto.Quantity, UnitCost = item?.PurchasePrice ?? 0, Notes = dto.Notes, TransactionDate = DateTime.UtcNow, CreatedBy = createdBy });
         await _uow.SaveChangesAsync();
 
+        await _auditLog.LogAsync(createdBy, createdBy, "Stock Transfer", "Item", dto.ItemId, $"Transferred {dto.Quantity} units from warehouse ID {dto.FromWarehouseId} to {dto.ToWarehouseId}.");
         await _notif.CreateNotificationAsync("Stock Updated", $"Stock transfer of {dto.Quantity} units completed.", "StockUpdated");
     }
 
@@ -151,17 +162,19 @@ public class InventoryService : IInventoryService
         };
         await _uow.ItemPackagingUnits.AddAsync(unit);
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(createdBy, createdBy, "Create", "ItemPackagingUnit", unit.Id, $"Packaging unit {unit.UnitName} created for Item ID {unit.ItemId}.");
         
         // Fetch with Item included
         unit.Item = await _uow.Items.GetByIdAsync(dto.ItemId) ?? throw new KeyNotFoundException();
         return ToUnitDto(unit);
     }
 
-    public async Task DeleteItemPackagingUnitAsync(int id)
+    public async Task DeleteItemPackagingUnitAsync(int id, string deletedBy)
     {
         var unit = await _uow.ItemPackagingUnits.GetByIdAsync(id) ?? throw new KeyNotFoundException();
         _uow.ItemPackagingUnits.Remove(unit);
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(deletedBy, deletedBy, "Delete", "ItemPackagingUnit", id, $"Packaging unit {unit.UnitName} deleted.");
     }
 
     // ── Batches ──────────────────────────────────────────────────────────
@@ -223,6 +236,7 @@ public class InventoryService : IInventoryService
         
         await _uow.ItemBatches.AddAsync(batch);
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(createdBy, createdBy, "Create", "ItemBatch", batch.Id, $"Batch {batch.BatchNumber} created for Item ID {batch.ItemId}.");
         
         var fullBatch = await _uow.ItemBatches.Query()
             .Include(b => b.Item).Include(b => b.Supplier).Include(b => b.Warehouse)
@@ -245,14 +259,16 @@ public class InventoryService : IInventoryService
         
         _uow.ItemBatches.Update(batch);
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "ItemBatch", batch.Id, $"Batch {batch.BatchNumber} updated.");
         return ToBatchDto(batch);
     }
 
-    public async Task DeleteBatchAsync(int id)
+    public async Task DeleteBatchAsync(int id, string deletedBy)
     {
         var batch = await _uow.ItemBatches.GetByIdAsync(id) ?? throw new KeyNotFoundException();
         _uow.ItemBatches.Remove(batch);
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(deletedBy, deletedBy, "Delete", "ItemBatch", id, $"Batch {batch.BatchNumber} deleted.");
     }
 
     public async Task<BatchScanResultDto> ScanBarcodeAsync(string barcode, int? warehouseId)

@@ -40,7 +40,7 @@ import { ToastService } from '../../core/services/language.service';
         <button *ngIf="tab === 'vitals'" class="btn btn-primary px-4" (click)="openVitalForm()">
           <span class="material-icons-round mr-1">add_chart</span> {{ 'RECORD_VITALS' | translate }}
         </button>
-        <button *ngIf="tab === 'encounters'" class="btn btn-primary px-4" (click)="openEncounterForm()">
+        <button *ngIf="tab === 'encounters'" class="btn btn-primary px-4 shadow-primary" (click)="openEncounterForm()">
           <span class="material-icons-round mr-1">history_edu</span> {{ 'RECORD_ENCOUNTER' | translate }}
         </button>
       </div>
@@ -165,6 +165,80 @@ import { ToastService } from '../../core/services/language.service';
       </div>
     </div>
 
+    <!-- AI ASSISTANT PANEL -->
+    <div class="fixed right-6 bottom-6 z-50 animate-fade-in" *ngIf="tab === 'encounters'">
+        <button class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-full p-4 shadow-2xl hover:scale-110 transition-transform flex items-center justify-center relative overflow-hidden group" (click)="showAiPanel = true">
+            <span class="material-icons-round text-3xl z-10">smart_toy</span>
+            <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity z-0"></div>
+            <span class="absolute -top-1 -right-1 flex h-3 w-3">
+               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+               <span class="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+            </span>
+        </button>
+    </div>
+
+    <div class="modal-overlay" *ngIf="showAiPanel" (click)="showAiPanel = false">
+      <div class="modal animate-in" (click)="$event.stopPropagation()" style="max-width:450px; right: 20px; position: fixed; top: 20px; bottom: 20px; margin: 0; display: flex; flex-direction: column;">
+        <div class="p-6 border-b bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex justify-between items-center rounded-t-2xl">
+           <h3 class="font-black text-xl flex items-center gap-2"><span class="material-icons-round">auto_awesome</span> NovoMind AI Assistant</h3>
+           <button (click)="showAiPanel = false" class="btn-close text-white opacity-100 hover:bg-white hover:bg-opacity-20 rounded-full w-8 h-8 flex items-center justify-center">×</button>
+        </div>
+        <div class="flex-grow p-6 overflow-y-auto bg-gray-50 dark:bg-gray-900 custom-scrollbar flex flex-col gap-4">
+           <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl rounded-tl-sm shadow-sm border border-gray-100 dark:border-gray-700 max-w-[90%]">
+              <p class="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">Hello Doctor! I can help you analyze patient symptoms and suggest diagnostic codes.</p>
+              <p class="text-xs text-gray-500">Would you like me to review the active encounter's chief complaint and predict possible ICD-10 codes?</p>
+           </div>
+           
+           <div class="self-end bg-indigo-100 dark:bg-indigo-900/30 text-indigo-900 dark:text-indigo-100 p-3 rounded-2xl rounded-tr-sm shadow-sm max-w-[80%]" *ngIf="aiAnalyzing">
+              <p class="text-xs font-bold">Yes, please analyze the symptoms: "Severe migraine with aura, photophobia, and localized left hemisphere pain."</p>
+           </div>
+           
+           <div class="bg-white dark:bg-gray-800 p-4 rounded-xl rounded-tl-sm shadow-sm border border-indigo-100 dark:border-indigo-900/50 max-w-[95%] text-sm" *ngIf="aiResultsReady">
+              <div class="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 mb-3 font-black text-xs uppercase tracking-widest">
+                 <span class="material-icons-round text-sm">psychology</span> Analysis Complete
+              </div>
+              <p class="mb-3 text-gray-700 dark:text-gray-300 font-semibold">Based on the symptoms, here are the most probable diagnoses:</p>
+              
+              <div class="flex flex-col gap-2">
+                 <div class="p-2 border border-indigo-100 dark:border-indigo-900/40 rounded-lg bg-indigo-50/50 dark:bg-indigo-900/10 cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors">
+                    <div class="flex justify-between items-center mb-1">
+                       <span class="font-black text-indigo-700 dark:text-indigo-300">G43.109</span>
+                       <span class="text-[0.6rem] font-black text-white bg-green-500 rounded px-1.5 py-0.5">89% MATCH</span>
+                    </div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400">Migraine with aura, not intractable, without status migrainosus</div>
+                 </div>
+                 
+                 <div class="p-2 border border-blue-100 dark:border-blue-900/40 rounded-lg bg-blue-50/50 dark:bg-blue-900/10 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                    <div class="flex justify-between items-center mb-1">
+                       <span class="font-black text-blue-700 dark:text-blue-300">G44.209</span>
+                       <span class="text-[0.6rem] font-black text-white bg-blue-500 rounded px-1.5 py-0.5">65% MATCH</span>
+                    </div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400">Tension-type headache, unspecified, not intractable</div>
+                 </div>
+              </div>
+              
+              <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                 <p class="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2">Recommended Tests:</p>
+                 <div class="flex flex-wrap gap-1">
+                    <span class="badge bg-purple-100 text-purple-700 border border-purple-200">MRI Brain (W/O Contrast)</span>
+                    <span class="badge bg-teal-100 text-teal-700 border border-teal-200">CBC</span>
+                 </div>
+              </div>
+           </div>
+           
+           <div *ngIf="aiLoading" class="flex gap-2 items-center p-3 text-sm text-gray-500 font-bold bg-white dark:bg-gray-800 rounded-2xl rounded-tl-sm shadow-sm w-fit border border-gray-100 dark:border-gray-700">
+              <span class="spinner spinner-sm"></span> Analyzing clinical notes...
+           </div>
+        </div>
+        <div class="p-4 border-t bg-white dark:bg-gray-800 flex gap-2 rounded-b-2xl">
+           <input class="form-control flex-grow rounded-xl bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700" placeholder="Ask AI to analyze symptoms...">
+           <button class="btn btn-primary btn-icon rounded-xl bg-indigo-600 hover:bg-indigo-700 border-0" (click)="simulateAi()">
+              <span class="material-icons-round">send</span>
+           </button>
+        </div>
+      </div>
+    </div>
+
     <!-- VITAL FORM MODAL -->
     <div class="modal-overlay" *ngIf="showForm" (click)="showForm = false">
       <div class="modal" (click)="$event.stopPropagation()" style="max-width:750px">
@@ -253,8 +327,13 @@ import { ToastService } from '../../core/services/language.service';
             </div>
           </div>
 
-          <div class="form-group mb-6">
-            <label class="form-label font-bold uppercase text-xs">{{ 'CHIEF_COMPLAINT' | translate }}*</label>
+          <div class="form-group mb-4">
+            <label class="form-label font-bold uppercase text-xs flex justify-between">
+              <span>{{ 'CHIEF_COMPLAINT' | translate }}*</span>
+              <button class="text-indigo-600 flex items-center gap-1 hover:underline bg-transparent border-0 p-0 text-[0.65rem]" (click)="showAiPanel=true">
+                <span class="material-icons-round text-[10px]">auto_awesome</span> AI Triage Generate
+              </button>
+            </label>
             <input class="form-control font-bold" [(ngModel)]="encounterForm.chiefComplaint" [disabled]="encounterForm.isFinalized" placeholder="Reason for encounter...">
           </div>
 
@@ -279,6 +358,21 @@ import { ToastService } from '../../core/services/language.service';
               <label class="form-label font-bold text-primary">{{ 'PLAN' | translate }}</label>
               <textarea class="form-control bg-transparent border-0 p-0" [(ngModel)]="encounterForm.plan" rows="4" [disabled]="encounterForm.isFinalized" placeholder="Treatment, medications, referrals..."></textarea>
             </div>
+          </div>
+
+          <!-- DIAGNOSIS CODING -->
+          <div class="mb-6 p-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50" *ngIf="!encounterForm.isFinalized">
+             <div class="flex justify-between items-center mb-3">
+                <label class="font-bold flex items-center gap-2 m-0 text-sm">
+                   <span class="material-icons-round text-primary">local_hospital</span> Primary Diagnosis (ICD-10)
+                </label>
+                <div class="badge badge-primary badge-outline text-[0.6rem]">OPTIONAL</div>
+             </div>
+             <div class="flex gap-2">
+                <input class="form-control font-mono w-32 uppercase" placeholder="e.g. J01.90" [(ngModel)]="encounterForm.icdCode">
+                <input class="form-control flex-grow" placeholder="Diagnosis description..." [(ngModel)]="encounterForm.icdDescription">
+                <button class="btn btn-secondary btn-icon" title="Search ICD-10 Database (Mock)"><span class="material-icons-round">search</span></button>
+             </div>
           </div>
 
           <!-- UNIFIED ORDERS -->
@@ -380,6 +474,11 @@ export class ClinicalComponent implements OnInit {
   radTests: any[] = [];
   currentMed: any = null;
   encounterOrders = { medications: [] as any[], labTestIds: [] as number[], radTestIds: [] as number[] };
+
+  showAiPanel = false;
+  aiAnalyzing = false;
+  aiLoading = false;
+  aiResultsReady = false;
 
   constructor(
     private clinical: ClinicalService,
@@ -547,5 +646,22 @@ export class ClinicalComponent implements OnInit {
         this.loadEncounters();
       });
     }
+  }
+
+  simulateAi() {
+    this.aiAnalyzing = true;
+    this.aiLoading = true;
+    this.aiResultsReady = false;
+
+    setTimeout(() => {
+      this.aiLoading = false;
+      this.aiResultsReady = true;
+
+      // Auto-fill form if open
+      if (this.showEncounterForm) {
+        this.encounterForm.assessment = 'Probable classic migraine with aura based on reported bilateral pain and photophobia. Tension headache ruled down.';
+        this.toast.info('AI automatically updated the assessment field.');
+      }
+    }, 2500);
   }
 }

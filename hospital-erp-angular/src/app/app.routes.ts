@@ -82,12 +82,24 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/pharmacy/pharmacy.component').then(m => m.PharmacyComponent)
             },
             {
+                path: 'bed-management',
+                loadComponent: () => import('./features/bed-management/bed-management.component').then(m => m.BedManagementComponent)
+            },
+            {
                 path: 'users',
                 loadComponent: () => import('./features/users/users.component').then(m => m.UsersComponent)
             },
             {
                 path: 'settings',
                 loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent)
+            },
+            {
+                path: 'messaging',
+                loadComponent: () => import('./features/messaging/messaging.component').then(m => m.MessagingComponent)
+            },
+            {
+                path: 'audit-logs',
+                loadComponent: () => import('./features/audit-logs/audit-logs.component').then(m => m.AuditLogsComponent)
             }
         ]
     },

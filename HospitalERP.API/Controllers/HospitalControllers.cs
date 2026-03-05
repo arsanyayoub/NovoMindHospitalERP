@@ -47,7 +47,12 @@ public class PatientsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
-        try { await _service.DeleteAsync(id); return NoContent(); }
+        try 
+        { 
+            var user = User.FindFirstValue(ClaimTypes.Name) ?? "system";
+            await _service.DeleteAsync(id, user); 
+            return NoContent(); 
+        }
         catch (KeyNotFoundException) { return NotFound(); }
     }
 
@@ -109,7 +114,12 @@ public class DoctorsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
-        try { await _service.DeleteAsync(id); return NoContent(); }
+        try 
+        { 
+            var u = User.FindFirstValue(ClaimTypes.Name) ?? "system";
+            await _service.DeleteAsync(id, u); 
+            return NoContent(); 
+        }
         catch (KeyNotFoundException) { return NotFound(); }
     }
 
@@ -158,7 +168,12 @@ public class AppointmentsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
-        try { await _service.DeleteAsync(id); return NoContent(); }
+        try 
+        { 
+            var u = User.FindFirstValue(ClaimTypes.Name) ?? "system";
+            await _service.DeleteAsync(id, u); 
+            return NoContent(); 
+        }
         catch (KeyNotFoundException) { return NotFound(); }
     }
 }
@@ -186,7 +201,12 @@ public class InvoicesController : ControllerBase
 
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Delete(int id) { await _service.DeleteAsync(id); return NoContent(); }
+    public async Task<IActionResult> Delete(int id) 
+    { 
+        var u = User.FindFirstValue(ClaimTypes.Name) ?? "system";
+        await _service.DeleteAsync(id, u); 
+        return NoContent(); 
+    }
 
     [HttpPost("payment")]
     public async Task<IActionResult> RecordPayment([FromBody] CreatePaymentDto dto)

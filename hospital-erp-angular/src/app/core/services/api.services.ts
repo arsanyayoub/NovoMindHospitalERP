@@ -312,6 +312,9 @@ export class ReportingService {
     getHR(year: number): Observable<any> {
         return this.http.get<any>(`${this.API}/hr`, { params: new HttpParams().set('year', year) });
     }
+    getBeds(from: string, to: string): Observable<any> {
+        return this.http.get<any>(`${this.API}/beds`, { params: new HttpParams().set('from', from).set('to', to) });
+    }
 }
 
 @Injectable({ providedIn: 'root' })
@@ -419,4 +422,96 @@ export class UserService {
     updateUser(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/${id}`, dto); }
     toggleStatus(id: number): Observable<any> { return this.http.patch<any>(`${this.API}/${id}/toggle-status`, {}); }
     getRoles(): Observable<any> { return this.http.get<any>(`${this.API}/roles`); }
+}
+
+@Injectable({ providedIn: 'root' })
+export class BedManagementService {
+    private readonly API = `${environment.apiUrl}/bedmanagement`;
+    constructor(private http: HttpClient) { }
+
+    getWards(request: PagedRequest = {}): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (request.search) params = params.set('search', request.search);
+        return this.http.get<PagedResult<any>>(`${this.API}/wards`, { params });
+    }
+    createWard(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/wards`, dto); }
+    updateWard(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/wards/${id}`, dto); }
+    deleteWard(id: number): Observable<any> { return this.http.delete<any>(`${this.API}/wards/${id}`); }
+
+    getRooms(wardId: number, request: PagedRequest = {}): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (request.search) params = params.set('search', request.search);
+        return this.http.get<PagedResult<any>>(`${this.API}/wards/${wardId}/rooms`, { params });
+    }
+    createRoom(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/rooms`, dto); }
+    updateRoom(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/rooms/${id}`, dto); }
+    deleteRoom(id: number): Observable<any> { return this.http.delete<any>(`${this.API}/rooms/${id}`); }
+
+    getBeds(query: any): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (query.wardId) params = params.set('wardId', query.wardId);
+        if (query.roomId) params = params.set('roomId', query.roomId);
+        if (query.status) params = params.set('status', query.status);
+        if (query.page) params = params.set('page', query.page);
+        if (query.pageSize) params = params.set('pageSize', query.pageSize);
+        if (query.search) params = params.set('search', query.search);
+        return this.http.get<PagedResult<any>>(`${this.API}/beds`, { params });
+    }
+    createBed(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/beds`, dto); }
+    updateBed(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/beds/${id}`, dto); }
+    deleteBed(id: number): Observable<any> { return this.http.delete<any>(`${this.API}/beds/${id}`); }
+
+    getAdmissions(query: any): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (query.patientId) params = params.set('patientId', query.patientId);
+        if (query.status) params = params.set('status', query.status);
+        if (query.page) params = params.set('page', query.page);
+        if (query.pageSize) params = params.set('pageSize', query.pageSize);
+        return this.http.get<PagedResult<any>>(`${this.API}/admissions`, { params });
+    }
+    admitPatient(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/admissions`, dto); }
+    dischargePatient(id: number, dto: any): Observable<any> { return this.http.post<any>(`${this.API}/admissions/${id}/discharge`, dto); }
+    transferPatient(id: number, newBedId: number): Observable<any> { return this.http.post<any>(`${this.API}/admissions/${id}/transfer`, newBedId); }
+}
+
+@Injectable({ providedIn: 'root' })
+export class MessagingService {
+    private readonly API = `${environment.apiUrl}/messaging`;
+    constructor(private http: HttpClient) { }
+
+    getInbox(request: PagedRequest = {}): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        return this.http.get<PagedResult<any>>(`${this.API}/inbox`, { params });
+    }
+
+    getSent(request: PagedRequest = {}): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        return this.http.get<PagedResult<any>>(`${this.API}/sent`, { params });
+    }
+
+    sendMessage(dto: any): Observable<any> { return this.http.post<any>(this.API, dto); }
+    markAsRead(id: number): Observable<any> { return this.http.post<any>(`${this.API}/${id}/read`, {}); }
+    getUnreadCount(): Observable<number> { return this.http.get<number>(`${this.API}/unread-count`); }
+}
+
+@Injectable({ providedIn: 'root' })
+export class AuditLogService {
+    private readonly API = `${environment.apiUrl}/erp/audit-logs`; // Assuming it's in ERPControllers for now, or check MessagingController
+    constructor(private http: HttpClient) { }
+
+    getLogs(request: PagedRequest = {}): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (request.search) params = params.set('search', request.search);
+        return this.http.get<PagedResult<any>>(this.API, { params });
+    }
 }

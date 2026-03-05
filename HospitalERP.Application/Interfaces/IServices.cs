@@ -17,7 +17,7 @@ public interface IPatientService
     Task<PatientDto?> GetByIdAsync(int id);
     Task<PatientDto> CreateAsync(CreatePatientDto dto, string createdBy);
     Task<PatientDto> UpdateAsync(int id, UpdatePatientDto dto, string updatedBy);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<IEnumerable<AppointmentDto>> GetPatientAppointmentsAsync(int patientId);
     Task<IEnumerable<InvoiceDto>> GetPatientInvoicesAsync(int patientId);
     Task<IEnumerable<PatientVitalDto>> GetPatientVitalsAsync(int patientId);
@@ -32,7 +32,7 @@ public interface IDoctorService
     Task<DoctorDto?> GetByIdAsync(int id);
     Task<DoctorDto> CreateAsync(CreateDoctorDto dto, string createdBy);
     Task<DoctorDto> UpdateAsync(int id, UpdateDoctorDto dto, string updatedBy);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<IEnumerable<AppointmentDto>> GetDoctorAppointmentsAsync(int doctorId, DateTime? date);
 }
 
@@ -42,7 +42,7 @@ public interface IAppointmentService
     Task<AppointmentDto?> GetByIdAsync(int id);
     Task<AppointmentDto> CreateAsync(CreateAppointmentDto dto, string createdBy);
     Task<AppointmentDto> UpdateAsync(int id, UpdateAppointmentDto dto, string updatedBy);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<IEnumerable<AppointmentDto>> GetTodayAppointmentsAsync();
 }
 
@@ -51,7 +51,7 @@ public interface IInvoiceService
     Task<PagedResult<InvoiceDto>> GetAllAsync(PagedRequest request, string? status, string? type);
     Task<InvoiceDto?> GetByIdAsync(int id);
     Task<InvoiceDto> CreateAsync(CreateInvoiceDto dto, string createdBy);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(int id, string deletedBy);
     Task<PaymentDto> RecordPaymentAsync(CreatePaymentDto dto, string createdBy);
     Task<IEnumerable<PaymentDto>> GetPaymentsAsync(int? invoiceId);
 }
@@ -76,7 +76,7 @@ public interface IInventoryService
     Task<ItemDto?> GetItemByIdAsync(int id);
     Task<ItemDto> CreateItemAsync(CreateItemDto dto, string createdBy);
     Task<ItemDto> UpdateItemAsync(int id, CreateItemDto dto, string updatedBy);
-    Task DeleteItemAsync(int id);
+    Task DeleteItemAsync(int id, string deletedBy);
     Task<IEnumerable<WarehouseDto>> GetWarehousesAsync();
     Task<WarehouseDto> CreateWarehouseAsync(CreateWarehouseDto dto, string createdBy);
     Task<IEnumerable<WarehouseStockDto>> GetStockAsync(int? warehouseId, int? itemId);
@@ -86,14 +86,14 @@ public interface IInventoryService
     // Packaging Units
     Task<IEnumerable<ItemPackagingUnitDto>> GetItemPackagingUnitsAsync(int itemId);
     Task<ItemPackagingUnitDto> CreateItemPackagingUnitAsync(CreateItemPackagingUnitDto dto, string createdBy);
-    Task DeleteItemPackagingUnitAsync(int id);
+    Task DeleteItemPackagingUnitAsync(int id, string deletedBy);
 
     // Batches
     Task<PagedResult<ItemBatchDto>> GetBatchesAsync(PagedRequest request, int? itemId, int? warehouseId, bool? excludeExpired, bool? excludeExhausted);
     Task<ItemBatchDto?> GetBatchByIdAsync(int id);
     Task<ItemBatchDto> CreateBatchAsync(CreateItemBatchDto dto, string createdBy);
     Task<ItemBatchDto> UpdateBatchAsync(int id, UpdateItemBatchDto dto, string updatedBy);
-    Task DeleteBatchAsync(int id);
+    Task DeleteBatchAsync(int id, string deletedBy);
     Task<BatchScanResultDto> ScanBarcodeAsync(string barcode, int? warehouseId);
 
     // Reports
@@ -130,7 +130,7 @@ public interface IHRService
     Task<EmployeeDto?> GetEmployeeByIdAsync(int id);
     Task<EmployeeDto> CreateEmployeeAsync(CreateEmployeeDto dto, string createdBy);
     Task<EmployeeDto> UpdateEmployeeAsync(int id, CreateEmployeeDto dto, string updatedBy);
-    Task DeleteEmployeeAsync(int id);
+    Task DeleteEmployeeAsync(int id, string deletedBy);
     Task<PagedResult<PayrollDto>> GetPayrollsAsync(PagedRequest request, int? year, int? month);
     Task<PayrollDto> GeneratePayrollAsync(CreatePayrollDto dto, string createdBy);
     Task ProcessPayrollPaymentAsync(int payrollId, string paidBy);
@@ -150,6 +150,7 @@ public interface IReportingService
     Task<PharmacyAnalyticsDto> GetPharmacyAnalyticsAsync(DateTime from, DateTime to);
     Task<InventoryAnalyticsDto> GetInventoryAnalyticsAsync();
     Task<HRAnalyticsDto> GetHRAnalyticsAsync(int year);
+    Task<BedAnalyticsDto> GetBedAnalyticsAsync(DateTime from, DateTime to);
 }
 
 public interface ILabService
@@ -158,7 +159,7 @@ public interface ILabService
     Task<LabTestDto?> GetTestByIdAsync(int id);
     Task<LabTestDto> CreateTestAsync(CreateLabTestDto dto, string createdBy);
     Task<LabTestDto> UpdateTestAsync(int id, CreateLabTestDto dto, string updatedBy);
-    Task DeleteTestAsync(int id);
+    Task DeleteTestAsync(int id, string deletedBy);
 
     Task<PagedResult<LabRequestDto>> GetRequestsAsync(PagedRequest request, string? status);
     Task<LabRequestDto?> GetRequestByIdAsync(int id);
@@ -173,7 +174,7 @@ public interface IRadiologyService
     Task<RadiologyTestDto?> GetTestByIdAsync(int id);
     Task<RadiologyTestDto> CreateTestAsync(CreateRadiologyTestDto dto, string createdBy);
     Task<RadiologyTestDto> UpdateTestAsync(int id, CreateRadiologyTestDto dto, string updatedBy);
-    Task DeleteTestAsync(int id);
+    Task DeleteTestAsync(int id, string deletedBy);
 
     Task<PagedResult<RadiologyRequestDto>> GetRequestsAsync(PagedRequest request, string? status);
     Task<RadiologyRequestDto?> GetRequestByIdAsync(int id);
@@ -186,14 +187,14 @@ public interface IClinicalService
 {
     Task<PagedResult<PatientVitalDto>> GetVitalsAsync(PagedRequest request, int? patientId);
     Task<PatientVitalDto> CreateVitalAsync(CreatePatientVitalDto dto, string recordedBy);
-    Task DeleteVitalAsync(int id);
+    Task DeleteVitalAsync(int id, string deletedBy);
 
     // Encounters
     Task<PagedResult<ClinicalEncounterDto>> GetEncountersAsync(PagedRequest request, int? patientId, int? doctorId);
     Task<ClinicalEncounterDto?> GetEncounterByIdAsync(int id);
     Task<ClinicalEncounterDto> CreateEncounterAsync(CreateClinicalEncounterDto dto, string createdBy);
     Task<ClinicalEncounterDto> UpdateEncounterAsync(int id, CreateClinicalEncounterDto dto, string updatedBy);
-    Task DeleteEncounterAsync(int id);
+    Task DeleteEncounterAsync(int id, string deletedBy);
 }
 
 public interface IPharmacyService

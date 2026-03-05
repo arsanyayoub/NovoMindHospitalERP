@@ -10,7 +10,12 @@ namespace HospitalERP.Application.Services;
 public class DoctorService : IDoctorService
 {
     private readonly IUnitOfWork _uow;
-    public DoctorService(IUnitOfWork uow) => _uow = uow;
+    private readonly IAuditLogService _auditLog;
+    public DoctorService(IUnitOfWork uow, IAuditLogService auditLog) 
+    {
+        _uow = uow;
+        _auditLog = auditLog;
+    }
 
     public async Task<PagedResult<DoctorDto>> GetAllAsync(PagedRequest request)
     {
@@ -53,6 +58,9 @@ public class DoctorService : IDoctorService
         };
         await _uow.Doctors.AddAsync(doctor);
         await _uow.SaveChangesAsync();
+
+        await _auditLog.LogAsync(createdBy, createdBy, "Create", "Doctor", doctor.Id, $"Doctor {doctor.FullName} ({doctor.DoctorCode}) created.");
+
         return ToDto(doctor);
     }
 
@@ -73,15 +81,20 @@ public class DoctorService : IDoctorService
         doctor.UpdatedBy = updatedBy;
         _uow.Doctors.Update(doctor);
         await _uow.SaveChangesAsync();
+
+        await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "Doctor", doctor.Id, $"Doctor {doctor.FullName} updated.");
+
         return ToDto(doctor);
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
         var doctor = await _uow.Doctors.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"Doctor {id} not found.");
         _uow.Doctors.SoftDelete(doctor);
         await _uow.SaveChangesAsync();
+
+        await _auditLog.LogAsync(deletedBy, deletedBy, "Delete", "Doctor", id, $"Doctor {doctor.FullName} soft-deleted.");
     }
 
     public async Task<IEnumerable<AppointmentDto>> GetDoctorAppointmentsAsync(int doctorId, DateTime? date)
@@ -105,11 +118,13 @@ public class AppointmentService : IAppointmentService
 {
     private readonly IUnitOfWork _uow;
     private readonly INotificationService _notificationService;
+    private readonly IAuditLogService _auditLog;
 
-    public AppointmentService(IUnitOfWork uow, INotificationService notificationService)
+    public AppointmentService(IUnitOfWork uow, INotificationService notificationService, IAuditLogService auditLog)
     {
         _uow = uow;
         _notificationService = notificationService;
+        _auditLog = auditLog;
     }
 
     public async Task<PagedResult<AppointmentDto>> GetAllAsync(PagedRequest request, DateTime? date, int? doctorId, int? patientId, string? status)
@@ -166,6 +181,8 @@ public class AppointmentService : IAppointmentService
             $"Appointment {appt.AppointmentCode} created for {apptFull?.Patient?.FullName} with Dr. {apptFull?.Doctor?.FullName}.",
             "AppointmentCreated", entityType: "Appointment", entityId: appt.Id);
 
+        await _auditLog.LogAsync(createdBy, createdBy, "Create", "Appointment", appt.Id, $"Appointment {appt.AppointmentCode} created.");
+
         return ToDto(apptFull!);
     }
 
@@ -186,15 +203,20 @@ public class AppointmentService : IAppointmentService
         appt.UpdatedBy = updatedBy;
         _uow.Appointments.Update(appt);
         await _uow.SaveChangesAsync();
+
+        await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "Appointment", appt.Id, $"Appointment {appt.AppointmentCode} updated.");
+
         return ToDto(appt);
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
         var appt = await _uow.Appointments.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"Appointment {id} not found.");
         _uow.Appointments.SoftDelete(appt);
         await _uow.SaveChangesAsync();
+
+        await _auditLog.LogAsync(deletedBy, deletedBy, "Delete", "Appointment", id, $"Appointment {appt.AppointmentCode} soft-deleted.");
     }
 
     public async Task<IEnumerable<AppointmentDto>> GetTodayAppointmentsAsync()

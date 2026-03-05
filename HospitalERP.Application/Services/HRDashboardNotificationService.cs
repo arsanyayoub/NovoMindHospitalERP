@@ -9,7 +9,12 @@ namespace HospitalERP.Application.Services;
 public class HRService : IHRService
 {
     private readonly IUnitOfWork _uow;
-    public HRService(IUnitOfWork uow) => _uow = uow;
+    private readonly IAuditLogService _auditLog;
+    public HRService(IUnitOfWork uow, IAuditLogService auditLog) 
+    { 
+        _uow = uow; 
+        _auditLog = auditLog;
+    }
 
     public async Task<PagedResult<EmployeeDto>> GetEmployeesAsync(PagedRequest request)
     {
@@ -33,7 +38,10 @@ public class HRService : IHRService
             BasicSalary = dto.BasicSalary, Allowances = dto.Allowances, Deductions = dto.Deductions,
             PhoneNumber = dto.PhoneNumber, Email = dto.Email, CreatedBy = createdBy
         };
-        await _uow.Employees.AddAsync(emp); await _uow.SaveChangesAsync(); return ToDto(emp);
+        await _uow.Employees.AddAsync(emp); 
+        await _uow.SaveChangesAsync(); 
+        await _auditLog.LogAsync(createdBy, createdBy, "Create", "Employee", emp.Id, $"Employee {emp.FullName} ({emp.EmployeeCode}) created.");
+        return ToDto(emp);
     }
 
     public async Task<EmployeeDto> UpdateEmployeeAsync(int id, CreateEmployeeDto dto, string updatedBy)
@@ -43,13 +51,18 @@ public class HRService : IHRService
         emp.Position = dto.Position; emp.HireDate = dto.HireDate; emp.BasicSalary = dto.BasicSalary;
         emp.Allowances = dto.Allowances; emp.Deductions = dto.Deductions;
         emp.PhoneNumber = dto.PhoneNumber; emp.Email = dto.Email; emp.UpdatedBy = updatedBy;
-        _uow.Employees.Update(emp); await _uow.SaveChangesAsync(); return ToDto(emp);
+        _uow.Employees.Update(emp); 
+        await _uow.SaveChangesAsync(); 
+        await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "Employee", emp.Id, $"Employee {emp.FullName} updated.");
+        return ToDto(emp);
     }
 
-    public async Task DeleteEmployeeAsync(int id)
+    public async Task DeleteEmployeeAsync(int id, string deletedBy)
     {
         var emp = await _uow.Employees.GetByIdAsync(id) ?? throw new KeyNotFoundException();
-        _uow.Employees.SoftDelete(emp); await _uow.SaveChangesAsync();
+        _uow.Employees.SoftDelete(emp); 
+        await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(deletedBy, deletedBy, "Delete", "Employee", id, $"Employee {emp.FullName} soft-deleted.");
     }
 
     public async Task<PagedResult<PayrollDto>> GetPayrollsAsync(PagedRequest request, int? year, int? month)
@@ -76,7 +89,9 @@ public class HRService : IHRService
             NetSalary = emp.BasicSalary + emp.Allowances + dto.Bonuses - (emp.Deductions + dto.Deductions),
             Notes = dto.Notes, CreatedBy = createdBy
         };
-        await _uow.Payrolls.AddAsync(payroll); await _uow.SaveChangesAsync();
+        await _uow.Payrolls.AddAsync(payroll); 
+        await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(createdBy, createdBy, "Generate Payroll", "Payroll", payroll.Id, $"Payroll generated for Employee ID {dto.EmployeeId} for {dto.Month}/{dto.Year}.");
         return ToPDto(payroll);
     }
 
@@ -84,7 +99,9 @@ public class HRService : IHRService
     {
         var payroll = await _uow.Payrolls.GetByIdAsync(payrollId) ?? throw new KeyNotFoundException();
         payroll.Status = "Paid"; payroll.PaidDate = DateTime.UtcNow; payroll.UpdatedBy = paidBy;
-        _uow.Payrolls.Update(payroll); await _uow.SaveChangesAsync();
+        _uow.Payrolls.Update(payroll); 
+        await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(paidBy, paidBy, "Process Payroll", "Payroll", payrollId, $"Payroll ID {payrollId} payment processed.");
     }
 
     private static EmployeeDto ToDto(Employee e) => new(e.Id, e.EmployeeCode, e.FullName, e.NationalId, e.Department, e.Position, e.HireDate, e.BasicSalary, e.Allowances, e.Deductions, e.PhoneNumber, e.Email, e.IsActive, e.CreatedDate);
@@ -164,8 +181,11 @@ public class DashboardService : IDashboardService
 
         var totalStockValue = await _uow.WarehouseStocks.Query()
             .SumAsync(ws => ws.Quantity * ws.Item.PurchasePrice);
+        
+        var totalBeds = await _uow.Beds.CountAsync();
+        var occupiedBeds = await _uow.Beds.CountAsync(b => b.Status == "Occupied");
 
-        return new DashboardDto(totalPatients, todayAppts, pendingAppts, todayPayments, monthlyPayments, totalRevenue, lowStock, pendingInvoices, outstanding, totalDoctors, totalEmployees, activities, monthlyRevenues, todayApptsList, topDoctors, expiringBatches, pendingPrescriptions, pendingLab, pendingRad, pharmacyRevenue, totalStockValue);
+        return new DashboardDto(totalPatients, todayAppts, pendingAppts, todayPayments, monthlyPayments, totalRevenue, lowStock, pendingInvoices, outstanding, totalDoctors, totalEmployees, activities, monthlyRevenues, todayApptsList, topDoctors, expiringBatches, pendingPrescriptions, pendingLab, pendingRad, pharmacyRevenue, totalStockValue, totalBeds, occupiedBeds);
     }
 }
 

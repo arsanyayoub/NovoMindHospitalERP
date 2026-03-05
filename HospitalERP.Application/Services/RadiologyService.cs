@@ -9,7 +9,12 @@ namespace HospitalERP.Application.Services;
 public class RadiologyService : IRadiologyService
 {
     private readonly IUnitOfWork _uow;
-    public RadiologyService(IUnitOfWork uow) => _uow = uow;
+    private readonly IAuditLogService _auditLog;
+    public RadiologyService(IUnitOfWork uow, IAuditLogService auditLog)
+    {
+        _uow = uow;
+        _auditLog = auditLog;
+    }
 
     // ── Tests ──────────────────────────────────────────────────────
     public async Task<PagedResult<RadiologyTestDto>> GetTestsAsync(PagedRequest request)
@@ -34,7 +39,10 @@ public class RadiologyService : IRadiologyService
             Category = dto.Category, PreparationInstructions = dto.PreparationInstructions,
             Price = dto.Price, CreatedBy = createdBy
         };
-        await _uow.RadiologyTests.AddAsync(test); await _uow.SaveChangesAsync(); return ToDto(test);
+        await _uow.RadiologyTests.AddAsync(test);
+        await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(createdBy, createdBy, "Create", "RadiologyTest", test.Id, $"Radiology Test {test.Name} ({test.TestCode}) created.");
+        return ToDto(test);
     }
 
     public async Task<RadiologyTestDto> UpdateTestAsync(int id, CreateRadiologyTestDto dto, string updatedBy)
@@ -42,13 +50,19 @@ public class RadiologyService : IRadiologyService
         var test = await _uow.RadiologyTests.GetByIdAsync(id) ?? throw new KeyNotFoundException();
         test.Name = dto.Name; test.NameAr = dto.NameAr; test.Category = dto.Category;
         test.PreparationInstructions = dto.PreparationInstructions; test.Price = dto.Price;
-        test.UpdatedBy = updatedBy; _uow.RadiologyTests.Update(test); await _uow.SaveChangesAsync(); return ToDto(test);
+        test.UpdatedBy = updatedBy;
+        _uow.RadiologyTests.Update(test);
+        await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "RadiologyTest", test.Id, $"Radiology Test {test.Name} updated.");
+        return ToDto(test);
     }
 
-    public async Task DeleteTestAsync(int id)
+    public async Task DeleteTestAsync(int id, string deletedBy)
     {
         var test = await _uow.RadiologyTests.GetByIdAsync(id) ?? throw new KeyNotFoundException();
-        _uow.RadiologyTests.SoftDelete(test); await _uow.SaveChangesAsync();
+        _uow.RadiologyTests.SoftDelete(test);
+        await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(deletedBy, deletedBy, "Delete", "RadiologyTest", test.Id, $"Radiology Test {test.Name} ({test.TestCode}) deleted.");
     }
 
     // ── Requests ──────────────────────────────────────────────────
@@ -86,7 +100,10 @@ public class RadiologyService : IRadiologyService
             req.TotalAmount += test.Price;
         }
 
-        await _uow.RadiologyRequests.AddAsync(req); await _uow.SaveChangesAsync(); return ToRDto(req);
+        await _uow.RadiologyRequests.AddAsync(req);
+        await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(createdBy, createdBy, "Create", "RadiologyRequest", req.Id, $"Radiology Request {req.RequestNumber} created for Patient ID {req.PatientId}.");
+        return ToRDto(req);
     }
 
     public async Task<RadiologyRequestDto> UpdateResultAsync(int resultId, UpdateRadiologyResultDto dto, string updatedBy)
@@ -95,7 +112,9 @@ public class RadiologyService : IRadiologyService
         res.Findings = dto.Findings; res.Impression = dto.Impression; res.ImageUrl = dto.ImageUrl;
         res.PerformedBy = dto.PerformedBy; res.RadiologistName = dto.RadiologistName;
         res.ResultDate = DateTime.UtcNow; res.UpdatedBy = updatedBy;
-        _uow.RadiologyResults.Update(res); await _uow.SaveChangesAsync();
+        _uow.RadiologyResults.Update(res);
+        await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "RadiologyResult", resultId, $"Radiology Result updated for Radiology Request ID {res.RadiologyRequestId}.");
 
         var req = await _uow.RadiologyRequests.Query().Include(r => r.Patient).Include(r => r.Doctor).Include(r => r.Results).ThenInclude(res => res.RadiologyTest).FirstOrDefaultAsync(x => x.Id == res.RadiologyRequestId);
         return ToRDto(req!);
@@ -105,7 +124,9 @@ public class RadiologyService : IRadiologyService
     {
         var req = await _uow.RadiologyRequests.GetByIdAsync(requestId) ?? throw new KeyNotFoundException();
         req.Status = "Completed"; req.UpdatedBy = updatedBy;
-        _uow.RadiologyRequests.Update(req); await _uow.SaveChangesAsync();
+        _uow.RadiologyRequests.Update(req);
+        await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(updatedBy, updatedBy, "Complete", "RadiologyRequest", requestId, $"Radiology Request {req.RequestNumber} marked as Completed.");
     }
 
     internal static RadiologyTestDto ToDto(RadiologyTest t) => new(t.Id, t.TestCode, t.Name, t.NameAr, t.Category, t.PreparationInstructions, t.Price, t.IsActive);

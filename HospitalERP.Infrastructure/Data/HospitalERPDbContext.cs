@@ -66,6 +66,16 @@ public class HospitalERPDbContext : DbContext
     public DbSet<PrescriptionItem> PrescriptionItems => Set<PrescriptionItem>();
     public DbSet<ClinicalEncounter> ClinicalEncounters => Set<ClinicalEncounter>();
 
+    // Bed Management
+    public DbSet<Ward> Wards => Set<Ward>();
+    public DbSet<Room> Rooms => Set<Room>();
+    public DbSet<Bed> Beds => Set<Bed>();
+    public DbSet<BedAdmission> BedAdmissions => Set<BedAdmission>();
+
+    // Messaging & Audit
+    public DbSet<Message> Messages => Set<Message>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -100,6 +110,12 @@ public class HospitalERPDbContext : DbContext
         modelBuilder.Entity<Prescription>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<PrescriptionItem>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<ClinicalEncounter>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Ward>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Room>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Bed>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<BedAdmission>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Message>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<AuditLog>().HasQueryFilter(e => !e.IsDeleted);
 
         // ── Decimal precision ────────────────────────────────────────
         foreach (var property in modelBuilder.Model.GetEntityTypes()
@@ -115,6 +131,13 @@ public class HospitalERPDbContext : DbContext
             e.HasIndex(u => u.Username).IsUnique();
             e.HasIndex(u => u.Email).IsUnique();
             e.HasOne(u => u.Role).WithMany(r => r.Users).HasForeignKey(u => u.RoleId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ── Messaging ───────────────────────────────────────────────
+        modelBuilder.Entity<Message>(e =>
+        {
+            e.HasOne(m => m.Sender).WithMany().HasForeignKey(m => m.SenderId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(m => m.Receiver).WithMany().HasForeignKey(m => m.ReceiverId).OnDelete(DeleteBehavior.Restrict);
         });
 
         // ── Patient ───────────────────────────────────────────────────
@@ -256,8 +279,29 @@ public class HospitalERPDbContext : DbContext
             e.HasOne(ce => ce.Doctor).WithMany().HasForeignKey(ce => ce.DoctorId).OnDelete(DeleteBehavior.SetNull);
             e.HasOne(ce => ce.Appointment).WithMany().HasForeignKey(ce => ce.AppointmentId).OnDelete(DeleteBehavior.SetNull);
         });
-        
 
+        // ── Bed Management ────────────────────────────────────────────
+        modelBuilder.Entity<Ward>(e =>
+        {
+            e.HasIndex(w => w.WardCode).IsUnique();
+        });
+        modelBuilder.Entity<Room>(e =>
+        {
+            e.HasIndex(r => new { r.WardId, r.RoomNumber }).IsUnique();
+            e.HasOne(r => r.Ward).WithMany(w => w.Rooms).HasForeignKey(r => r.WardId).OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<Bed>(e =>
+        {
+            e.HasIndex(b => new { b.RoomId, b.BedNumber }).IsUnique();
+            e.HasOne(b => b.Room).WithMany(r => r.Beds).HasForeignKey(b => b.RoomId).OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<BedAdmission>(e =>
+        {
+            e.HasOne(ba => ba.Bed).WithMany(b => b.Admissions).HasForeignKey(ba => ba.BedId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(ba => ba.Patient).WithMany().HasForeignKey(ba => ba.PatientId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(ba => ba.Doctor).WithMany().HasForeignKey(ba => ba.DoctorId).OnDelete(DeleteBehavior.SetNull);
+        });
+        
         // ── Seed Data ─────────────────────────────────────────────────
         SeedData(modelBuilder);
     }

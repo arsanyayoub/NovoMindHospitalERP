@@ -9,7 +9,12 @@ namespace HospitalERP.Application.Services;
 public class ClinicalService : IClinicalService
 {
     private readonly IUnitOfWork _uow;
-    public ClinicalService(IUnitOfWork uow) => _uow = uow;
+    private readonly IAuditLogService _auditLog;
+    public ClinicalService(IUnitOfWork uow, IAuditLogService auditLog) 
+    { 
+        _uow = uow; 
+        _auditLog = auditLog;
+    }
 
     public async Task<PagedResult<PatientVitalDto>> GetVitalsAsync(PagedRequest request, int? patientId)
     {
@@ -65,15 +70,17 @@ public class ClinicalService : IClinicalService
 
         await _uow.PatientVitals.AddAsync(vital);
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(recordedBy, recordedBy, "Create", "PatientVital", vital.Id, $"Vitals recorded for Patient ID {vital.PatientId}.");
 
         return ToDto(vital);
     }
 
-    public async Task DeleteVitalAsync(int id)
+    public async Task DeleteVitalAsync(int id, string deletedBy)
     {
         var vital = await _uow.PatientVitals.GetByIdAsync(id) ?? throw new Exception("Vital record not found");
         vital.IsDeleted = true;
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(deletedBy, deletedBy, "Delete", "PatientVital", id, $"Vital record for Patient ID {vital.PatientId} deleted.");
     }
 
     public async Task<PagedResult<ClinicalEncounterDto>> GetEncountersAsync(PagedRequest request, int? patientId, int? doctorId)
@@ -138,6 +145,7 @@ public class ClinicalService : IClinicalService
         }
 
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(createdBy, createdBy, "Create", "ClinicalEncounter", encounter.Id, $"Clinical Encounter created for Patient ID {encounter.PatientId}.");
 
         return ToDto(encounter);
     }
@@ -169,15 +177,17 @@ public class ClinicalService : IClinicalService
         }
 
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "ClinicalEncounter", encounter.Id, $"Clinical Encounter for Patient ID {encounter.PatientId} updated.");
 
         return ToDto(encounter);
     }
 
-    public async Task DeleteEncounterAsync(int id)
+    public async Task DeleteEncounterAsync(int id, string deletedBy)
     {
         var encounter = await _uow.ClinicalEncounters.GetByIdAsync(id) ?? throw new Exception("Encounter not found");
         encounter.IsDeleted = true;
         await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(deletedBy, deletedBy, "Delete", "ClinicalEncounter", id, $"Clinical Encounter for Patient ID {encounter.PatientId} deleted.");
     }
 
     internal static PatientVitalDto ToDto(PatientVital v) => new(

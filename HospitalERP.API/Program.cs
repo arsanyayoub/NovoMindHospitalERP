@@ -40,6 +40,9 @@ builder.Services.AddScoped<IClinicalService, ClinicalService>();
 builder.Services.AddScoped<IPharmacyService, PharmacyService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IBedManagementService, BedManagementService>();
+builder.Services.AddScoped<IMessagingService, MessagingService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
 // ── JWT Authentication ──────────────────────────────────────────
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "HospitalERPSecretKey2024SuperSecure!@#$";

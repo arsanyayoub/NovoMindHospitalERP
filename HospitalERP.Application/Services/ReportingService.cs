@@ -197,4 +197,39 @@ public class ReportingService : IReportingService
 
         return new HRAnalyticsDto(totalEmp, monthlyPayroll, deptDist, trend);
     }
+
+    public async Task<BedAnalyticsDto> GetBedAnalyticsAsync(DateTime from, DateTime to)
+    {
+        var totalWards = await _uow.Wards.CountAsync();
+        var totalRooms = await _uow.Rooms.CountAsync();
+        var beds = await _uow.Beds.Query().Include(b => b.Room).ThenInclude(r => r.Ward).ToListAsync();
+        
+        var totalBeds = beds.Count;
+        var occupiedBeds = beds.Count(b => b.Status == "Occupied");
+        var maintenanceBeds = beds.Count(b => b.Status == "Maintenance");
+        var rate = totalBeds > 0 ? (decimal)occupiedBeds / totalBeds * 100 : 0;
+
+        var wardOccupancy = beds.Where(b => b.Status == "Occupied")
+            .GroupBy(b => b.Room.Ward.WardName)
+            .Select(g => new GroupCountDto(g.Key, g.Count()))
+            .ToList();
+
+        var roomTypeOccupancy = beds.Where(b => b.Status == "Occupied")
+            .GroupBy(b => b.Room.RoomType)
+            .Select(g => new GroupCountDto(g.Key, g.Count()))
+            .ToList();
+
+        var admissions = await _uow.BedAdmissions.Query()
+            .Where(a => a.AdmissionDate >= from && a.AdmissionDate <= to)
+            .ToListAsync();
+
+        var admissionTrend = new List<MonthlyCountDto>();
+        for (var d = new DateTime(from.Year, from.Month, 1); d <= to; d = d.AddMonths(1))
+        {
+            var count = admissions.Count(a => a.AdmissionDate >= d && a.AdmissionDate < d.AddMonths(1));
+            admissionTrend.Add(new MonthlyCountDto(d.ToString("MMM yyyy"), count));
+        }
+
+        return new BedAnalyticsDto(totalWards, totalRooms, totalBeds, occupiedBeds, maintenanceBeds, rate, wardOccupancy, roomTypeOccupancy, admissionTrend);
+    }
 }
