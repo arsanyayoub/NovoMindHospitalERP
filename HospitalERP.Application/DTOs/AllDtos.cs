@@ -454,6 +454,18 @@ public record MedicationAdministrationDto(int Id, int PrescriptionItemId, string
 
 public record CreateMedicationAdministrationDto(int PrescriptionItemId, int BedAdmissionId, string Status, string? Dose, string? Notes);
 
+public record OperatingTheaterDto(int Id, string Name, string? Location, string Status);
+public record CreateOperatingTheaterDto(string Name, string? Location, string Status);
+
+public record ScheduledSurgeryDto(int Id, int PatientId, string PatientName, int LeadSurgeonId, string LeadSurgeonName, 
+    int? AnesthetistId, string? AnesthetistName, int OperatingTheaterId, string OperatingTheaterName, 
+    string ProcedureName, DateTime ScheduledStartTime, DateTime ScheduledEndTime, string Priority, string Status, 
+    string? PreOpDiagnosis, string? PostOpDiagnosis, string? Notes);
+
+public record CreateScheduledSurgeryDto(int PatientId, int LeadSurgeonId, int? AnesthetistId, int OperatingTheaterId, 
+    string ProcedureName, DateTime ScheduledStartTime, DateTime ScheduledEndTime, string Priority, 
+    string? PreOpDiagnosis, string? Notes);
+
 public record PrescriptionItemDto(int Id, int PrescriptionId, int ItemId, string ItemName, string Dosage, string Frequency, string Duration, decimal Quantity, string? Instructions, bool IsDispensed, DateTime? DispensedDate, string? DispensedBy);
 
 public record CreatePrescriptionItemDto(int ItemId, string Dosage, string Frequency, string Duration, decimal Quantity, string? Instructions);

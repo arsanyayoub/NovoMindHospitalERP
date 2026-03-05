@@ -59,5 +59,9 @@ public interface IUnitOfWork : IDisposable
     IRepository<Message> Messages { get; }
     IRepository<AuditLog> AuditLogs { get; }
 
+    // Operating Theater
+    IRepository<OperatingTheater> OperatingTheaters { get; }
+    IRepository<ScheduledSurgery> ScheduledSurgeries { get; }
+
     Task<int> SaveChangesAsync();
 }

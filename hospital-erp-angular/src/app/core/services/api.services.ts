@@ -550,3 +550,41 @@ export class InpatientBillingService {
     getPatientBills(patientId: number): Observable<any[]> { return this.http.get<any[]>(`${this.API}/patient/${patientId}`); }
     finalizeBill(admissionId: number): Observable<any> { return this.http.post<any>(`${this.API}/admissions/${admissionId}/finalize`, {}); }
 }
+
+@Injectable({ providedIn: 'root' })
+export class OTService {
+    private readonly API = `${environment.apiUrl}/ot`;
+    constructor(private http: HttpClient) { }
+
+    getOperatingTheaters(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API}/operating-theaters`);
+    }
+    createOperatingTheater(dto: any): Observable<any> {
+        return this.http.post<any>(`${this.API}/operating-theaters`, dto);
+    }
+    updateOTStatus(id: number, status: string): Observable<void> {
+        return this.http.patch<void>(`${this.API}/operating-theaters/${id}/status?status=${status}`, {});
+    }
+
+    getScheduledSurgeries(req: any, status?: string, otId?: number): Observable<any> {
+        let p = new HttpParams({ fromObject: req });
+        if (status) p = p.set('status', status);
+        if (otId) p = p.set('otId', otId);
+        return this.http.get<any>(`${this.API}/surgeries`, { params: p });
+    }
+    getSurgery(id: number): Observable<any> {
+        return this.http.get<any>(`${this.API}/surgeries/${id}`);
+    }
+    scheduleSurgery(dto: any): Observable<any> {
+        return this.http.post<any>(`${this.API}/surgeries`, dto);
+    }
+    updateSurgeryStatus(id: number, status: string, postOpDiagnosis?: string, notes?: string): Observable<void> {
+        let p = new HttpParams().set('status', status);
+        if (postOpDiagnosis) p = p.set('postOpDiagnosis', postOpDiagnosis);
+        if (notes) p = p.set('notes', notes);
+        return this.http.patch<void>(`${this.API}/surgeries/${id}/status`, {}, { params: p });
+    }
+    cancelSurgery(id: number, reason: string): Observable<void> {
+        return this.http.post<void>(`${this.API}/surgeries/${id}/cancel?reason=${reason}`, {});
+    }
+}

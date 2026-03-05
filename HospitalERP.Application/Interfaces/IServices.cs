@@ -248,3 +248,18 @@ public interface IBedBillingService
     Task GenerateFinalBillAsync(int admissionId, string userId);
     Task<IEnumerable<InvoiceDto>> GetInpatientBillsAsync(int patientId);
 }
+
+public interface IOTService
+{
+    // Operating Theater
+    Task<IEnumerable<OperatingTheaterDto>> GetOperatingTheatersAsync();
+    Task<OperatingTheaterDto> CreateOperatingTheaterAsync(CreateOperatingTheaterDto dto);
+    Task UpdateOTStatusAsync(int id, string status);
+
+    // Scheduled Surgeries
+    Task<PagedResult<ScheduledSurgeryDto>> GetScheduledSurgeriesAsync(PagedRequest request, string? status = null, int? otId = null);
+    Task<ScheduledSurgeryDto?> GetSurgeryByIdAsync(int id);
+    Task<ScheduledSurgeryDto> ScheduleSurgeryAsync(CreateScheduledSurgeryDto dto);
+    Task UpdateSurgeryStatusAsync(int id, string status, string? postOpDiagnosis = null, string? notes = null);
+    Task CancelSurgeryAsync(int id, string reason);
+}

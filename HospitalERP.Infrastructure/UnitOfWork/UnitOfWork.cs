@@ -57,6 +57,8 @@ public class UnitOfWork : IUnitOfWork
         BedAdmissions = new Repository<BedAdmission>(context);
         Messages = new Repository<Message>(context);
         AuditLogs = new Repository<AuditLog>(context);
+        OperatingTheaters = new Repository<OperatingTheater>(context);
+        ScheduledSurgeries = new Repository<ScheduledSurgery>(context);
     }
 
     public IRepository<User> Users { get; }
@@ -105,6 +107,8 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<BedAdmission> BedAdmissions { get; }
     public IRepository<Message> Messages { get; }
     public IRepository<AuditLog> AuditLogs { get; }
+    public IRepository<OperatingTheater> OperatingTheaters { get; }
+    public IRepository<ScheduledSurgery> ScheduledSurgeries { get; }
 
     public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
 

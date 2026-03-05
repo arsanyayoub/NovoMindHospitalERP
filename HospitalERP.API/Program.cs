@@ -44,6 +44,7 @@ builder.Services.AddScoped<IBedManagementService, BedManagementService>();
 builder.Services.AddScoped<IBedBillingService, BedBillingService>();
 builder.Services.AddScoped<IMessagingService, MessagingService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+builder.Services.AddScoped<IOTService, OTService>();
 
 // ── Background Workers ──────────────────────────────────────────
 builder.Services.AddHostedService<HospitalERP.API.Background.AutomatedBillingWorker>();

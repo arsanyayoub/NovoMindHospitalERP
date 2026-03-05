@@ -78,6 +78,10 @@ public class HospitalERPDbContext : DbContext
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
+    // Operating Theater
+    public DbSet<OperatingTheater> OperatingTheaters => Set<OperatingTheater>();
+    public DbSet<ScheduledSurgery> ScheduledSurgeries => Set<ScheduledSurgery>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -120,6 +124,8 @@ public class HospitalERPDbContext : DbContext
         modelBuilder.Entity<BedAdmission>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Message>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<AuditLog>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<OperatingTheater>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<ScheduledSurgery>().HasQueryFilter(e => !e.IsDeleted);
 
         // ── Decimal precision ────────────────────────────────────────
         foreach (var property in modelBuilder.Model.GetEntityTypes()
@@ -319,6 +325,14 @@ public class HospitalERPDbContext : DbContext
             e.HasOne(ba => ba.Doctor).WithMany().HasForeignKey(ba => ba.DoctorId).OnDelete(DeleteBehavior.SetNull);
         });
         
+        modelBuilder.Entity<ScheduledSurgery>(e =>
+        {
+            e.HasOne(s => s.Patient).WithMany().HasForeignKey(s => s.PatientId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(s => s.LeadSurgeon).WithMany().HasForeignKey(s => s.LeadSurgeonId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(s => s.Anesthetist).WithMany().HasForeignKey(s => s.AnesthetistId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(s => s.OperatingTheater).WithMany().HasForeignKey(s => s.OperatingTheaterId).OnDelete(DeleteBehavior.Restrict);
+        });
+
         // ── Seed Data ─────────────────────────────────────────────────
         SeedData(modelBuilder);
     }
