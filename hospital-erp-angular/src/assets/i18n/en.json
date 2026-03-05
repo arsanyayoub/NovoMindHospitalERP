@@ -477,8 +477,6 @@
     "PRE_OP": "Pre-Op",
     "INTRA_OP": "Intra-Op",
     "POST_OP": "Post-Op",
-    "INTRA_OP": "Intra-Op",
-    "POST_OP": "Post-Op",
     "NEW_OT": "New Operating Theater",
     "OT_MANAGEMENT": "Theaters",
     "UPCOMING_SURGERIES": "Upcoming Surgeries"

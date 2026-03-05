@@ -108,6 +108,10 @@ export const routes: Routes = [
             {
                 path: 'inpatient-chart/:admissionId',
                 loadComponent: () => import('./features/inpatient-chart/inpatient-chart.component').then(m => m.InpatientChartComponent)
+            },
+            {
+                path: 'ot-management',
+                loadComponent: () => import('./features/ot-management/ot-management.component').then(m => m.OTManagementComponent)
             }
         ]
     },
