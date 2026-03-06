@@ -120,6 +120,21 @@ public class HRService : IHRService
         return ToPDto(payroll);
     }
 
+    public async Task<IEnumerable<PayrollDto>> BulkGeneratePayrollAsync(int year, int month, string createdBy)
+    {
+        var activeEmployees = await _uow.Employees.Query().Where(e => e.IsActive).ToListAsync();
+        var generated = new List<PayrollDto>();
+        
+        foreach(var emp in activeEmployees)
+        {
+            try {
+                var dto = new CreatePayrollDto(emp.Id, month, year, 0, 0, "Bulk Auto-Generated");
+                generated.Add(await GeneratePayrollAsync(dto, createdBy));
+            } catch (InvalidOperationException) { /* Skip if already exists */ }
+        }
+        return generated;
+    }
+
     public async Task ProcessPayrollPaymentAsync(int payrollId, string paidBy)
     {
         var payroll = await _uow.Payrolls.Query().Include(p => p.Employee).FirstOrDefaultAsync(x => x.Id == payrollId) ?? throw new KeyNotFoundException();
@@ -128,19 +143,25 @@ public class HRService : IHRService
         payroll.Status = "Paid"; payroll.PaidDate = DateTime.UtcNow; payroll.UpdatedBy = paidBy;
         _uow.Payrolls.Update(payroll); 
         
-        // --- Accounting Integration: Create Journal Entry ---
-        var journalDto = new CreateJournalEntryDto
+        // --- Accounting Integration: Fetch accounts by code ---
+        var salariesAccount = await _accounting.GetAccountByCodeAsync("5000"); // Salaries Expense
+        var cashAccount = await _accounting.GetAccountByCodeAsync("1000");     // Cash
+        
+        if (salariesAccount != null && cashAccount != null)
         {
-            EntryDate = DateTime.UtcNow,
-            Description = $"Payroll Payment: {payroll.Employee.FullName} - {payroll.Month}/{payroll.Year}",
-            Reference = $"PAYROLL-{payroll.Id}",
-            Lines = new List<CreateJournalEntryLineDto>
-            {
-                new() { AccountId = 11, DebitAmount = payroll.NetSalary, Description = "Salary Expense" }, // 5000: Salaries Expense
-                new() { AccountId = 1, CreditAmount = payroll.NetSalary, Description = "Cash Payment" }     // 1000: Cash
-            }
-        };
-        await _accounting.CreateJournalEntryAsync(journalDto, paidBy);
+            var journalDto = new CreateJournalEntryDto(
+                DateTime.UtcNow,
+                $"Payroll Payment: {payroll.Employee.FullName} - {payroll.Month}/{payroll.Year}",
+                $"PAYROLL-{payroll.Id}",
+                new List<CreateJournalEntryLineDto>
+                {
+                    new CreateJournalEntryLineDto(salariesAccount.Id, payroll.NetSalary, 0m, "Salary Expense"),
+                    new CreateJournalEntryLineDto(cashAccount.Id, 0m, payroll.NetSalary, "Cash Payment")
+                }
+            );
+            var je = await _accounting.CreateJournalEntryAsync(journalDto, paidBy);
+            await _accounting.PostJournalEntryAsync(je.Id, paidBy); // Auto-post to reflect in balances
+        }
 
         await _uow.SaveChangesAsync();
         await _auditLog.LogAsync(paidBy, paidBy, "Process Payroll", "Payroll", payrollId, $"Payroll payment processed and ledger updated.");

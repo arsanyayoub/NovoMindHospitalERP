@@ -209,7 +209,7 @@ public class InsuranceService : IInsuranceService
                     PatientId = claim.PatientId,
                     Amount = claim.ApprovedAmount,
                     PaymentDate = DateTime.UtcNow,
-                    PaymentMethod = PaymentMethod.BankTransfer,
+                    PaymentMethod = HospitalERP.Domain.Enums.PaymentMethod.BankTransfer,
                     ReferenceNumber = claim.ClaimNumber,
                     Notes = $"Insurance Settlement - {claim.InsuranceProvider?.Name ?? "TPA"}",
                     CreatedBy = userId

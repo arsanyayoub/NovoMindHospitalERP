@@ -23,7 +23,7 @@ public class PatientService : IPatientService
     {
         var query = _uow.Patients.Query()
             .Include(p => p.InsuranceProviderLink)
-            .Include(p => p.InsurancePlan);
+            .Include(p => p.InsurancePlan).AsQueryable();
         if (!string.IsNullOrWhiteSpace(request.Search))
             query = query.Where(p =>
                 p.FullName.Contains(request.Search) ||

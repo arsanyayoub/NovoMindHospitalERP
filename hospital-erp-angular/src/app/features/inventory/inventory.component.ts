@@ -36,6 +36,9 @@ import { NotificationService } from '../../core/services/notification.service';
         <button *ngIf="tab==='items'" class="btn btn-primary px-4 shadow-primary" (click)="openItemForm()">
           <span class="material-icons-round mr-1">add_box</span> {{ 'NEW_ITEM' | translate }}
         </button>
+        <button *ngIf="tab==='batches'" class="btn btn-secondary px-4 shadow-sm" (click)="downloadBatchReport()">
+          <span class="material-icons-round mr-1">picture_as_pdf</span> {{ 'BATCH_REPORT' | translate }}
+        </button>
         <button *ngIf="tab==='batches'" class="btn btn-primary px-4 shadow-primary" (click)="openBatchForm()">
           <span class="material-icons-round mr-1">trolley</span> {{ 'NEW_BATCH' | translate }}
         </button>
@@ -452,6 +455,16 @@ export class InventoryComponent implements OnInit {
       this.svc.getTransactions().subscribe(t => this.transactions = t);
       this.loadBatches();
       this.loadStock();
+   }
+
+   downloadBatchReport() {
+      this.svc.downloadBatchReport().subscribe(blob => {
+         const url = window.URL.createObjectURL(blob);
+         const link = document.createElement('a');
+         link.href = url;
+         link.download = `Batch_Report_${new Date().toISOString().slice(0, 10)}.pdf`;
+         link.click();
+      });
    }
 
    getTotalValuation(): number {

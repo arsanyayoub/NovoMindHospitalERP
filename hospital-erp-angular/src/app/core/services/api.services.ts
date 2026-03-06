@@ -209,6 +209,13 @@ export class InventoryService {
         if (to) params = params.set('to', to);
         return this.http.get<any[]>(`${this.API}/transactions`, { params });
     }
+
+    downloadBatchReport(warehouseId?: number, status?: string): Observable<Blob> {
+        let params = new HttpParams();
+        if (warehouseId) params = params.set('warehouseId', warehouseId);
+        if (status) params = params.set('status', status);
+        return this.http.get(`${this.API}/reports/pdf`, { params, responseType: 'blob' });
+    }
 }
 
 @Injectable({ providedIn: 'root' })
@@ -284,6 +291,9 @@ export class HRService {
         return this.http.get<PagedResult<any>>(`${this.API}/payrolls`, { params });
     }
     generatePayroll(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/payrolls`, dto); }
+    bulkGeneratePayroll(year: number, month: number): Observable<any> {
+        return this.http.post<any>(`${this.API}/payrolls/bulk`, null, { params: new HttpParams().set('year', year).set('month', month) });
+    }
     processPayroll(id: number): Observable<any> { return this.http.post<any>(`${this.API}/payrolls/${id}/pay`, {}); }
 
     // Attendance

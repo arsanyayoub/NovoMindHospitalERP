@@ -60,6 +60,7 @@ public interface IAccountingService
 {
     Task<IEnumerable<AccountDto>> GetChartOfAccountsAsync();
     Task<AccountDto?> GetAccountByIdAsync(int id);
+    Task<AccountDto?> GetAccountByCodeAsync(string code);
     Task<AccountDto> CreateAccountAsync(CreateAccountDto dto, string createdBy);
     Task<AccountDto> UpdateAccountAsync(int id, CreateAccountDto dto, string updatedBy);
     Task<PagedResult<JournalEntryDto>> GetJournalEntriesAsync(PagedRequest request, DateTime? from, DateTime? to);
@@ -133,6 +134,7 @@ public interface IHRService
     Task DeleteEmployeeAsync(int id, string deletedBy);
     Task<PagedResult<PayrollDto>> GetPayrollsAsync(PagedRequest request, int? year, int? month);
     Task<PayrollDto> GeneratePayrollAsync(CreatePayrollDto dto, string createdBy);
+    Task<IEnumerable<PayrollDto>> BulkGeneratePayrollAsync(int year, int month, string createdBy);
     Task ProcessPayrollPaymentAsync(int payrollId, string paidBy);
     
     // Attendance
@@ -244,6 +246,7 @@ public interface IPdfService
     Task<byte[]> GenerateEmrPdfAsync(int patientId, int? admissionId = null);
     Task<byte[]> GenerateLabReportPdfAsync(int requestId);
     Task<byte[]> GenerateRadiologyReportPdfAsync(int requestId);
+    Task<byte[]> GenerateInventoryReportPdfAsync(int? warehouseId, string? status);
 }
 
 public interface IUserService

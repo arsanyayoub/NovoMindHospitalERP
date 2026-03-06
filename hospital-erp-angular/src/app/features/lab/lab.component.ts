@@ -138,27 +138,46 @@ import { NotificationService } from '../../core/services/notification.service';
              </div>
              <button (click)="showDetails=false" class="btn-close">×</button>
           </div>
-          <div class="modal-body max-h-[500px] overflow-y-auto px-10 py-8 custom-scrollbar">
-             <div *ngFor="let res of selectedReq.results" class="result-entry animate-in">
-                <div class="grid grid-cols-12 gap-8 items-center">
+          <div class="modal-body max-h-[600px] overflow-y-auto px-10 py-8 custom-scrollbar bg-glass">
+             <div *ngFor="let res of selectedReq.results" class="result-entry animate-in border-primary border-opacity-10 bg-glass mb-8 shadow-sm">
+                <div class="grid grid-cols-12 gap-6 items-start">
                    <div class="col-span-4">
-                      <div class="font-black text-xl tracking-tighter">{{ res.testName }}</div>
-                      <div class="text-[0.6rem] font-black uppercase text-primary opacity-60">{{ res.category || 'GENERAL_LAB' | translate }}</div>
+                      <div class="font-black text-xl tracking-tighter text-primary">{{ res.testName }}</div>
+                      <div class="text-[0.65rem] font-black uppercase text-muted tracking-widest mt-1">{{ 'NORMAL_RANGE'|translate }}: <span class="text-primary">{{ res.normalRange }} {{ res.unit }}</span></div>
                    </div>
-                   <div class="col-span-3 text-center border-x">
-                      <div class="text-[0.6rem] font-black text-muted uppercase tracking-widest mb-2">{{ 'NORMAL_RANGE'|translate }}</div>
-                      <div class="font-black text-lg">{{ res.normalRange }} <span class="text-xs opacity-50">{{ res.unit }}</span></div>
-                   </div>
-                   <div class="col-span-3 flex flex-col items-center">
+
+                   <div class="col-span-3">
                       <div class="text-[0.6rem] font-black text-muted uppercase tracking-widest mb-2">{{ 'OBSERVED_VALUE'|translate }}</div>
-                      <div class="flex items-end gap-2">
-                         <input class="val-input" [(ngModel)]="res.resultValue" [disabled]="selectedReq.status==='Completed'">
-                         <span class="text-xs font-black uppercase opacity-40">{{ res.unit }}</span>
+                      <div class="flex items-center gap-2">
+                         <input class="val-input !w-full" [(ngModel)]="res.resultValue" [disabled]="selectedReq.status==='Completed'" placeholder="---">
+                         <span class="text-xs font-black opacity-40">{{ res.unit }}</span>
                       </div>
                    </div>
-                   <div class="col-span-2 text-right">
+
+                   <div class="col-span-3">
+                      <div class="text-[0.6rem] font-black text-muted uppercase tracking-widest mb-2">{{ 'RESULT_FLAG'|translate }}</div>
+                      <select class="form-control rounded-xl font-black text-xs h-11 border-2" [(ngModel)]="res.resultFlag" [disabled]="selectedReq.status==='Completed'"
+                        [ngClass]="{'border-success': res.resultFlag==='Normal', 'border-warning': res.resultFlag==='Low', 'border-danger': res.resultFlag==='High'||res.resultFlag==='Critical'}">
+                         <option [ngValue]="null">NORMAL</option>
+                         <option value="Normal">NORMAL</option>
+                         <option value="Low">LOW</option>
+                         <option value="High">HIGH</option>
+                         <option value="Critical">CRITICAL</option>
+                      </select>
+                   </div>
+
+                   <div class="col-span-2 text-right pt-6">
                       <button *ngIf="selectedReq.status !== 'Completed'" class="btn btn-primary h-12 w-12 rounded-2xl shadow-primary" (click)="saveResult(res)"><span class="material-icons-round">save</span></button>
-                      <span *ngIf="selectedReq.status === 'Completed'" class="material-icons-round text-success text-3xl">check_circle</span>
+                      <span *ngIf="selectedReq.status === 'Completed'" class="material-icons-round text-success text-3xl">verified</span>
+                   </div>
+
+                   <div class="col-span-7 mt-4">
+                      <div class="text-[0.6rem] font-black text-muted uppercase tracking-widest mb-1">{{ 'LAB_TECHNICIAN_REMARKS'|translate }}</div>
+                      <input class="form-control rounded-xl h-10 text-xs italic" [(ngModel)]="res.remarks" [disabled]="selectedReq.status==='Completed'" [placeholder]="'ENTER_REMARKS_IF_ANY'|translate">
+                   </div>
+                   <div class="col-span-5 mt-4">
+                      <div class="text-[0.6rem] font-black text-muted uppercase tracking-widest mb-1">{{ 'PERFORMED_BY'|translate }}</div>
+                      <input class="form-control rounded-xl h-10 text-xs font-bold" [(ngModel)]="res.performedBy" [disabled]="selectedReq.status==='Completed'" placeholder="Technician Name">
                    </div>
                 </div>
              </div>
@@ -280,7 +299,12 @@ export class LabComponent implements OnInit {
    }
 
    saveResult(res: any) {
-      this.lab.updateResult(res.id, { resultValue: res.resultValue }).subscribe({
+      this.lab.updateResult(res.id, {
+         resultValue: res.resultValue,
+         remarks: res.remarks,
+         performedBy: res.performedBy,
+         resultFlag: res.resultFlag
+      }).subscribe({
          next: () => this.toast.success(this.translate.instant('LAB_RESULT_SAVED')),
          error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
       });

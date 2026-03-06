@@ -74,7 +74,12 @@ public class AccountingController : ControllerBase
 public class InventoryController : ControllerBase
 {
     private readonly IInventoryService _service;
-    public InventoryController(IInventoryService service) => _service = service;
+    private readonly IPdfService _pdfService;
+    public InventoryController(IInventoryService service, IPdfService pdfService) 
+    { 
+        _service = service; 
+        _pdfService = pdfService;
+    }
 
     [HttpGet("items")]
     public async Task<IActionResult> GetItems([FromQuery] PagedRequest request) => Ok(await _service.GetItemsAsync(request));
@@ -178,6 +183,13 @@ public class InventoryController : ControllerBase
     [HttpGet("scan")]
     public async Task<IActionResult> ScanBarcode([FromQuery] string barcode, [FromQuery] int? warehouseId)
         => Ok(await _service.ScanBarcodeAsync(barcode, warehouseId));
+
+    [HttpGet("reports/pdf")]
+    public async Task<IActionResult> GetInventoryPdf([FromQuery] int? warehouseId, [FromQuery] string? status)
+    {
+        var pdf = await _pdfService.GenerateInventoryReportPdfAsync(warehouseId, status);
+        return File(pdf, "application/pdf", $"Inventory_Report_{DateTime.Now:yyyyMMdd}.pdf");
+    }
 }
 
 [Authorize]
@@ -286,6 +298,14 @@ public class HRController : ControllerBase
     {
         try { var u = User.FindFirstValue(ClaimTypes.Name) ?? "system"; return Ok(await _service.GeneratePayrollAsync(dto, u)); }
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
+    [HttpPost("payrolls/bulk")]
+    [Authorize(Roles = "Admin,Accountant")]
+    public async Task<IActionResult> BulkGeneratePayroll([FromQuery] int year, [FromQuery] int month)
+    {
+        var u = User.FindFirstValue(ClaimTypes.Name) ?? "system";
+        return Ok(await _service.BulkGeneratePayrollAsync(year, month, u));
     }
 
     [HttpPost("payrolls/{id}/pay")]

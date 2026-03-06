@@ -33,6 +33,9 @@ import { ToastService } from '../../core/services/language.service';
         <button *ngIf="tab==='payroll'" class="btn btn-primary px-4 shadow-primary" (click)="showGenPayroll=true">
           <span class="material-icons-round mr-1" style="font-size:20px">payments</span> {{ 'GENERATE_PAYROLL' | translate }}
         </button>
+        <button *ngIf="tab==='payroll'" class="btn btn-secondary px-4" (click)="bulkGenerate()">
+          <span class="material-icons-round mr-1" style="font-size:20px">auto_fix_high</span> {{ 'BULK_GENERATE' | translate }}
+        </button>
       </div>
     </div>
 
@@ -421,6 +424,18 @@ export class HrComponent implements OnInit {
         error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
       });
     }
+  }
+
+  bulkGenerate() {
+    const month = new Date().getMonth() + 1;
+    const year = new Date().getFullYear();
+    this.svc.bulkGeneratePayroll(year, month).subscribe({
+      next: () => {
+        this.toast.success(this.translate.instant('SUCCESS_SAVE'));
+        this.loadPayrolls();
+      },
+      error: (e: any) => this.toast.error(e.error?.message || this.translate.instant('ERROR_OCCURRED'))
+    });
   }
 
   generatePayroll() {

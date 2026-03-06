@@ -29,6 +29,11 @@ public class AccountingService : IAccountingService
         var a = await _uow.Accounts.Query().Include(a => a.ParentAccount).FirstOrDefaultAsync(a => a.Id == id);
         return a is null ? null : ToDto(a);
     }
+    public async Task<AccountDto?> GetAccountByCodeAsync(string code)
+    {
+        var a = await _uow.Accounts.Query().FirstOrDefaultAsync(a => a.AccountCode == code);
+        return a is null ? null : ToDto(a);
+    }
 
     public async Task<AccountDto> CreateAccountAsync(CreateAccountDto dto, string createdBy)
     {

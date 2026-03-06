@@ -99,7 +99,7 @@ public class AssetService : IAssetService
             asset.NextMaintenanceDate = asset.PurchaseDate.AddDays(asset.MaintenanceIntervalDays.Value);
         }
 
-        await _uow.Assets.UpdateAsync(asset);
+        _uow.Assets.Update(asset);
         await _uow.SaveChangesAsync();
         return MapToDto(asset);
     }
@@ -110,7 +110,7 @@ public class AssetService : IAssetService
         asset.IsDeleted = true;
         asset.UpdatedBy = userId;
         asset.UpdatedDate = DateTime.UtcNow;
-        await _uow.Assets.UpdateAsync(asset);
+        _uow.Assets.Update(asset);
         await _uow.SaveChangesAsync();
     }
 
@@ -162,7 +162,7 @@ public class AssetService : IAssetService
         if (ticket.Type == "Corrective")
         {
             asset.Status = "Maintenance";
-            await _uow.Assets.UpdateAsync(asset);
+            _uow.Assets.Update(asset);
         }
 
         await _uow.MaintenanceTickets.AddAsync(ticket);
@@ -205,10 +205,10 @@ public class AssetService : IAssetService
             {
                 ticket.Asset.NextMaintenanceDate = ticket.Asset.LastMaintenanceDate.Value.AddDays(ticket.Asset.MaintenanceIntervalDays.Value);
             }
-            await _uow.Assets.UpdateAsync(ticket.Asset);
+            _uow.Assets.Update(ticket.Asset);
         }
 
-        await _uow.MaintenanceTickets.UpdateAsync(ticket);
+        _uow.MaintenanceTickets.Update(ticket);
         await _uow.SaveChangesAsync();
         return MapTicketToDto(ticket);
     }

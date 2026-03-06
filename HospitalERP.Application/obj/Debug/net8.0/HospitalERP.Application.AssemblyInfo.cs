@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("HospitalERP.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fdd60a614a96b94ec519d024570212ccf64b7aa2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3f51680db5f203c465cfad8835901c724c640485")]
 [assembly: System.Reflection.AssemblyProductAttribute("HospitalERP.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("HospitalERP.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

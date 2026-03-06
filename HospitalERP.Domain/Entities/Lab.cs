@@ -40,4 +40,5 @@ public class LabResult : BaseEntity
     public DateTime? ResultDate { get; set; }
     public string? Remarks { get; set; }
     public string? PerformedBy { get; set; }
+    public string? ResultFlag { get; set; } // Normal, Low, High, Critical
 }

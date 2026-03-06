@@ -335,8 +335,6 @@ public record CreatePayrollDto(int EmployeeId, int Month, int Year, decimal Bonu
 public record ExpenseDto(int Id, string ExpenseNumber, string Description, string Category, decimal Amount, DateTime ExpenseDate, string? Vendor, bool IsApproved, string? Notes);
 public record CreateExpenseDto(string Description, string Category, decimal Amount, DateTime ExpenseDate, string? Vendor, string? Notes);
 
-public record AssetDto(int Id, string AssetCode, string AssetName, string Category, decimal PurchaseCost, DateTime PurchaseDate, decimal DepreciationRate, decimal CurrentValue, string? Location, string Status);
-public record CreateAssetDto(string AssetName, string Category, decimal PurchaseCost, DateTime PurchaseDate, decimal DepreciationRate, string? Location);
 
 // ═══════════════════════════════════════════════════════════════
 //  NOTIFICATION
@@ -436,8 +434,8 @@ public record CreateLabTestDto(string Name, string NameAr, string Category, stri
 public record LabRequestDto(int Id, string RequestNumber, int PatientId, string PatientName, int? DoctorId, string? DoctorName, DateTime RequestDate, string Status, decimal TotalAmount, string? Notes, List<LabResultDto> Results);
 public record CreateLabRequestDto(int PatientId, int? DoctorId, DateTime RequestDate, string? Notes, List<int> TestIds);
 
-public record LabResultDto(int Id, int LabRequestId, int LabTestId, string TestName, string? ResultValue, string? NormalRange, string? Unit, DateTime? ResultDate, string? Remarks, string? PerformedBy);
-public record UpdateLabResultDto(string? ResultValue, string? Remarks, string? PerformedBy);
+public record LabResultDto(int Id, int LabRequestId, int LabTestId, string TestName, string? ResultValue, string? NormalRange, string? Unit, DateTime? ResultDate, string? Remarks, string? PerformedBy, string? ResultFlag);
+public record UpdateLabResultDto(string? ResultValue, string? Remarks, string? PerformedBy, string? ResultFlag);
 
 // ═══════════════════════════════════════════════════════════════
 //  RADIOLOGY

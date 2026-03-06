@@ -111,8 +111,12 @@ public class LabService : ILabService
     public async Task<LabRequestDto> UpdateResultAsync(int resultId, UpdateLabResultDto dto, string updatedBy)
     {
         var res = await _uow.LabResults.GetByIdAsync(resultId) ?? throw new KeyNotFoundException();
-        res.ResultValue = dto.ResultValue; res.Remarks = dto.Remarks; res.PerformedBy = dto.PerformedBy;
-        res.ResultDate = DateTime.UtcNow; res.UpdatedBy = updatedBy;
+        res.ResultValue = dto.ResultValue; 
+        res.Remarks = dto.Remarks; 
+        res.PerformedBy = dto.PerformedBy;
+        res.ResultFlag = dto.ResultFlag;
+        res.ResultDate = DateTime.UtcNow; 
+        res.UpdatedBy = updatedBy;
         _uow.LabResults.Update(res); 
         await _uow.SaveChangesAsync(); 
         await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "LabResult", resultId, $"Lab Result updated for Lab Request ID {res.LabRequestId}.");
@@ -141,5 +145,5 @@ public class LabService : ILabService
 
     internal static LabTestDto ToDto(LabTest t) => new(t.Id, t.TestCode, t.Name, t.NameAr, t.Category, t.NormalRange, t.Unit, t.Price, t.IsActive);
     internal static LabRequestDto ToRDto(LabRequest r) => new(r.Id, r.RequestNumber, r.PatientId, r.Patient?.FullName ?? "N/A", r.DoctorId, r.Doctor?.FullName, r.RequestDate, r.Status, r.TotalAmount, r.Notes, r.Results.Select(ToResDto).ToList());
-    internal static LabResultDto ToResDto(LabResult res) => new(res.Id, res.LabRequestId, res.LabTestId, res.LabTest?.Name ?? "N/A", res.ResultValue, res.NormalRange, res.Unit, res.ResultDate, res.Remarks, res.PerformedBy);
+    internal static LabResultDto ToResDto(LabResult res) => new(res.Id, res.LabRequestId, res.LabTestId, res.LabTest?.Name ?? "N/A", res.ResultValue, res.NormalRange, res.Unit, res.ResultDate, res.Remarks, res.PerformedBy, res.ResultFlag);
 }

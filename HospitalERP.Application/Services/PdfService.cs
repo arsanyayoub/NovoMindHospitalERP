@@ -360,42 +360,17 @@ public class PdfService : IPdfService
             container.Page(page =>
             {
                 page.Size(PageSizes.A4);
-                page.Margin(1, Unit.Centimetre);
+                page.Margin(1.5f, Unit.Centimetre);
                 page.PageColor(Colors.White);
                 page.DefaultTextStyle(x => x.FontSize(10).FontFamily(Fonts.Arial));
 
-                page.Header().Row(row =>
-                {
-                    row.RelativeItem().Column(col =>
-                    {
-                        col.Item().Text("NovoMind Hospital").FontSize(20).SemiBold().FontColor(Colors.Blue.Medium);
-                        col.Item().Text("Laboratory Diagnostic Report").FontSize(14).SemiBold().FontColor(Colors.Grey.Medium);
-                    });
-
-                    row.RelativeItem().AlignRight().Column(col =>
-                    {
-                        col.Item().Text($"Ref: {r.RequestNumber}").FontSize(12).SemiBold();
-                        col.Item().Text($"Date: {r.RequestDate:d}").FontSize(10);
-                    });
-                });
+                // Professional Header
+                page.Header().Element(headerContainer => ComposeHeader(headerContainer, "LABORATORY REPORT", r.RequestNumber, r.RequestDate));
 
                 page.Content().PaddingVertical(1, Unit.Centimetre).Column(col =>
                 {
-                    // Patient Header
-                    col.Item().BorderVertical(2).BorderColor(Colors.Blue.Medium).Background(Colors.Grey.Lighten4).Padding(10).Row(row =>
-                    {
-                        row.RelativeItem().Column(c =>
-                        {
-                            c.Item().Text("PATIENT").FontSize(8).SemiBold().FontColor(Colors.Grey.Darken1);
-                            c.Item().Text(r.Patient.FullName).FontSize(12).Bold();
-                            c.Item().Text($"Age/Sex: {CalculateAge(r.Patient.DateOfBirth)}Y / {r.Patient.Gender}");
-                        });
-                        row.RelativeItem().Column(c =>
-                        {
-                            c.Item().Text("REFERRING DOCTOR").FontSize(8).SemiBold().FontColor(Colors.Grey.Darken1);
-                            c.Item().Text($"Dr. {r.Doctor?.FullName ?? "N/A"}").FontSize(11).Medium();
-                        });
-                    });
+                    // Patient Box
+                    col.Item().Element(box => ComposePatientBox(box, r.Patient, r.Doctor?.FullName));
 
                     col.Item().PaddingTop(20).Table(table =>
                     {
@@ -404,50 +379,68 @@ public class PdfService : IPdfService
                             columns.RelativeColumn(3);
                             columns.RelativeColumn();
                             columns.RelativeColumn();
-                            columns.RelativeColumn(2);
+                            columns.RelativeColumn();
+                            columns.RelativeColumn(1.5f);
                         });
 
                         table.Header(header =>
                         {
-                            header.Cell().Element(CellStyle).Text("Test Analysis");
-                            header.Cell().Element(CellStyle).Text("Result");
-                            header.Cell().Element(CellStyle).Text("Units");
-                            header.Cell().Element(CellStyle).Text("Reference Range");
+                            header.Cell().Element(HeaderStyle).Text("Analysis Name");
+                            header.Cell().Element(HeaderStyle).AlignCenter().Text("Result");
+                            header.Cell().Element(HeaderStyle).AlignCenter().Text("Flag");
+                            header.Cell().Element(HeaderStyle).AlignCenter().Text("Units");
+                            header.Cell().Element(HeaderStyle).AlignRight().Text("Reference Range");
 
-                            static IContainer CellStyle(IContainer container) => container.DefaultTextStyle(x => x.SemiBold()).PaddingVertical(8).BorderBottom(1).BorderColor(Colors.Black);
+                            static IContainer HeaderStyle(IContainer container) => container.DefaultTextStyle(x => x.SemiBold()).PaddingVertical(8).BorderBottom(1).BorderColor(Colors.Blue.Darken4);
                         });
 
                         foreach (var res in r.Results)
                         {
-                            table.Cell().Element(CellStyle).Column(c => {
+                            table.Cell().Element(RowStyle).Column(c => {
                                 c.Item().Text(res.LabTest.Name).Bold();
-                                if (!string.IsNullOrEmpty(res.Remarks)) c.Item().Text(res.Remarks).FontSize(8).Italic();
+                                if (!string.IsNullOrEmpty(res.Remarks)) c.Item().Text(res.Remarks).FontSize(8).Italic().FontColor(Colors.Grey.Medium);
                             });
-                            table.Cell().Element(CellStyle).Text(res.ResultValue ?? "Pending").Bold().FontColor(Colors.Blue.Medium);
-                            table.Cell().Element(CellStyle).Text(res.Unit ?? "");
-                            table.Cell().Element(CellStyle).Text(res.NormalRange ?? "");
+                            
+                            table.Cell().Element(RowStyle).AlignCenter().Text(res.ResultValue ?? "---").Bold();
+                            
+                            var flagColor = res.ResultFlag switch {
+                                "High" => Colors.Red.Medium,
+                                "Low" => Colors.Orange.Medium,
+                                "Critical" => Colors.Red.Darken4,
+                                _ => Colors.Black
+                            };
+                            table.Cell().Element(RowStyle).AlignCenter().Text(res.ResultFlag ?? "-").FontColor(flagColor).Bold();
+                            
+                            table.Cell().Element(RowStyle).AlignCenter().Text(res.Unit ?? "");
+                            table.Cell().Element(RowStyle).AlignRight().Text(res.NormalRange ?? "");
 
-                            static IContainer CellStyle(IContainer container) => container.PaddingVertical(8).BorderBottom(1).BorderColor(Colors.Grey.Lighten3);
+                            static IContainer RowStyle(IContainer container) => container.PaddingVertical(8).BorderBottom(1).BorderColor(Colors.Grey.Lighten3);
                         }
                     });
 
-                    col.Item().PaddingTop(40).Row(row => {
+                    col.Item().PaddingTop(30).Row(row => {
                         row.RelativeItem().Column(c => {
-                            c.Item().Text("Validated By:").FontSize(8).SemiBold();
-                            c.Item().PaddingTop(20).BorderTop(1).AlignCenter().Text("Head of Laboratory").FontSize(9);
+                            c.Item().Text("Clinician Remarks:").SemiBold().FontSize(9);
+                            c.Item().PaddingTop(5).Text(r.Notes ?? "No specific clinical notes provided.").FontSize(9).Italic();
+                        });
+                    });
+
+                    col.Item().PaddingTop(50).Row(row => {
+                        row.RelativeItem().Column(c => {
+                            c.Item().PaddingBottom(5).AlignCenter().Text("_________________________").FontSize(10);
+                            c.Item().AlignCenter().Text("Medical Lab Technologist").FontSize(9).SemiBold();
+                            c.Item().AlignCenter().Text(r.Results.FirstOrDefault()?.PerformedBy ?? "Authorized Signatory").FontSize(8).Italic();
                         });
                         row.ConstantItem(100);
                         row.RelativeItem().Column(c => {
-                            c.Item().Text("Reported On:").FontSize(8).SemiBold();
-                            c.Item().PaddingTop(20).BorderTop(1).AlignCenter().Text($"{DateTime.Now:g}").FontSize(9);
+                            c.Item().PaddingBottom(5).AlignCenter().Text("_________________________").FontSize(10);
+                            c.Item().AlignCenter().Text("Pathologist / Consultant").FontSize(9).SemiBold();
+                            c.Item().AlignCenter().Text("Digitally Verified Report").FontSize(8).Italic();
                         });
                     });
                 });
 
-                page.Footer().AlignCenter().Text(t => {
-                    t.Span("This is a digitally verified report. NovoMind Diagnostic Center - Page ");
-                    t.CurrentPageNumber();
-                });
+                page.Footer().Element(ComposeFooter);
             });
         });
 
@@ -469,6 +462,69 @@ public class PdfService : IPdfService
             container.Page(page =>
             {
                 page.Size(PageSizes.A4);
+                page.Margin(1.5f, Unit.Centimetre);
+                page.PageColor(Colors.White);
+                page.DefaultTextStyle(x => x.FontSize(10).FontFamily(Fonts.Arial));
+
+                page.Header().Element(headerContainer => ComposeHeader(headerContainer, "RADIOLOGY & IMAGING REPORT", r.RequestNumber, r.RequestDate));
+
+                page.Content().PaddingVertical(1, Unit.Centimetre).Column(col =>
+                {
+                    col.Item().Element(box => ComposePatientBox(box, r.Patient, r.Doctor?.FullName));
+
+                    foreach (var res in r.Results)
+                    {
+                        col.Item().PaddingTop(25).Column(c =>
+                        {
+                            c.Item().Background(Colors.Blue.Lighten5).Padding(8).Row(row => {
+                                row.RelativeItem().Text($"PROCEDURE: {res.RadiologyTest.Name.ToUpper()}").FontSize(11).Bold().FontColor(Colors.Blue.Darken4);
+                                row.RelativeItem().AlignRight().Text($"Date: {res.ResultDate:d}").FontSize(9).Italic();
+                            });
+                            
+                            c.Item().PaddingTop(15).Text("CLINICAL HISTORY / INDICATION").SemiBold().FontSize(9).FontColor(Colors.Grey.Darken2);
+                            c.Item().PaddingTop(3).Text(r.Notes ?? "Not provided.").FontSize(10);
+
+                            c.Item().PaddingTop(15).Text("FINDINGS").SemiBold().FontSize(9).FontColor(Colors.Grey.Darken2);
+                            c.Item().PaddingTop(5).Text(res.Findings ?? "No structural findings recorded.").LineHeight(1.5f).FontSize(10);
+
+                            c.Item().PaddingTop(20).Border(1).BorderColor(Colors.Grey.Lighten2).Background(Colors.Grey.Lighten5).Padding(10).Column(impCol => {
+                                impCol.Item().Text("IMPRESSION").SemiBold().FontSize(9).FontColor(Colors.Blue.Darken4);
+                                impCol.Item().PaddingTop(5).Text(res.Impression ?? "No definitive impression.").Bold().LineHeight(1.4f).FontSize(11);
+                            });
+
+                            c.Item().PaddingTop(40).AlignRight().Column(sig => {
+                                sig.Item().PaddingBottom(5).Text("_________________________");
+                                sig.Item().Text($"Dr. {res.RadiologistName ?? "Consultant Radiologist"}").SemiBold();
+                                sig.Item().Text("Department of Radiology").FontSize(8);
+                                sig.Item().Text($"Report ID: {r.RequestNumber}-{res.Id}").FontSize(7).Italic();
+                            });
+                        });
+
+                        if (r.Results.Last() != res) col.Item().PageBreak();
+                    }
+                });
+
+                page.Footer().Element(ComposeFooter);
+            });
+        });
+
+        return document.GeneratePdf();
+    }
+
+    public async Task<byte[]> GenerateInventoryReportPdfAsync(int? warehouseId, string? status)
+    {
+        var query = _uow.ItemBatches.Query().Include(x => x.Item).Include(x => x.Warehouse).AsQueryable();
+        if (warehouseId.HasValue) query = query.Where(x => x.WarehouseId == warehouseId);
+        if (!string.IsNullOrEmpty(status)) query = query.Where(x => x.Status == status);
+        
+        var batches = await query.OrderBy(x => x.ExpiryDate).ToListAsync();
+        var whName = warehouseId.HasValue ? batches.FirstOrDefault()?.Warehouse?.WarehouseName ?? "Selected Warehouse" : "All Warehouses";
+
+        var document = Document.Create(container =>
+        {
+            container.Page(page =>
+            {
+                page.Size(PageSizes.A4);
                 page.Margin(1, Unit.Centimetre);
                 page.PageColor(Colors.White);
                 page.DefaultTextStyle(x => x.FontSize(10).FontFamily(Fonts.Arial));
@@ -477,72 +533,143 @@ public class PdfService : IPdfService
                 {
                     row.RelativeItem().Column(col =>
                     {
-                        col.Item().Text("NovoMind Hospital").FontSize(20).SemiBold().FontColor(Colors.DeepPurple.Medium);
-                        col.Item().Text("Department of Radiology & Imaging").FontSize(14).SemiBold().FontColor(Colors.Grey.Medium);
+                        col.Item().Text("NovoMind Hospital").FontSize(18).SemiBold().FontColor(Colors.Blue.Medium);
+                        col.Item().Text("Inventory Batch Status Report").FontSize(14).SemiBold();
+                        col.Item().Text($"Warehouse: {whName}").FontSize(11).Italic();
                     });
-
                     row.RelativeItem().AlignRight().Column(col =>
                     {
-                        col.Item().Text($"File No: {r.RequestNumber}").FontSize(12).SemiBold();
-                        col.Item().Text($"Exam Date: {r.RequestDate:d}").FontSize(10);
+                        col.Item().Text($"Printed: {DateTime.Now:f}").FontSize(9);
+                        col.Item().Text($"Items Count: {batches.Count}").FontSize(9);
                     });
                 });
 
-                page.Content().PaddingVertical(1, Unit.Centimetre).Column(col =>
+                page.Content().PaddingVertical(0.5f, Unit.Centimetre).Column(col =>
                 {
-                    // Patient Header
-                    col.Item().Padding(10).Border(1).BorderColor(Colors.Grey.Lighten2).Row(row =>
+                    col.Item().Table(table =>
                     {
-                        row.RelativeItem().Column(c =>
+                        table.ColumnsDefinition(columns =>
                         {
-                            c.Item().Text("PATIENT NAME").FontSize(8).SemiBold().FontColor(Colors.Grey.Medium);
-                            c.Item().Text(r.Patient.FullName).FontSize(12).Bold();
+                            columns.RelativeColumn(2);
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
                         });
-                        row.RelativeItem().Column(c =>
-                        {
-                            c.Item().Text("ID / SEX / AGE").FontSize(8).SemiBold().FontColor(Colors.Grey.Medium);
-                            c.Item().Text($"{r.Patient.PatientCode} / {r.Patient.Gender} / {CalculateAge(r.Patient.DateOfBirth)}Y");
-                        });
-                        row.RelativeItem().AlignRight().Column(c =>
-                        {
-                            c.Item().Text("REFERRED BY").FontSize(8).SemiBold().FontColor(Colors.Grey.Medium);
-                            c.Item().Text($"Dr. {r.Doctor?.FullName ?? "N/A"}").FontSize(10).Medium();
-                        });
-                    });
 
-                    foreach (var res in r.Results)
-                    {
-                        col.Item().PaddingTop(25).Column(c =>
+                        table.Header(header =>
                         {
-                            c.Item().Background(Colors.Grey.Lighten3).Padding(5).Text($"STUDY: {res.RadiologyTest.Name.ToUpper()}").FontSize(12).Bold();
+                            header.Cell().Element(CellStyle).Text("Item Name");
+                            header.Cell().Element(CellStyle).Text("Batch #");
+                            header.Cell().Element(CellStyle).AlignCenter().Text("Expiry Date");
+                            header.Cell().Element(CellStyle).AlignCenter().Text("Qty");
+                            header.Cell().Element(CellStyle).AlignRight().Text("Status");
+
+                            static IContainer CellStyle(IContainer container) => container.DefaultTextStyle(x => x.SemiBold()).PaddingVertical(5).BorderBottom(1).BorderColor(Colors.Black);
+                        });
+
+                        foreach (var b in batches)
+                        {
+                            table.Cell().Element(RowStyle).Text(b.Item?.ItemName ?? "N/A");
+                            table.Cell().Element(RowStyle).Text(b.BatchNumber);
+                            table.Cell().Element(RowStyle).AlignCenter().Text($"{b.ExpiryDate:d}");
+                            table.Cell().Element(RowStyle).AlignCenter().Text($"{b.QuantityRemaining}");
                             
-                            c.Item().PaddingTop(15).Text("CLINICAL FINDINGS").SemiBold().Underline();
-                            c.Item().PaddingTop(5).Text(res.Findings ?? "No findings recorded.").LineHeight(1.5f);
+                            var statusColor = b.Status == "Active" && b.ExpiryDate > DateTime.UtcNow.AddDays(30) ? Colors.Green.Medium : 
+                                              b.ExpiryDate <= DateTime.UtcNow ? Colors.Red.Medium : Colors.Orange.Medium;
+                            
+                            table.Cell().Element(RowStyle).AlignRight().Text(b.Status).FontColor(statusColor).Bold();
 
-                            c.Item().PaddingTop(20).Text("IMPRESSION").SemiBold().Underline();
-                            c.Item().PaddingTop(5).Text(res.Impression ?? "No impression recorded.").Bold().LineHeight(1.5f);
-
-                            c.Item().PaddingTop(30).AlignRight().Column(sig => {
-                                sig.Item().Text($"Radiologist: {res.RadiologistName ?? "N/A"}").Medium();
-                                sig.Item().Text($"Electronic Signature Verification").FontSize(8).Italic();
-                            });
-                        });
-                    }
+                            static IContainer RowStyle(IContainer container) => container.PaddingVertical(5).BorderBottom(1).BorderColor(Colors.Grey.Lighten3);
+                        }
+                    });
                 });
 
-                page.Footer().PaddingTop(20).Column(c => {
-                    c.Item().BorderTop(1).PaddingTop(5).Row(row => {
-                        row.RelativeItem().Text("NovoMind Imaging Center").FontSize(9).FontColor(Colors.Grey.Medium);
-                        row.RelativeItem().AlignRight().Text(t => {
-                            t.Span("Page ");
-                            t.CurrentPageNumber();
-                        });
-                    });
+                page.Footer().AlignCenter().Text(x =>
+                {
+                    x.Span("NovoMind Inventory Management System - Page ");
+                    x.CurrentPageNumber();
                 });
             });
         });
 
         return document.GeneratePdf();
+    }
+
+    private void ComposeHeader(IContainer container, string title, string refNo, DateTime date)
+    {
+        container.Row(row =>
+        {
+            row.RelativeItem().Column(col =>
+            {
+                col.Item().Text("NOVOMIND").FontSize(22).ExtraBold().FontColor(Colors.Blue.Darken4).LetterSpacing(0.05f);
+                col.Item().Text("HEALTHCARE & DIAGNOSTICS").FontSize(9).SemiBold().FontColor(Colors.Grey.Darken1).LetterSpacing(0.1f);
+                col.Item().PaddingTop(5).Text("123 Medical Avenue, Tech City, 54000").FontSize(8);
+                col.Item().Text("Tel: +1 800-NOVOMIND | Email: lab@novomind.com").FontSize(8);
+            });
+
+            row.RelativeItem().AlignRight().Column(col =>
+            {
+                col.Item().Background(Colors.Blue.Darken4).PaddingHorizontal(10).PaddingVertical(5).Text(title).FontSize(14).SemiBold().FontColor(Colors.White);
+                col.Item().PaddingTop(10).Text(t => {
+                    t.Span("Report Ref: ").FontSize(9).SemiBold();
+                    t.Span(refNo).FontSize(10).Bold();
+                });
+                col.Item().Text(t => {
+                    t.Span("Date: ").FontSize(9).SemiBold();
+                    t.Span($"{date:f}").FontSize(9);
+                });
+            });
+        });
+    }
+
+    private void ComposePatientBox(IContainer container, Patient p, string? doctorName)
+    {
+        container.Border(1).BorderColor(Colors.Blue.Medium).Row(row =>
+        {
+            row.RelativeItem().Padding(10).Column(c =>
+            {
+                c.Item().Text("PATIENT DETAILS").FontSize(8).SemiBold().FontColor(Colors.Blue.Darken2);
+                c.Item().PaddingTop(2).Text(p.FullName).FontSize(13).Bold();
+                c.Item().Text($"Patient ID: {p.PatientCode} | Gender: {p.Gender}").FontSize(9);
+                c.Item().Text($"Age: {CalculateAge(p.DateOfBirth)} Years | DOB: {p.DateOfBirth:d}").FontSize(9);
+            });
+
+            row.ConstantItem(1).Background(Colors.Blue.Medium);
+
+            row.RelativeItem().Padding(10).Column(c =>
+            {
+                c.Item().Text("REFERRAL INFO").FontSize(8).SemiBold().FontColor(Colors.Blue.Darken2);
+                c.Item().PaddingTop(2).Text($"Dr. {doctorName ?? "General Practitioner"}").FontSize(11).Medium();
+                c.Item().Text("NovoMind Medical Center").FontSize(9);
+                c.Item().PaddingTop(5).Row(r => {
+                    r.RelativeItem().Text("Collection:").FontSize(8).SemiBold();
+                    r.RelativeItem().AlignRight().Text($"{DateTime.Now:d}").FontSize(8);
+                });
+            });
+        });
+    }
+
+    private void ComposeFooter(IContainer container)
+    {
+        container.Column(col => {
+            col.Item().BorderTop(1).BorderColor(Colors.Grey.Lighten2).PaddingTop(5).Row(row =>
+            {
+                row.RelativeItem().Text(t => {
+                    t.Span("Confidentiality Notice: ").SemiBold();
+                    t.Span("This report is for the intended recipient and their healthcare provider only.").FontSize(8).FontColor(Colors.Grey.Medium);
+                });
+                
+                row.RelativeItem().AlignRight().Text(x =>
+                {
+                    x.Span("Page ");
+                    x.CurrentPageNumber();
+                    x.Span(" of ");
+                    x.TotalPages();
+                });
+            });
+            col.Item().AlignCenter().Text("NovoMind Enterprise ERP System - Digitally Generated Report & Verification").FontSize(7).Italic().FontColor(Colors.Grey.Lighten1);
+        });
     }
 
     private int CalculateAge(DateTime dob)
