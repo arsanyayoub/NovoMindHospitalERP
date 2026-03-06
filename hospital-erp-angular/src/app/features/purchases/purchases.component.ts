@@ -27,7 +27,7 @@ import { ToastService } from '../../core/services/language.service';
     
     .summary-box { background: rgba(var(--primary-rgb), 0.05); border-radius: 16px; padding: 20px; border: 1px solid rgba(var(--primary-rgb), 0.1); margin-top: 20px; width: 100%; max-width: 350px; margin-left: auto; }
     .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
-    .summary-row.total { font-size: 1.25rem; font-bold; color: var(--primary); border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px; }
+    .summary-row.total { font-size: 1.25rem; font-weight: bold; color: var(--primary); border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px; }
     
     .pay-card { background: rgba(var(--card-bg-rgb), 0.5); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
   `],

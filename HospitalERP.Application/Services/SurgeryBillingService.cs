@@ -95,7 +95,7 @@ public class SurgeryBillingService : ISurgeryBillingService
         surgery.InvoiceId = invoice.Id;
         surgery.TotalCost = items.Sum(i => i.UnitPrice * i.Quantity);
         
-        await _uow.ScheduledSurgeries.UpdateAsync(surgery);
+        _uow.ScheduledSurgeries.Update(surgery);
         await _uow.SaveChangesAsync();
 
         _logger.LogInformation("Generated Invoice #{InvoiceId} for Surgery #{SurgeryId}", invoice.Id, surgeryId);

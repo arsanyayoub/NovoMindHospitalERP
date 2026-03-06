@@ -153,9 +153,9 @@ public class PharmacyService : IPharmacyService
         }
         await _uow.SaveChangesAsync();
 
-        if (batch.WarehouseId.HasValue && pi.ItemId.HasValue) 
+        if (batch.WarehouseId.HasValue) 
         {
-            await _notif.CheckStockLevelAsync(pi.ItemId.Value, batch.WarehouseId.Value);
+            await _notif.CheckStockLevelAsync(pi.ItemId, batch.WarehouseId.Value);
         }
     }
 

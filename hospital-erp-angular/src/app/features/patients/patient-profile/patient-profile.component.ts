@@ -364,7 +364,6 @@ import { ToastService } from '../../../core/services/language.service';
                                </div>
                             </div>
                          </div>
-                      </div>
                    </div>
                 </div>
 

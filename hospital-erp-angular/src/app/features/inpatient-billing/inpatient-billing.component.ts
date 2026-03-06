@@ -6,10 +6,10 @@ import { InpatientBillingService, BedManagementService } from '../../core/servic
 import { ToastService } from '../../core/services/language.service';
 
 @Component({
-    selector: 'app-inpatient-billing',
-    standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule],
-    template: `
+  selector: 'app-inpatient-billing',
+  standalone: true,
+  imports: [CommonModule, FormsModule, TranslateModule],
+  template: `
     <div class="animate-in">
       <div class="flex justify-between items-center mb-8">
         <div>
@@ -33,7 +33,7 @@ import { ToastService } from '../../core/services/language.service';
           </div>
           <div class="card bg-glass">
             <div class="text-[0.65rem] font-black uppercase text-muted tracking-widest mb-1">Last Daily Process</div>
-            <div class="text-xl font-black">{{ lastProcessDate | date:'medium' || 'NEVER' | translate }}</div>
+            <div class="text-xl font-black">{{ lastProcessDate ? (lastProcessDate | date:'medium') : ('NEVER' | translate) }}</div>
           </div>
           <!-- Add more stats as needed -->
         </div>
@@ -91,76 +91,76 @@ import { ToastService } from '../../core/services/language.service';
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     .search-box { position: relative; display: flex; align-items: center; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 0 12px; border: 1px solid var(--border); width: 300px; }
     .search-box .material-icons-round { color: var(--text-muted); font-size: 20px; }
     .search-input { background: none; border: none; padding: 10px; color: var(--text-primary); outline: none; width: 100%; font-size: 0.85rem; font-weight: 600; }
   `]
 })
 export class InpatientBillingComponent implements OnInit {
-    activeAdmissions: any[] = [];
-    searchQuery = '';
-    processing = false;
-    lastProcessDate: Date | null = null;
+  activeAdmissions: any[] = [];
+  searchQuery = '';
+  processing = false;
+  lastProcessDate: Date | null = null;
 
-    constructor(
-        private billingSvc: InpatientBillingService,
-        private bedSvc: BedManagementService,
-        private toast: ToastService
-    ) { }
+  constructor(
+    private billingSvc: InpatientBillingService,
+    private bedSvc: BedManagementService,
+    private toast: ToastService
+  ) { }
 
-    ngOnInit() {
-        this.loadAdmissions();
-    }
+  ngOnInit() {
+    this.loadAdmissions();
+  }
 
-    loadAdmissions() {
-        this.bedSvc.getAdmissions({ status: 'Active', page: 1, pageSize: 100 }).subscribe(res => {
-            this.activeAdmissions = res.items;
-        });
-    }
+  loadAdmissions() {
+    this.bedSvc.getAdmissions({ status: 'Active', page: 1, pageSize: 100 }).subscribe(res => {
+      this.activeAdmissions = res.items;
+    });
+  }
 
-    get filteredAdmissions() {
-        if (!this.searchQuery) return this.activeAdmissions;
-        const q = this.searchQuery.toLowerCase();
-        return this.activeAdmissions.filter(a =>
-            a.patientName.toLowerCase().includes(q) ||
-            a.patientCode.toLowerCase().includes(q) ||
-            a.wardName.toLowerCase().includes(q)
-        );
-    }
+  get filteredAdmissions() {
+    if (!this.searchQuery) return this.activeAdmissions;
+    const q = this.searchQuery.toLowerCase();
+    return this.activeAdmissions.filter(a =>
+      a.patientName.toLowerCase().includes(q) ||
+      a.patientCode.toLowerCase().includes(q) ||
+      a.wardName.toLowerCase().includes(q)
+    );
+  }
 
-    getDuration(admissionDate: string): number {
-        const start = new Date(admissionDate);
-        const now = new Date();
-        const diff = now.getTime() - start.getTime();
-        return Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-    }
+  getDuration(admissionDate: string): number {
+    const start = new Date(admissionDate);
+    const now = new Date();
+    const diff = now.getTime() - start.getTime();
+    return Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  }
 
-    processDaily() {
-        this.processing = true;
-        this.billingSvc.processDaily().subscribe({
-            next: (res) => {
-                this.toast.success(res.message || 'Daily billing processed successfully');
-                this.lastProcessDate = new Date();
-                this.processing = false;
-            },
-            error: () => {
-                this.toast.error('Failed to process daily billing');
-                this.processing = false;
-            }
-        });
-    }
+  processDaily() {
+    this.processing = true;
+    this.billingSvc.processDaily().subscribe({
+      next: (res) => {
+        this.toast.success(res.message || 'Daily billing processed successfully');
+        this.lastProcessDate = new Date();
+        this.processing = false;
+      },
+      error: () => {
+        this.toast.error('Failed to process daily billing');
+        this.processing = false;
+      }
+    });
+  }
 
-    finalizeBill(admissionId: number) {
-        if (confirm('Are you sure you want to generate the final bill for this admission?')) {
-            this.billingSvc.finalizeBill(admissionId).subscribe({
-                next: (res) => {
-                    this.toast.success(res.message || 'Final bill generated');
-                },
-                error: () => {
-                    this.toast.error('Failed to finalize bill');
-                }
-            });
+  finalizeBill(admissionId: number) {
+    if (confirm('Are you sure you want to generate the final bill for this admission?')) {
+      this.billingSvc.finalizeBill(admissionId).subscribe({
+        next: (res) => {
+          this.toast.success(res.message || 'Final bill generated');
+        },
+        error: () => {
+          this.toast.error('Failed to finalize bill');
         }
+      });
     }
+  }
 }

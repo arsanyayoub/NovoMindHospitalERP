@@ -31,7 +31,7 @@ public class RadiologyController : ControllerBase
 
     [HttpDelete("tests/{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> DeleteTest(int id) { await _service.DeleteTestAsync(id); return NoContent(); }
+    public async Task<IActionResult> DeleteTest(int id) { var u = User.FindFirstValue(ClaimTypes.Name) ?? "system"; await _service.DeleteTestAsync(id, u); return NoContent(); }
 
     // ── Requests ───────────────
     [HttpGet("requests")]

@@ -6,13 +6,13 @@ import { UserService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
 @Component({
-    selector: 'app-users',
-    standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule],
-    template: `
+  selector: 'app-users',
+  standalone: true,
+  imports: [CommonModule, FormsModule, TranslateModule],
+  template: `
     <div class="page-header">
       <div>
-        <h1 class="page-title">{{ 'USERS_AND_ROLES' | translate || 'Users & Roles' }}</h1>
+        <h1 class="page-title">{{ ('USERS_AND_ROLES' | translate) || 'Users & Roles' }}</h1>
         <p class="page-subtitle">Manage system access and permissions</p>
       </div>
       <button class="btn btn-primary" (click)="openForm()">
@@ -179,7 +179,7 @@ import { ToastService } from '../../core/services/language.service';
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     .filters-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
     .search-box { position: relative; flex: 1; min-width: 250px; }
     .search-box .material-icons-round { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 20px; }
@@ -193,88 +193,88 @@ import { ToastService } from '../../core/services/language.service';
   `]
 })
 export class UsersComponent implements OnInit {
-    request = { page: 1, pageSize: 20, search: '' };
-    data: any;
-    roles: any[] = [];
-    loading = false;
-    showForm = false;
-    saving = false;
-    form: any = {};
+  request = { page: 1, pageSize: 20, search: '' };
+  data: any;
+  roles: any[] = [];
+  loading = false;
+  showForm = false;
+  saving = false;
+  form: any = {};
 
-    constructor(private service: UserService, private toast: ToastService) { }
+  constructor(private service: UserService, private toast: ToastService) { }
 
-    ngOnInit() {
-        this.loadRoles();
+  ngOnInit() {
+    this.loadRoles();
+    this.load();
+  }
+
+  load() {
+    this.loading = true;
+    this.service.getUsers(this.request).subscribe({
+      next: res => { this.data = res; this.loading = false; },
+      error: () => { this.toast.error('Failed to load users'); this.loading = false; }
+    });
+  }
+
+  loadRoles() {
+    this.service.getRoles().subscribe({
+      next: res => this.roles = res,
+      error: () => this.toast.error('Failed to load roles')
+    });
+  }
+
+  getActiveCount() {
+    return this.data?.items?.filter((u: any) => u.isActive).length || 0;
+  }
+
+  openForm(user?: any) {
+    if (user) {
+      this.form = { ...user };
+    } else {
+      this.form = { isActive: true, roleId: this.roles.length ? this.roles[0].id : null };
+    }
+    this.showForm = true;
+  }
+
+  closeForm() {
+    this.showForm = false;
+    this.form = {};
+  }
+
+  save() {
+    if (!this.form.username || !this.form.email || !this.form.fullName || !this.form.roleId || (!this.form.id && !this.form.password)) {
+      this.toast.error('Please fill all required fields');
+      return;
+    }
+
+    this.saving = true;
+    const req = this.form.id
+      ? this.service.updateUser(this.form.id, this.form)
+      : this.service.createUser(this.form);
+
+    req.subscribe({
+      next: () => {
+        this.toast.success(`User ${this.form.id ? 'updated' : 'created'} successfully`);
+        this.saving = false;
+        this.closeForm();
         this.load();
+      },
+      error: (e) => {
+        this.toast.error(e.error?.message || `Failed to ${this.form.id ? 'update' : 'create'} user`);
+        this.saving = false;
+      }
+    });
+  }
+
+  toggleStatus(u: any) {
+    if (confirm(`Are you sure you want to ${u.isActive ? 'deactivate' : 'activate'} this user?`)) {
+      this.service.toggleStatus(u.id).subscribe({
+        next: () => {
+          this.toast.success(`User status updated`);
+          this.load();
+        },
+        error: () => this.toast.error('Failed to update status')
+      });
     }
-
-    load() {
-        this.loading = true;
-        this.service.getUsers(this.request).subscribe({
-            next: res => { this.data = res; this.loading = false; },
-            error: () => { this.toast.error('Failed to load users'); this.loading = false; }
-        });
-    }
-
-    loadRoles() {
-        this.service.getRoles().subscribe({
-            next: res => this.roles = res,
-            error: () => this.toast.error('Failed to load roles')
-        });
-    }
-
-    getActiveCount() {
-        return this.data?.items?.filter((u: any) => u.isActive).length || 0;
-    }
-
-    openForm(user?: any) {
-        if (user) {
-            this.form = { ...user };
-        } else {
-            this.form = { isActive: true, roleId: this.roles.length ? this.roles[0].id : null };
-        }
-        this.showForm = true;
-    }
-
-    closeForm() {
-        this.showForm = false;
-        this.form = {};
-    }
-
-    save() {
-        if (!this.form.username || !this.form.email || !this.form.fullName || !this.form.roleId || (!this.form.id && !this.form.password)) {
-            this.toast.error('Please fill all required fields');
-            return;
-        }
-
-        this.saving = true;
-        const req = this.form.id
-            ? this.service.updateUser(this.form.id, this.form)
-            : this.service.createUser(this.form);
-
-        req.subscribe({
-            next: () => {
-                this.toast.success(`User ${this.form.id ? 'updated' : 'created'} successfully`);
-                this.saving = false;
-                this.closeForm();
-                this.load();
-            },
-            error: (e) => {
-                this.toast.error(e.error?.message || `Failed to ${this.form.id ? 'update' : 'create'} user`);
-                this.saving = false;
-            }
-        });
-    }
-
-    toggleStatus(u: any) {
-        if (confirm(`Are you sure you want to ${u.isActive ? 'deactivate' : 'activate'} this user?`)) {
-            this.service.toggleStatus(u.id).subscribe({
-                next: () => {
-                    this.toast.success(`User status updated`);
-                    this.load();
-                },
-                error: () => this.toast.error('Failed to update status')
-            });
-        }
-    }
+  }
 }

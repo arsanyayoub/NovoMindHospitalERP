@@ -14,7 +14,7 @@ import { ToastService } from '../../core/services/language.service';
     <div class="page-header">
       <div>
         <h1 class="page-title">{{ 'BED_MANAGEMENT' | translate }}</h1>
-        <p class="page-subtitle">{{ 'MANAGE_WARDS_ROOMS_ADMISSIONS' | translate || 'Manage wards, rooms, and patient admissions' }}</p>
+        <p class="page-subtitle">{{ ('MANAGE_WARDS_ROOMS_ADMISSIONS' | translate) || 'Manage wards, rooms, and patient admissions' }}</p>
       </div>
       <div class="flex gap-2" *ngIf="!activeWard">
         <button class="btn btn-primary" (click)="openWardForm()">
@@ -40,7 +40,7 @@ import { ToastService } from '../../core/services/language.service';
             </div>
             <div class="flex-1 text-center border-l dark:border-gray-800">
                 <div class="text-2xl font-black text-accent">{{ w.totalBeds }}</div>
-                <div class="text-xs font-bold text-muted uppercase tracking-wider">{{ 'TOTAL_BEDS' | translate || 'Total Beds' }}</div>
+                <div class="text-xs font-bold text-muted uppercase tracking-wider">{{ ('TOTAL_BEDS' | translate) || 'Total Beds' }}</div>
             </div>
             <div class="flex-1 text-center border-l dark:border-gray-800">
                 <div class="text-2xl font-black text-warning">{{ w.occupiedBeds }}</div>
@@ -59,7 +59,7 @@ import { ToastService } from '../../core/services/language.service';
     
     <div *ngIf="!activeWard && !loading && wards.length === 0" class="card py-10 text-center text-muted">
        <span class="material-icons-round text-4xl mb-2 opacity-50">hotel</span>
-       <p>{{ 'NO_WARDS_CONFIGURED' | translate || 'No wards configured yet.' }}</p>
+       <p>{{ ('NO_WARDS_CONFIGURED' | translate) || 'No wards configured yet.' }}</p>
     </div>
 
     <!-- Ward Details & Beds View -->
@@ -71,7 +71,7 @@ import { ToastService } from '../../core/services/language.service';
             </button>
             <div>
                 <h2 class="text-2xl font-black m-0">{{ activeWard.wardName }}</h2>
-                <p class="text-muted text-sm">{{ activeWard.wardType }} {{ 'WARD' | translate || 'Ward' }} • {{ 'FLOOR' | translate }} {{ activeWard.floorNumber }}</p>
+                <p class="text-muted text-sm">{{ activeWard.wardType }} {{ ('WARD' | translate) || 'Ward' }} • {{ 'FLOOR' | translate }} {{ activeWard.floorNumber }}</p>
             </div>
         </div>
         <div class="flex gap-2">
@@ -94,7 +94,7 @@ import { ToastService } from '../../core/services/language.service';
                 <div class="flex items-center gap-3">
                     <span class="material-icons-round text-primary text-2xl">meeting_room</span>
                     <div>
-                        <h3 class="font-black text-lg m-0 leading-tight">{{ 'ROOM' | translate || 'Room' }} {{ room.roomNumber }}</h3>
+                        <h3 class="font-black text-lg m-0 leading-tight">{{ ('ROOM' | translate) || 'Room' }} {{ room.roomNumber }}</h3>
                         <span class="text-xs font-bold text-muted uppercase tracking-wider">{{ room.roomType }} • {{ 'CAPACITY' | translate }}: {{ room.capacity }}</span>
                     </div>
                 </div>
@@ -136,10 +136,10 @@ import { ToastService } from '../../core/services/language.service';
                         </div>
                         <div class="grid grid-cols-2 gap-2 mt-3">
                             <button class="btn btn-sm btn-outline-warning" (click)="openDischargeForm(bed)">
-                                <span class="material-icons-round text-xs mr-1">exit_to_app</span> {{ 'DISCHARGE' | translate || 'Discharge' }}
+                                <span class="material-icons-round text-xs mr-1">exit_to_app</span> {{ ('DISCHARGE' | translate) || 'Discharge' }}
                             </button>
                             <button class="btn btn-sm btn-outline-primary" (click)="openTransferForm(bed)">
-                                <span class="material-icons-round text-xs mr-1">swap_horiz</span> {{ 'TRANSFER' | translate || 'Transfer' }}
+                                <span class="material-icons-round text-xs mr-1">swap_horiz</span> {{ ('TRANSFER' | translate) || 'Transfer' }}
                             </button>
                         </div>
                         <button class="btn btn-sm btn-primary w-full mt-2" [routerLink]="['/inpatient-chart', bed.currentAdmissionId]">
@@ -148,7 +148,7 @@ import { ToastService } from '../../core/services/language.service';
                     </div>
 
                     <div *ngIf="bed.status === 'Available'" class="mt-2 pt-3">
-                        <p class="text-xs text-muted mb-4">{{ 'PATIENT_ADMISSION_HINT' | translate || 'Patient can be admitted to this bed.' }}</p>
+                        <p class="text-xs text-muted mb-4">{{ ('PATIENT_ADMISSION_HINT' | translate) || 'Patient can be admitted to this bed.' }}</p>
                         <button class="btn btn-sm btn-outline-primary w-full" (click)="openAdmitForm(bed)">
                             <span class="material-icons-round text-xs mr-1">person_add</span> {{ 'ADMIT_PATIENT' | translate }}
                         </button>
@@ -156,8 +156,8 @@ import { ToastService } from '../../core/services/language.service';
 
                     <div *ngIf="bed.status === 'Maintenance'" class="mt-2 pt-3 text-center">
                          <span class="material-icons-round text-danger text-3xl opacity-30">construction</span>
-                         <p class="text-xs text-muted mt-2">{{ 'UNDER_MAINTENANCE' | translate || 'Under Maintenance' }}</p>
-                         <button class="btn btn-xs btn-link mt-1" (click)="openBedForm(bed)">{{ 'UPDATE_STATUS' | translate || 'Update Status' }}</button>
+                         <p class="text-xs text-muted mt-2">{{ ('UNDER_MAINTENANCE' | translate) || 'Under Maintenance' }}</p>
+                         <button class="btn btn-xs btn-link mt-1" (click)="openBedForm(bed)">{{ ('UPDATE_STATUS' | translate) || 'Update Status' }}</button>
                     </div>
                 </div>
                 
@@ -279,7 +279,7 @@ import { ToastService } from '../../core/services/language.service';
           <div class="form-group">
             <label class="form-label">{{ 'SELECT_ROOM' | translate }} *</label>
             <select class="form-control form-select" [(ngModel)]="bedForm.roomId">
-                <option *ngFor="let r of rooms" [value]="r.id">{{ ( 'ROOM' | translate || 'Room' ) }} {{ r.roomNumber }} ({{r.roomType}})</option>
+                <option *ngFor="let r of rooms" [value]="r.id">{{ ('ROOM' | translate) || 'Room' }} {{ r.roomNumber }} ({{r.roomType}})</option>
             </select>
           </div>
           <div class="form-group mt-3">
@@ -314,13 +314,13 @@ import { ToastService } from '../../core/services/language.service';
            <div class="p-3 bg-primary bg-opacity-10 rounded-xl mb-4 flex items-center gap-3">
              <span class="material-icons-round text-primary">hotel</span>
              <div>
-                <div class="font-bold">{{ 'BED' | translate || 'Bed' }} {{ activeBed?.bedNumber }}</div>
-                <div class="text-xs text-muted">{{ 'ROOM' | translate || 'Room' }} {{ activeBed?.roomNumber }} • {{ activeBed?.wardName }}</div>
+                <div class="font-bold">{{ ('BED' | translate) || 'Bed' }} {{ activeBed?.bedNumber }}</div>
+                <div class="text-xs text-muted">{{ ('ROOM' | translate) || 'Room' }} {{ activeBed?.roomNumber }} • {{ activeBed?.wardName }}</div>
              </div>
            </div>
 
            <div class="form-group">
-              <label class="form-label">{{ 'SEARCH_PATIENT' | translate || 'Search/Select Patient' }} *</label>
+              <label class="form-label">{{ ('SEARCH_PATIENT' | translate) || 'Search/Select Patient' }} *</label>
               <select class="form-control form-select" [(ngModel)]="admitForm.patientId">
                  <option *ngFor="let p of patients" [value]="p.id">{{ p.fullName }} ({{p.patientCode}})</option>
               </select>
@@ -378,7 +378,7 @@ import { ToastService } from '../../core/services/language.service';
             <div class="p-4 bg-warning bg-opacity-10 rounded-xl mb-4">
                 <div class="text-xs font-bold text-muted uppercase tracking-wider mb-1">{{ 'PATIENT' | translate }}</div>
                 <div class="font-black text-lg text-warning">{{ activeBed?.patientName }}</div>
-                <div class="text-xs text-muted">{{ activeBed?.patientCode }} • {{ 'BED' | translate || 'Bed' }} {{ activeBed?.bedNumber }}</div>
+                <div class="text-xs text-muted">{{ activeBed?.patientCode }} • {{ ('BED' | translate) || 'Bed' }} {{ activeBed?.bedNumber }}</div>
             </div>
             
             <div class="form-group">
@@ -388,7 +388,7 @@ import { ToastService } from '../../core/services/language.service';
             
             <p class="text-xs text-muted mt-4 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
                 <span class="material-icons-round text-sm align-middle mr-1">info</span>
-                {{ 'DISCHARGE_HINT' | translate || 'Discharging the patient will release the bed and update its status to "Available".' }}
+                {{ ('DISCHARGE_HINT' | translate) || 'Discharging the patient will release the bed and update its status to "Available".' }}
             </p>
         </div>
         <div class="modal-footer">
@@ -410,18 +410,18 @@ import { ToastService } from '../../core/services/language.service';
             <div class="p-4 bg-primary bg-opacity-10 rounded-xl mb-4">
                 <div class="text-xs font-bold text-muted uppercase tracking-wider mb-1">{{ 'PATIENT' | translate }}</div>
                 <div class="font-black text-lg text-primary">{{ activeBed?.patientName }}</div>
-                <div class="text-xs text-muted">{{ 'CURRENT_BED' | translate || 'Current' }}: {{ activeBed?.wardName }} - {{ activeBed?.bedNumber }}</div>
+                <div class="text-xs text-muted">{{ ('CURRENT_BED' | translate) || 'Current' }}: {{ activeBed?.wardName }} - {{ activeBed?.bedNumber }}</div>
             </div>
             
             <div class="form-group">
                 <label class="form-label">{{ 'TARGET_BED' | translate }} *</label>
                 <select class="form-control form-select" [(ngModel)]="transferForm.newBedId">
-                    <option [value]="null" disabled>{{ 'SELECT_AVAILABLE_BED' | translate || 'Select Available Bed' }}</option>
+                    <option [value]="null" disabled>{{ ('SELECT_AVAILABLE_BED' | translate) || 'Select Available Bed' }}</option>
                     <option *ngFor="let b of availableBeds" [value]="b.id">
                         {{b.wardName}} - {{b.roomNumber}} - Bed {{b.bedNumber}}
                     </option>
                 </select>
-                <p *ngIf="availableBeds.length === 0" class="text-xs text-danger mt-1">{{ 'NO_AVAILABLE_BEDS' | translate || 'No available beds found.' }}</p>
+                <p *ngIf="availableBeds.length === 0" class="text-xs text-danger mt-1">{{ ('NO_AVAILABLE_BEDS' | translate) || 'No available beds found.' }}</p>
             </div>
         </div>
         <div class="modal-footer">

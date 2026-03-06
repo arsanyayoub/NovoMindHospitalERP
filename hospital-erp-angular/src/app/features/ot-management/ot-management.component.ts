@@ -13,7 +13,7 @@ import { ToastService } from '../../core/services/language.service';
     <div class="page-header">
       <div>
         <h1 class="page-title">{{ 'OPERATING_THEATER_MANAGEMENT' | translate }}</h1>
-        <p class="text-muted">{{ 'MANAGE_SURGERIES_AND_OT_AVAILABILITY' | translate || 'Manage surgeries and OT availability' }}</p>
+        <p class="text-muted">{{ ('MANAGE_SURGERIES_AND_OT_AVAILABILITY' | translate) || 'Manage surgeries and OT availability' }}</p>
       </div>
       <div class="flex gap-2">
         <button class="btn btn-secondary" (click)="activeTab = 'theaters'">
@@ -72,7 +72,7 @@ import { ToastService } from '../../core/services/language.service';
             <div class="flex justify-between items-center pt-4 border-t border-dashed">
               <div class="flex items-center gap-1" *ngIf="s.invoiceId">
                 <span class="material-icons-round text-success text-xs">receipt</span>
-                <span class="text-[0.6rem] font-black text-success uppercase">{{ 'BILLED' | translate || 'Billed' }}</span>
+                <span class="text-[0.6rem] font-black text-success uppercase">{{ ('BILLED' | translate) || 'Billed' }}</span>
               </div>
               <div class="flex gap-2 ml-auto">
                 <button class="btn btn-xs btn-outline" (click)="updateStatus(s, 'Pre-Op')" *ngIf="s.status === 'Scheduled'">{{ 'PRE_OP' | translate }}</button>
@@ -80,7 +80,7 @@ import { ToastService } from '../../core/services/language.service';
                 <button class="btn btn-xs btn-outline btn-accent" (click)="updateStatus(s, 'Post-Op')" *ngIf="s.status === 'Intra-Op'">{{ 'POST_OP' | translate }}</button>
                 <button class="btn btn-xs btn-success" (click)="updateStatus(s, 'Completed')" *ngIf="s.status === 'Post-Op'">{{ 'COMPLETED' | translate }}</button>
                 <button class="btn btn-xs btn-primary btn-with-icon" (click)="finalizeBill(s)" *ngIf="s.status === 'Completed' && !s.invoiceId">
-                   <span class="material-icons-round text-xs">payments</span> {{ 'BILL' | translate || 'Bill' }}
+                   <span class="material-icons-round text-xs">payments</span> {{ ('BILL' | translate) || 'Bill' }}
                 </button>
                 <button class="btn btn-xs btn-icon btn-outline-primary" (click)="openResourceModal(s)" title="Resources">
                   <span class="material-icons-round">inventory_2</span>
@@ -241,14 +241,14 @@ import { ToastService } from '../../core/services/language.service';
       <div class="modal-content" style="max-width: 600px">
         <div class="modal-header">
           <div>
-            <h2 class="modal-title">{{ 'SURGERY_RESOURCES' | translate || 'Surgery Resources' }}</h2>
+            <h2 class="modal-title">{{ ('SURGERY_RESOURCES' | translate) || 'Surgery Resources' }}</h2>
             <p class="text-xs text-muted">{{ selectedSurgery?.procedureName }} - {{ selectedSurgery?.patientName }}</p>
           </div>
           <button class="btn btn-icon text-muted" (click)="showResourceModal = false"><span class="material-icons-round">close</span></button>
         </div>
         <div class="modal-body">
           <div class="bg-glass p-4 border rounded-2xl mb-6">
-            <h4 class="font-black text-xs uppercase tracking-widest text-primary mb-4">{{ 'ADD_CONSUMED_ITEM' | translate || 'Add Consumed Item' }}</h4>
+            <h4 class="font-black text-xs uppercase tracking-widest text-primary mb-4">{{ ('ADD_CONSUMED_ITEM' | translate) || 'Add Consumed Item' }}</h4>
             <div class="grid grid-cols-12 gap-4 items-end">
               <div class="col-span-6">
                 <label class="form-label">{{ 'ITEM' | translate }}</label>
@@ -305,7 +305,7 @@ import { ToastService } from '../../core/services/language.service';
       <div class="modal-content" style="max-width: 700px">
         <div class="modal-header">
           <div>
-            <h2 class="modal-title">{{ 'SURGERY_AUDIT_TRAIL' | translate || 'Surgery Audit Trail' }}</h2>
+            <h2 class="modal-title">{{ ('SURGERY_AUDIT_TRAIL' | translate) || 'Surgery Audit Trail' }}</h2>
             <p class="text-xs text-muted">{{ selectedSurgery?.procedureName }} log history</p>
           </div>
           <button class="btn btn-icon text-muted" (click)="showAuditModal = false"><span class="material-icons-round">close</span></button>

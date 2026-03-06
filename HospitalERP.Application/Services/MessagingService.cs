@@ -3,20 +3,19 @@ using HospitalERP.Application.Interfaces;
 using HospitalERP.Domain.Common;
 using HospitalERP.Domain.Entities;
 using HospitalERP.Infrastructure.UnitOfWork;
-using Microsoft.AspNetCore.SignalR;
-using HospitalERP.API.Hubs;
+using Microsoft.EntityFrameworkCore;
 
 namespace HospitalERP.Application.Services;
 
 public class MessagingService : IMessagingService
 {
     private readonly IUnitOfWork _uow;
-    private readonly IHubContext<NotificationHub> _hubContext;
+    private readonly IAppNotificationService _notificationService;
 
-    public MessagingService(IUnitOfWork uow, IHubContext<NotificationHub> hubContext)
+    public MessagingService(IUnitOfWork uow, IAppNotificationService notificationService)
     {
         _uow = uow;
-        _hubContext = hubContext;
+        _notificationService = notificationService;
     }
 
     public async Task<MessageDto> SendMessageAsync(int senderId, SendMessageDto dto)
@@ -49,21 +48,21 @@ public class MessagingService : IMessagingService
         };
 
         // Notify Receiver via SignalR
-        await _hubContext.Clients.Group($"user-{dto.ReceiverId}").SendAsync("ReceiveMessage", result);
+        await _notificationService.SendMessageAsync(dto.ReceiverId, "ReceiveMessage", result);
 
         return result;
     }
 
     public async Task<PagedResult<MessageDto>> GetInboxAsync(int userId, int page = 1, int pageSize = 20)
     {
-        var result = await _uow.Messages.FindAsync(
-            m => m.ReceiverId == userId,
-            q => q.OrderByDescending(x => x.SentAt),
-            $"{nameof(Message.Sender)},{nameof(Message.Receiver)}",
-            page, pageSize);
+        var query = _uow.Messages.Query().Where(m => m.ReceiverId == userId);
+        int total = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(query);
 
-        var query = await _uow.Messages.QueryAsync(m => m.ReceiverId == userId);
-        int total = query.Count();
+        var result = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
+            query.Include(m => m.Sender).Include(m => m.Receiver)
+                 .OrderByDescending(x => x.SentAt)
+                 .Skip((page - 1) * pageSize)
+                 .Take(pageSize));
 
         var dtos = result.Select(m => new MessageDto
         {
@@ -77,25 +76,19 @@ public class MessagingService : IMessagingService
             SentAt = m.SentAt
         });
 
-        return new PagedResult<MessageDto>
-        {
-            Items = dtos,
-            TotalCount = total,
-            Page = page,
-            PageSize = pageSize
-        };
+        return new PagedResult<MessageDto>(dtos, total, page, pageSize);
     }
 
     public async Task<PagedResult<MessageDto>> GetSentMailsAsync(int userId, int page = 1, int pageSize = 20)
     {
-        var result = await _uow.Messages.FindAsync(
-            m => m.SenderId == userId,
-            q => q.OrderByDescending(x => x.SentAt),
-            $"{nameof(Message.Sender)},{nameof(Message.Receiver)}",
-            page, pageSize);
+        var query = _uow.Messages.Query().Where(m => m.SenderId == userId);
+        int total = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(query);
 
-        var query = await _uow.Messages.QueryAsync(m => m.SenderId == userId);
-        int total = query.Count();
+        var result = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
+            query.Include(m => m.Sender).Include(m => m.Receiver)
+                 .OrderByDescending(x => x.SentAt)
+                 .Skip((page - 1) * pageSize)
+                 .Take(pageSize));
 
         var dtos = result.Select(m => new MessageDto
         {
@@ -109,13 +102,7 @@ public class MessagingService : IMessagingService
             SentAt = m.SentAt
         });
 
-        return new PagedResult<MessageDto>
-        {
-            Items = dtos,
-            TotalCount = total,
-            Page = page,
-            PageSize = pageSize
-        };
+        return new PagedResult<MessageDto>(dtos, total, page, pageSize);
     }
 
     public async Task MarkAsReadAsync(int messageId, int userId)
@@ -124,13 +111,13 @@ public class MessagingService : IMessagingService
         if (msg == null || msg.ReceiverId != userId) return;
 
         msg.IsRead = true;
-        await _uow.Messages.UpdateAsync(msg);
+        _uow.Messages.Update(msg);
         await _uow.SaveChangesAsync();
     }
 
     public async Task<int> GetUnreadCountAsync(int userId)
     {
-        var query = await _uow.Messages.QueryAsync(m => m.ReceiverId == userId && !m.IsRead);
-        return query.Count();
+        var query = _uow.Messages.Query().Where(m => m.ReceiverId == userId && !m.IsRead);
+        return await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(query);
     }
 }

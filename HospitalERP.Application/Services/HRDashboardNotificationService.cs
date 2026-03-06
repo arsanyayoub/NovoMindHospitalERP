@@ -1,11 +1,8 @@
-using HospitalERP.API.Hubs;
 using HospitalERP.Application.DTOs;
 using HospitalERP.Application.Interfaces;
 using HospitalERP.Domain.Entities;
 using HospitalERP.Infrastructure.UnitOfWork;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-
 namespace HospitalERP.Application.Services;
 
 public class HRService : IHRService
@@ -248,12 +245,12 @@ public class DashboardService : IDashboardService
 public class NotificationService : INotificationService
 {
     private readonly IUnitOfWork _uow;
-    private readonly IHubContext<NotificationHub> _hubContext;
+    private readonly IAppNotificationService _notificationService;
 
-    public NotificationService(IUnitOfWork uow, IHubContext<NotificationHub> hubContext)
+    public NotificationService(IUnitOfWork uow, IAppNotificationService notificationService)
     {
         _uow = uow;
-        _hubContext = hubContext;
+        _notificationService = notificationService;
     }
 
     public async Task<IEnumerable<NotificationDto>> GetUserNotificationsAsync(int userId)
@@ -297,11 +294,11 @@ public class NotificationService : INotificationService
         var dto = ToDto(notif);
         if (userId.HasValue)
         {
-            await _hubContext.Clients.Group($"user-{userId}").SendAsync("ReceiveNotification", dto);
+            await _notificationService.SendMessageAsync(userId.Value, "ReceiveNotification", dto);
         }
         else
         {
-            await _hubContext.Clients.Group("all").SendAsync("ReceiveNotification", dto);
+            await _notificationService.SendToAllAsync("ReceiveNotification", dto);
         }
     }
 
@@ -317,7 +314,7 @@ public class NotificationService : INotificationService
 
         if (stock != null)
         {
-            await _hubContext.Clients.Group("all").SendAsync("StockUpdated", new 
+            await _notificationService.SendToAllAsync("StockUpdated", new 
             { 
                 itemName = stock.Item.ItemName,
                 warehouseName = stock.Warehouse.WarehouseName,

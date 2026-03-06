@@ -241,7 +241,7 @@ public class ReportingService : IReportingService
             .Where(s => s.ScheduledStartTime >= from && s.ScheduledStartTime <= to)
             .ToListAsync();
 
-        var totalTheaters = theaters.Count;
+        var totalTheaters = theaters.Count();
         var totalSurgeries = surgeries.Count;
 
         // Utilization Calculation (Assuming 8 hours availability per day per OT)

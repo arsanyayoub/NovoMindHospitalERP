@@ -7,10 +7,10 @@ import { ClinicalService, BedManagementService, PharmacyService } from '../../co
 import { ToastService } from '../../core/services/language.service';
 
 @Component({
-    selector: 'app-inpatient-chart',
-    standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule, RouterModule],
-    template: `
+   selector: 'app-inpatient-chart',
+   standalone: true,
+   imports: [CommonModule, FormsModule, TranslateModule, RouterModule],
+   template: `
     <div class="animate-in" *ngIf="admission">
       <!-- Patient Summary Header -->
       <div class="card bg-glass border-primary border-opacity-20 mb-6">
@@ -211,7 +211,7 @@ import { ToastService } from '../../core/services/language.service';
                                    [class.badge-success]="h.status === 'Given'" 
                                    [class.badge-danger]="h.status === 'Refused'"
                                    [class.badge-warning]="h.status === 'Held'">
-                                   {{ 'SHIFT_' + h.status.toUpperCase() | translate || h.status }}
+                                   {{ ('SHIFT_' + h.status.toUpperCase() | translate) || h.status }}
                                 </span>
                              </td>
                              <td class="text-[0.65rem] font-bold text-muted">{{ h.administeredBy }}</td>
@@ -372,174 +372,174 @@ import { ToastService } from '../../core/services/language.service';
       </div>
     </div>
   `,
-    styles: [`
+   styles: [`
     .spinner { border: 3px solid rgba(0,0,0,0.1); border-top-color: var(--primary); border-radius: 50%; width: 32px; height: 32px; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
   `]
 })
 export class InpatientChartComponent implements OnInit {
-    admission: any = null;
-    vitals: any[] = [];
-    assessments: any[] = [];
-    activeMedications: any[] = [];
-    marHistory: any[] = [];
+   admission: any = null;
+   vitals: any[] = [];
+   assessments: any[] = [];
+   activeMedications: any[] = [];
+   marHistory: any[] = [];
 
-    activeTab: 'nursing' | 'mar' | 'vitals' = 'nursing';
-    loading = false;
-    saving = false;
+   activeTab: 'nursing' | 'mar' | 'vitals' = 'nursing';
+   loading = false;
+   saving = false;
 
-    showVitalsForm = false;
-    vitalsForm: any = {};
+   showVitalsForm = false;
+   vitalsForm: any = {};
 
-    showAssessmentForm = false;
-    assessmentForm: any = { shift: 'Day' };
+   showAssessmentForm = false;
+   assessmentForm: any = { shift: 'Day' };
 
-    showMARForm = false;
-    selectedMedication: any = null;
-    marForm: any = { status: 'Given' };
+   showMARForm = false;
+   selectedMedication: any = null;
+   marForm: any = { status: 'Given' };
 
-    constructor(
-        private route: ActivatedRoute,
-        private clinicalSvc: ClinicalService,
-        private pharmacySvc: PharmacyService,
-        private bedSvc: BedManagementService,
-        private toast: ToastService
-    ) { }
+   constructor(
+      private route: ActivatedRoute,
+      private clinicalSvc: ClinicalService,
+      private pharmacySvc: PharmacyService,
+      private bedSvc: BedManagementService,
+      private toast: ToastService
+   ) { }
 
-    ngOnInit() {
-        this.route.params.subscribe(params => {
-            const id = params['admissionId'];
-            if (id) {
-                this.loadAdmissionData(+id);
+   ngOnInit() {
+      this.route.params.subscribe(params => {
+         const id = params['admissionId'];
+         if (id) {
+            this.loadAdmissionData(+id);
+         }
+      });
+   }
+
+   loadAdmissionData(admissionId: number) {
+      this.loading = true;
+      // We don't have a direct getAdmissionById but we can use getAdmissions with ID if it supported it, 
+      // or better, just get the bed status or similar. 
+      // Assuming BedManagementService.getAdmissions({id: admissionId}) or similar.
+      // For now, let's just get all active and find it (not efficient but works for demo).
+      this.bedSvc.getAdmissions({ page: 1, pageSize: 1000 }).subscribe({
+         next: (res) => {
+            this.admission = res.items.find((a: any) => a.id === admissionId);
+            if (this.admission) {
+               this.loadClinicalData(admissionId);
+            } else {
+               this.toast.error('Admission not found');
+               this.loading = false;
             }
-        });
-    }
+         },
+         error: () => this.loading = false
+      });
+   }
 
-    loadAdmissionData(admissionId: number) {
-        this.loading = true;
-        // We don't have a direct getAdmissionById but we can use getAdmissions with ID if it supported it, 
-        // or better, just get the bed status or similar. 
-        // Assuming BedManagementService.getAdmissions({id: admissionId}) or similar.
-        // For now, let's just get all active and find it (not efficient but works for demo).
-        this.bedSvc.getAdmissions({ page: 1, pageSize: 1000 }).subscribe({
-            next: (res) => {
-                this.admission = res.items.find((a: any) => a.id === admissionId);
-                if (this.admission) {
-                    this.loadClinicalData(admissionId);
-                } else {
-                    this.toast.error('Admission not found');
-                    this.loading = false;
-                }
-            },
-            error: () => this.loading = false
-        });
-    }
+   loadClinicalData(admissionId: number) {
+      // Load Vitals
+      this.clinicalSvc.getVitals({ page: 1, pageSize: 100 }, undefined, admissionId).subscribe(res => {
+         this.vitals = res.items;
+      });
 
-    loadClinicalData(admissionId: number) {
-        // Load Vitals
-        this.clinicalSvc.getVitals({ page: 1, pageSize: 100 }, undefined, admissionId).subscribe(res => {
-            this.vitals = res.items;
-        });
+      // Load Assessments
+      this.clinicalSvc.getNursingAssessments(admissionId).subscribe(res => {
+         this.assessments = res;
+      });
 
-        // Load Assessments
-        this.clinicalSvc.getNursingAssessments(admissionId).subscribe(res => {
-            this.assessments = res;
-        });
+      // Load Prescriptions/Medications for this admission
+      this.pharmacySvc.getPrescriptions({ page: 1, pageSize: 100 }, undefined, undefined, admissionId).subscribe(res => {
+         // Flatten items from all prescriptions
+         this.activeMedications = res.items.flatMap((p: any) => p.items.map((i: any) => ({ ...i, prescriptionId: p.id })));
+      });
 
-        // Load Prescriptions/Medications for this admission
-        this.pharmacySvc.getPrescriptions({ page: 1, pageSize: 100 }, undefined, undefined, admissionId).subscribe(res => {
-            // Flatten items from all prescriptions
-            this.activeMedications = res.items.flatMap((p: any) => p.items.map((i: any) => ({ ...i, prescriptionId: p.id })));
-        });
+      // Load MAR History
+      this.pharmacySvc.getMAR(admissionId).subscribe(res => {
+         this.marHistory = res;
+         this.loading = false;
+      });
+   }
 
-        // Load MAR History
-        this.pharmacySvc.getMAR(admissionId).subscribe(res => {
-            this.marHistory = res;
-            this.loading = false;
-        });
-    }
+   openMARForm(med: any) {
+      this.selectedMedication = med;
+      this.marForm = {
+         prescriptionItemId: med.id,
+         bedAdmissionId: this.admission.id,
+         status: 'Given',
+         dose: med.dosage
+      };
+      this.showMARForm = true;
+   }
 
-    openMARForm(med: any) {
-        this.selectedMedication = med;
-        this.marForm = {
-            prescriptionItemId: med.id,
-            bedAdmissionId: this.admission.id,
-            status: 'Given',
-            dose: med.dosage
-        };
-        this.showMARForm = true;
-    }
+   saveMAR() {
+      this.saving = true;
+      this.pharmacySvc.createMAR(this.marForm).subscribe({
+         next: () => {
+            this.toast.success('Medication administration recorded');
+            this.showMARForm = false;
+            this.loadClinicalData(this.admission.id);
+            this.saving = false;
+         },
+         error: () => {
+            this.toast.error('Failed to record administration');
+            this.saving = false;
+         }
+      });
+   }
 
-    saveMAR() {
-        this.saving = true;
-        this.pharmacySvc.createMAR(this.marForm).subscribe({
-            next: () => {
-                this.toast.success('Medication administration recorded');
-                this.showMARForm = false;
-                this.loadClinicalData(this.admission.id);
-                this.saving = false;
-            },
-            error: () => {
-                this.toast.error('Failed to record administration');
-                this.saving = false;
-            }
-        });
-    }
+   exportEmr() {
+      this.clinicalSvc.exportEmr(this.admission.patientId, this.admission.id).subscribe({
+         next: (blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `EMR_${this.admission.patientName}_${new Date().toISOString().split('T')[0]}.pdf`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+         },
+         error: () => this.toast.error('Failed to export EMR')
+      });
+   }
 
-    exportEmr() {
-        this.clinicalSvc.exportEmr(this.admission.patientId, this.admission.id).subscribe({
-            next: (blob) => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `EMR_${this.admission.patientName}_${new Date().toISOString().split('T')[0]}.pdf`;
-                a.click();
-                window.URL.revokeObjectURL(url);
-            },
-            error: () => this.toast.error('Failed to export EMR')
-        });
-    }
+   openAssessmentForm() {
+      this.assessmentForm = { bedAdmissionId: this.admission.id, shift: 'Day' };
+      this.showAssessmentForm = true;
+   }
 
-    openAssessmentForm() {
-        this.assessmentForm = { bedAdmissionId: this.admission.id, shift: 'Day' };
-        this.showAssessmentForm = true;
-    }
+   saveVitals() {
+      this.saving = true;
+      const dto = {
+         ...this.vitalsForm,
+         patientId: this.admission.patientId,
+         bedAdmissionId: this.admission.id
+      };
+      this.clinicalSvc.createVital(dto).subscribe({
+         next: () => {
+            this.toast.success('Vitals recorded');
+            this.showVitalsForm = false;
+            this.vitalsForm = {};
+            this.loadClinicalData(this.admission.id);
+            this.saving = false;
+         },
+         error: () => {
+            this.toast.error('Failed to save vitals');
+            this.saving = false;
+         }
+      });
+   }
 
-    saveVitals() {
-        this.saving = true;
-        const dto = {
-            ...this.vitalsForm,
-            patientId: this.admission.patientId,
-            bedAdmissionId: this.admission.id
-        };
-        this.clinicalSvc.createVital(dto).subscribe({
-            next: () => {
-                this.toast.success('Vitals recorded');
-                this.showVitalsForm = false;
-                this.vitalsForm = {};
-                this.loadClinicalData(this.admission.id);
-                this.saving = false;
-            },
-            error: () => {
-                this.toast.error('Failed to save vitals');
-                this.saving = false;
-            }
-        });
-    }
-
-    saveAssessment() {
-        this.saving = true;
-        this.clinicalSvc.createNursingAssessment(this.assessmentForm).subscribe({
-            next: () => {
-                this.toast.success('Assessment recorded');
-                this.showAssessmentForm = false;
-                this.loadClinicalData(this.admission.id);
-                this.saving = false;
-            },
-            error: () => {
-                this.toast.error('Failed to save assessment');
-                this.saving = false;
-            }
-        });
-    }
+   saveAssessment() {
+      this.saving = true;
+      this.clinicalSvc.createNursingAssessment(this.assessmentForm).subscribe({
+         next: () => {
+            this.toast.success('Assessment recorded');
+            this.showAssessmentForm = false;
+            this.loadClinicalData(this.admission.id);
+            this.saving = false;
+         },
+         error: () => {
+            this.toast.error('Failed to save assessment');
+            this.saving = false;
+         }
+      });
+   }
 }

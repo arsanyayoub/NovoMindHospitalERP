@@ -93,7 +93,7 @@ import { DashboardService } from '../../core/services/api.services';
         <div class="stat-card glass-info" style="background: rgba(14, 165, 233, 0.1); border-color: rgba(14, 165, 233, 0.2);">
            <div class="stat-icon" style="background: #0ea5e9; color: white; box-shadow: 0 8px 16px rgba(14, 165, 233, 0.3);"><span class="material-icons-round">hotel</span></div>
            <div class="stat-value">{{ data?.occupiedBeds || 0 }}/{{ data?.totalBeds || 0 }}</div>
-           <div class="stat-label uppercase">{{ 'BED_OCCUPANCY' | translate || 'Bed Occupancy' }}</div>
+           <div class="stat-label uppercase">{{ ('BED_OCCUPANCY' | translate) || 'Bed Occupancy' }}</div>
            <div class="w-full bg-gray-200 dark:bg-gray-700 h-1 rounded-full mt-2 overflow-hidden">
               <div class="h-full bg-info" [style.width.%]="(data?.occupiedBeds / data?.totalBeds) * 100 || 0" style="background: #0ea5e9;"></div>
            </div>

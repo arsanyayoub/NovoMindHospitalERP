@@ -6,10 +6,10 @@ import { LabService, PatientService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
 @Component({
-  selector: 'app-lab',
-  standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
-  styles: [`
+   selector: 'app-lab',
+   standalone: true,
+   imports: [CommonModule, FormsModule, TranslateModule],
+   styles: [`
     .lab-tab-nav { display: flex; gap: 4px; background: rgba(0,0,0,0.15); padding: 5px; border-radius: 14px; margin-bottom: 24px; width: fit-content; border: 1px solid var(--border); }
     .lab-tab-btn { padding: 10px 20px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
     .lab-tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3); }
@@ -30,7 +30,7 @@ import { ToastService } from '../../core/services/language.service';
     .val-input { background: transparent; border: none; border-bottom: 2px solid var(--border); width: 100px; text-align: center; font-weight: 800; font-size: 1.2rem; color: var(--primary); transition: 0.2s; }
     .val-input:focus { outline: none; border-color: var(--primary); }
   `],
-  template: `
+   template: `
     <div class="page-header">
       <div>
         <h1 class="page-title">{{ 'LABORATORY_DIAGNOSTICS' | translate }}</h1>
@@ -74,7 +74,7 @@ import { ToastService } from '../../core/services/language.service';
              <div class="bg-glass p-4 rounded-3xl border mb-6">
                 <div class="text-[0.6rem] font-black uppercase text-muted mb-3">{{ 'ORDERED_TESTS' | translate }}</div>
                 <div class="flex flex-wrap gap-2">
-                   <span *ngFor="let res of r.results | slice:0:3" class="badge badge-primary bg-opacity-10 text-primary border-primary border-opacity-20 text-[0.65rem] font-black px-2 py-1 uppercase">{{ res.testName }}</span>
+                   <span *ngFor="let res of $any(r.results) | slice:0:3" class="badge badge-primary bg-opacity-10 text-primary border-primary border-opacity-20 text-[0.65rem] font-black px-2 py-1 uppercase">{{ $any(res).testName }}</span>
                    <span *ngIf="r.results.length > 3" class="text-xs font-black opacity-30">+{{ r.results.length - 3 }}</span>
                 </div>
              </div>
@@ -208,86 +208,86 @@ import { ToastService } from '../../core/services/language.service';
   `
 })
 export class LabComponent implements OnInit {
-  tab = 'requests';
-  requests: any[] = [];
-  tests: any[] = [];
-  reqSearch = '';
-  testSearch = '';
-  showDetails = false;
-  selectedReq: any = null;
-  showReqForm = false;
-  reqForm: any = { testIds: [] };
-  patientsList: any[] = [];
+   tab = 'requests';
+   requests: any[] = [];
+   tests: any[] = [];
+   reqSearch = '';
+   testSearch = '';
+   showDetails = false;
+   selectedReq: any = null;
+   showReqForm = false;
+   reqForm: any = { testIds: [] };
+   patientsList: any[] = [];
 
-  constructor(
-    private lab: LabService,
-    private patientSvc: PatientService,
-    private toast: ToastService,
-    private translate: TranslateService
-  ) { }
+   constructor(
+      private lab: LabService,
+      private patientSvc: PatientService,
+      private toast: ToastService,
+      private translate: TranslateService
+   ) { }
 
-  ngOnInit() {
-    this.loadRequests();
-    this.loadTests();
-    this.patientSvc.getAll({ pageSize: 1000 }).subscribe((r: any) => this.patientsList = r.items);
-  }
+   ngOnInit() {
+      this.loadRequests();
+      this.loadTests();
+      this.patientSvc.getAll({ pageSize: 1000 }).subscribe((r: any) => this.patientsList = r.items);
+   }
 
-  loadRequests() {
-    this.lab.getRequests({ search: this.reqSearch, page: 1, pageSize: 50 }).subscribe(r => this.requests = r.items);
-  }
+   loadRequests() {
+      this.lab.getRequests({ search: this.reqSearch, page: 1, pageSize: 50 }).subscribe(r => this.requests = r.items);
+   }
 
-  loadTests() {
-    this.lab.getTests({ search: this.testSearch, page: 1, pageSize: 100 }).subscribe(r => this.tests = r.items);
-  }
+   loadTests() {
+      this.lab.getTests({ search: this.testSearch, page: 1, pageSize: 100 }).subscribe(r => this.tests = r.items);
+   }
 
-  openRequestForm() {
-    this.reqForm = { patientId: null, testIds: [], requestDate: new Date().toISOString() };
-    this.showReqForm = true;
-  }
+   openRequestForm() {
+      this.reqForm = { patientId: null, testIds: [], requestDate: new Date().toISOString() };
+      this.showReqForm = true;
+   }
 
-  isTestSelected(id: number) { return this.reqForm.testIds.includes(id); }
+   isTestSelected(id: number) { return this.reqForm.testIds.includes(id); }
 
-  toggleTest(id: number) {
-    const idx = this.reqForm.testIds.indexOf(id);
-    if (idx > -1) this.reqForm.testIds.splice(idx, 1);
-    else this.reqForm.testIds.push(id);
-  }
+   toggleTest(id: number) {
+      const idx = this.reqForm.testIds.indexOf(id);
+      if (idx > -1) this.reqForm.testIds.splice(idx, 1);
+      else this.reqForm.testIds.push(id);
+   }
 
-  calculateTotal() {
-    return this.tests.filter(t => this.reqForm.testIds.includes(t.id)).reduce((sum, t) => sum + (t.price || 0), 0);
-  }
+   calculateTotal() {
+      return this.tests.filter(t => this.reqForm.testIds.includes(t.id)).reduce((sum, t) => sum + (t.price || 0), 0);
+   }
 
-  createRequest() {
-    this.lab.createRequest(this.reqForm).subscribe({
-      next: () => {
-        this.toast.success(this.translate.instant('SUCCESS_SAVE'));
-        this.showReqForm = false;
-        this.loadRequests();
-      },
-      error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
-    });
-  }
+   createRequest() {
+      this.lab.createRequest(this.reqForm).subscribe({
+         next: () => {
+            this.toast.success(this.translate.instant('SUCCESS_SAVE'));
+            this.showReqForm = false;
+            this.loadRequests();
+         },
+         error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
 
-  viewDetails(r: any) {
-    this.selectedReq = r;
-    this.showDetails = true;
-  }
+   viewDetails(r: any) {
+      this.selectedReq = r;
+      this.showDetails = true;
+   }
 
-  saveResult(res: any) {
-    this.lab.updateResult(res.id, { resultValue: res.resultValue }).subscribe({
-      next: () => this.toast.success(this.translate.instant('LAB_RESULT_SAVED')),
-      error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
-    });
-  }
+   saveResult(res: any) {
+      this.lab.updateResult(res.id, { resultValue: res.resultValue }).subscribe({
+         next: () => this.toast.success(this.translate.instant('LAB_RESULT_SAVED')),
+         error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
 
-  completeRequest() {
-    this.lab.completeRequest(this.selectedReq.id).subscribe({
-      next: () => {
-        this.toast.success(this.translate.instant('LAB_REQUEST_COMPLETED'));
-        this.showDetails = false;
-        this.loadRequests();
-      },
-      error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
-    });
-  }
+   completeRequest() {
+      this.lab.completeRequest(this.selectedReq.id).subscribe({
+         next: () => {
+            this.toast.success(this.translate.instant('LAB_REQUEST_COMPLETED'));
+            this.showDetails = false;
+            this.loadRequests();
+         },
+         error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
 }

@@ -1,3 +1,4 @@
+using HospitalERP.Domain.Entities;
 using HospitalERP.Application.Interfaces;
 using HospitalERP.Domain.Enums;
 using HospitalERP.Infrastructure.UnitOfWork;
@@ -272,7 +273,7 @@ public class PdfService : IPdfService
                     // 3. Prescriptions
                     if (prescriptions.Any())
                     {
-                        col.Item().PageBreakBefore();
+                        col.Item().PageBreak();
                         col.Item().PaddingTop(10).Text("MEDICATIONS & PRESCRIPTIONS").FontSize(12).Bold().Underline();
                         foreach (var prx in prescriptions)
                         {
@@ -290,7 +291,7 @@ public class PdfService : IPdfService
                     // 4. Inpatient Data
                     if (admissionId.HasValue)
                     {
-                        col.Item().PageBreakBefore();
+                        col.Item().PageBreak();
                         col.Item().PaddingTop(10).Text("INPATIENT CLINICAL RECORD").FontSize(12).Bold().Underline();
                         
                         if (nursingAssessments.Any())

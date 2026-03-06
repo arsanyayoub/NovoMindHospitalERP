@@ -283,7 +283,7 @@ export class PharmacyComponent implements OnInit {
   ngOnInit() {
     this.loadPrescriptions();
     this.patientSvc.getAll({ pageSize: 1000 }).subscribe((r: any) => this.patients = r.items);
-    this.invSvc.getItems({ pageSize: 1000, category: 'Medicine' }).subscribe((r: any) => this.medicines = r.items);
+    this.invSvc.getItems({ pageSize: 1000 } as any, 'Medicine').subscribe((r: any) => this.medicines = r.items);
   }
 
   loadPrescriptions() {

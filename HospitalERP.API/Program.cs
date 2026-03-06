@@ -2,6 +2,7 @@ using System.Text;
 using HospitalERP.Application.Interfaces;
 using HospitalERP.Application.Services;
 using HospitalERP.API.Hubs;
+using HospitalERP.API.Services;
 using HospitalERP.Infrastructure.Data;
 using HospitalERP.Infrastructure.UnitOfWork;
 using HospitalERP.API.Middleware;
@@ -46,6 +47,7 @@ builder.Services.AddScoped<IMessagingService, MessagingService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IOTService, OTService>();
 builder.Services.AddScoped<ISurgeryBillingService, SurgeryBillingService>();
+builder.Services.AddScoped<IAppNotificationService, AppNotificationService>();
 
 // ── Background Workers ──────────────────────────────────────────
 builder.Services.AddHostedService<HospitalERP.API.Background.AutomatedBillingWorker>();

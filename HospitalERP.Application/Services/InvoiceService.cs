@@ -79,9 +79,10 @@ public class InvoiceService : IInvoiceService
         return (await GetByIdAsync(invoice.Id))!;
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, string deletedBy)
     {
         var inv = await _uow.Invoices.GetByIdAsync(id) ?? throw new KeyNotFoundException();
+        // Assume soft delete might use deletedBy, or at least we must implement the interface
         _uow.Invoices.SoftDelete(inv);
         await _uow.SaveChangesAsync();
     }

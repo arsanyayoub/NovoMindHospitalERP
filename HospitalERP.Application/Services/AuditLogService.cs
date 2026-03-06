@@ -34,19 +34,17 @@ public class AuditLogService : IAuditLogService
 
     public async Task<PagedResult<AuditLogDto>> GetLogsAsync(int page = 1, int pageSize = 50, string? search = null, string? entityName = null, int? entityId = null)
     {
-        var logs = await _uow.AuditLogs.FindAsync(
-            l => (string.IsNullOrEmpty(search) || l.EntityName.Contains(search) || l.Action.Contains(search) || l.Username.Contains(search)) &&
-                 (string.IsNullOrEmpty(entityName) || l.EntityName == entityName) &&
-                 (!entityId.HasValue || l.EntityId == entityId),
-            q => q.OrderByDescending(x => x.Timestamp),
-            null,
-            page, pageSize);
-
-        var total = (await _uow.AuditLogs.QueryAsync(l => 
+        var query = _uow.AuditLogs.Query().Where(l => 
             (string.IsNullOrEmpty(search) || l.EntityName.Contains(search) || l.Action.Contains(search) || l.Username.Contains(search)) &&
             (string.IsNullOrEmpty(entityName) || l.EntityName == entityName) &&
-            (!entityId.HasValue || l.EntityId == entityId)
-        )).Count();
+            (!entityId.HasValue || l.EntityId == entityId));
+
+        var total = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.CountAsync(query);
+
+        var logs = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
+            query.OrderByDescending(x => x.Timestamp)
+                 .Skip((page - 1) * pageSize)
+                 .Take(pageSize));
 
         var dtos = logs.Select(l => new AuditLogDto
         {

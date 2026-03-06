@@ -76,7 +76,7 @@ import { ToastService } from '../../core/services/language.service';
         <span class="material-icons-round">meeting_room</span> {{ 'OT_REPORTS' | translate }}
       </button>
       <button class="report-tab-btn" [class.active]="tab==='audit'" (click)="loadAudit()">
-        <span class="material-icons-round">history</span> {{ 'AUDIT_LOGS' | translate || 'Audit Logs' }}
+        <span class="material-icons-round">history</span> {{ ('AUDIT_LOGS' | translate) || 'Audit Logs' }}
       </button>
 
     </div>
@@ -414,7 +414,7 @@ import { ToastService } from '../../core/services/language.service';
              </div>
              <div class="rep-card glass-accent">
                 <div class="rep-icon"><span class="material-icons-round">monetization_on</span></div>
-                <div class="text-[0.65rem] font-black uppercase tracking-widest text-accent">{{ 'RESOURCE_EXPENDITURE' | translate || 'Resource Expenditure' }}</div>
+                <div class="text-[0.65rem] font-black uppercase tracking-widest text-accent">{{ ('RESOURCE_EXPENDITURE' | translate) || 'Resource Expenditure' }}</div>
                 <div class="text-3xl font-black text-accent">\${{ otData.totalResourceCost.toLocaleString() }}</div>
              </div>
           </div>
@@ -460,7 +460,7 @@ import { ToastService } from '../../core/services/language.service';
                 </div>
              </div>
              <div class="card bg-glass border-primary/20">
-                <h3 class="font-black text-lg mb-6 flex items-center gap-2 text-primary"><span class="material-icons-round">inventory_2</span> {{ 'TOP_CONSUMED_ITEMS' | translate || 'Top Consumed Items' }}</h3>
+                <h3 class="font-black text-lg mb-6 flex items-center gap-2 text-primary"><span class="material-icons-round">inventory_2</span> {{ ('TOP_CONSUMED_ITEMS' | translate) || 'Top Consumed Items' }}</h3>
                 <div class="flex flex-col gap-3">
                    <div *ngFor="let i of otData.topConsumedItems" class="flex justify-between items-end p-2 border-b border-dashed border-primary/10">
                       <div>
@@ -480,7 +480,7 @@ import { ToastService } from '../../core/services/language.service';
        <div *ngIf="tab==='audit'">
           <div class="card mb-8">
              <div class="flex justify-between items-center mb-6">
-                <h3 class="font-black text-lg flex items-center gap-2"><span class="material-icons-round text-primary">history</span> {{ 'SYSTEM_AUDIT_TRAIL' | translate || 'System Audit Trail' }}</h3>
+                <h3 class="font-black text-lg flex items-center gap-2"><span class="material-icons-round text-primary">history</span> {{ ('SYSTEM_AUDIT_TRAIL' | translate) || 'System Audit Trail' }}</h3>
                 <div class="flex gap-4">
                    <input type="text" class="form-control" [placeholder]="'SEARCH_LOGS' | translate" [(ngModel)]="logFilter" (input)="loadAuditLogs()">
                 </div>

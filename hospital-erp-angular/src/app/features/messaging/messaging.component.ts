@@ -130,7 +130,7 @@ import { NotificationService } from '../../core/services/notification.service';
             <select class="form-control form-select" [(ngModel)]="composeForm.receiverId">
               <option value="">Select Recipient</option>
               <ng-container *ngFor="let user of users">
-                <option *ngIf="user.id !== auth.currentUser?.id" [value]="user.id">
+                <option *ngIf="user.id !== auth.currentUser?.userId" [value]="user.id">
                   {{ user.fullName }} ({{ user.roleName }})
                 </option>
               </ng-container>
