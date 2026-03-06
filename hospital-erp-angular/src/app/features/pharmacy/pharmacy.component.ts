@@ -29,6 +29,12 @@ import { ToastService } from '../../core/services/language.service';
     .tab-switcher { display: flex; background: rgba(0,0,0,0.2); p: 6px; border-radius: 16px; width: fit-content; border: 1px solid var(--border); margin-bottom: 24px; }
     .tab-trigger { padding: 12px 28px; border-radius: 12px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
     .tab-trigger.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.4); }
+
+    .stat-card { background: rgba(var(--card-bg-rgb), 0.3); border: 1px solid var(--border); border-radius: 24px; padding: 24px; transition: 0.2s; }
+    .stat-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+    .stat-val { font-size: 2.5rem; font-weight: 900; line-height: 1; margin: 10px 0; }
+    .stat-label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; }
+    .stat-icon { font-size: 40px; opacity: 0.15; position: absolute; right: 20px; bottom: 20px; }
   `],
   template: `
     <div class="page-header">
@@ -36,18 +42,127 @@ import { ToastService } from '../../core/services/language.service';
         <h1 class="page-title">{{ 'PHARMACY' | translate }}</h1>
         <p class="page-subtitle">{{ 'PHARMACY_MANAGEMENT_SUBTITLE' | translate }}</p>
       </div>
-      <button class="btn btn-primary px-4 shadow-primary" (click)="openRxForm()">
-        <span class="material-icons-round mr-1" style="font-size:20px">add_task</span> {{ 'NEW_PRESCRIPTION' | translate }}
-      </button>
+      <div class="flex gap-3">
+        <button class="btn btn-secondary px-4 h-12 rounded-xl" (click)="runExpiryJob()" [disabled]="runningJob">
+           <span class="material-icons-round mr-1" [class.animate-spin]="runningJob">sync</span> {{ 'RUN_EXPIRY_CHECK' | translate }}
+        </button>
+        <button class="btn btn-primary px-4 h-12 shadow-primary rounded-xl" (click)="openRxForm()">
+           <span class="material-icons-round mr-1">add_task</span> {{ 'NEW_PRESCRIPTION' | translate }}
+        </button>
+      </div>
     </div>
 
     <div class="tab-switcher animate-in">
-      <button class="tab-trigger" [class.active]="tab==='prescriptions'" (click)="tab='prescriptions';loadPrescriptions()">
-        <span class="material-icons-round">receipt_long</span> {{ 'PRESCRIPTIONS' | translate }}
+      <button class="tab-trigger" [class.active]="tab==='overview'" (click)="tab='overview';loadDashboard()">
+        <span class="material-icons-round">dashboard</span> {{ 'OVERVIEW' | translate }}
       </button>
       <button class="tab-trigger" [class.active]="tab==='dispensing'" (click)="tab='dispensing';loadPending()">
         <span class="material-icons-round">medication</span> {{ 'DISPENSING' | translate }}
       </button>
+      <button class="tab-trigger" [class.active]="tab==='prescriptions'" (click)="tab='prescriptions';loadPrescriptions()">
+        <span class="material-icons-round">receipt_long</span> {{ 'HISTORY' | translate }}
+      </button>
+      <button class="tab-trigger" [class.active]="tab==='expiry'" (click)="tab='expiry';loadExpiring()">
+        <span class="material-icons-round">history_toggle_off</span> {{ 'INVENTORY_EXPIRY' | translate }}
+      </button>
+    </div>
+
+    <!-- OVERVIEW DASHBOARD -->
+    <div *ngIf="tab==='overview'" class="animate-in">
+       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div class="stat-card relative overflow-hidden">
+             <div class="stat-label text-warning">{{ 'PENDING_DISPENSE' | translate }}</div>
+             <div class="stat-val">{{ dashboard?.pendingPrescriptions || 0 }}</div>
+             <span class="material-icons-round stat-icon">pending_actions</span>
+          </div>
+          <div class="stat-card relative overflow-hidden">
+             <div class="stat-label text-danger">{{ 'EXPIRING_BATCHES' | translate }}</div>
+             <div class="stat-val">{{ dashboard?.expiringSoonCount || 0 }}</div>
+             <span class="material-icons-round stat-icon">timer_off</span>
+          </div>
+          <div class="stat-card relative overflow-hidden">
+             <div class="stat-label text-primary">{{ 'LOW_STOCK_MEDS' | translate }}</div>
+             <div class="stat-val">{{ dashboard?.lowStockCount || 0 }}</div>
+             <span class="material-icons-round stat-icon">inventory</span>
+          </div>
+       </div>
+
+       <div class="grid grid-cols-2 gap-8">
+          <div class="card p-6">
+             <h3 class="font-black text-lg mb-4 flex items-center gap-2"><span class="material-icons-round text-warning">report_problem</span> {{ 'CRITICAL_EXPIRY_ALERTS' | translate }}</h3>
+             <div class="flex flex-col gap-3">
+                <div *ngFor="let b of dashboard?.expiringBatches" class="flex items-center justify-between p-3 bg-glass border rounded-xl">
+                   <div>
+                      <div class="font-bold text-sm">{{ b.itemName }}</div>
+                      <div class="text-[0.65rem] font-black uppercase text-danger">{{ 'EXPIRES' | translate }}: {{ b.expiryDate | date:'mediumDate' }}</div>
+                   </div>
+                   <div class="text-right">
+                      <div class="badge badge-error">{{ b.daysRemaining }} {{ 'DAYS' | translate }}</div>
+                      <div class="text-[0.6rem] font-bold text-muted mt-1">{{ b.batchNumber }}</div>
+                   </div>
+                </div>
+                <div *ngIf="!dashboard?.expiringBatches?.length" class="p-8 text-center text-muted border-dashed border border-muted opacity-30 rounded-2xl">
+                   {{ 'NO_ALERTS' | translate }}
+                </div>
+             </div>
+          </div>
+          <div class="card p-6">
+             <h3 class="font-black text-lg mb-4 flex items-center gap-2"><span class="material-icons-round text-primary">analytics</span> {{ 'RECENT_PRESCRIPTIONS' | translate }}</h3>
+             <div class="flex flex-col gap-3">
+                <div *ngFor="let rx of dashboard?.recentPrescriptions" class="flex items-center justify-between p-3 bg-glass border rounded-xl">
+                   <div>
+                      <div class="font-bold text-sm">{{ rx.patientName }}</div>
+                      <div class="text-[0.65rem] font-bold text-primary">{{ rx.prescriptionNumber }}</div>
+                   </div>
+                   <div class="text-right">
+                      <div class="badge" [ngClass]="rx.status === 'Pending' ? 'badge-warning' : 'badge-success'">{{ rx.status | translate }}</div>
+                      <div class="text-[0.6rem] font-bold text-muted mt-1">{{ rx.prescriptionDate | date:'shortTime' }}</div>
+                   </div>
+                </div>
+             </div>
+          </div>
+       </div>
+    </div>
+
+    <!-- EXPIRY MANAGEMENT -->
+    <div *ngIf="tab==='expiry'" class="animate-in">
+       <div class="card p-0">
+          <div class="table-container">
+             <table class="table">
+                <thead>
+                   <tr>
+                      <th>{{ 'ITEM' | translate }}</th>
+                      <th>{{ 'BATCH_NUMBER' | translate }}</th>
+                      <th class="text-center">{{ 'DAYS_LEFT' | translate }}</th>
+                      <th>{{ 'EXPIRY_DATE' | translate }}</th>
+                      <th class="text-end">{{ 'REMAINING' | translate }}</th>
+                      <th>{{ 'STATUS' | translate }}</th>
+                   </tr>
+                </thead>
+                <tbody>
+                   <tr *ngFor="let b of expiringBatches" class="hover-row">
+                      <td>
+                         <div class="font-bold">{{ b.itemName }}</div>
+                         <div class="text-xs text-muted">{{ b.itemCode }}</div>
+                      </td>
+                      <td><span class="badge badge-secondary font-mono">{{ b.batchNumber }}</span></td>
+                      <td class="text-center">
+                         <span class="badge font-black" [ngClass]="b.isExpired ? 'badge-error' : (b.isExpiringSoon ? 'badge-warning' : 'badge-primary')">
+                            {{ b.daysRemaining }}
+                         </span>
+                      </td>
+                      <td class="font-semibold">{{ b.expiryDate | date:'mediumDate' }}</td>
+                      <td class="text-end font-black">{{ b.quantityRemaining }}</td>
+                      <td>
+                         <span class="badge" [ngClass]="b.isExpired ? 'bg-danger' : (b.isExpiringSoon ? 'bg-warning' : 'bg-success')">
+                            {{ b.status | translate }}
+                         </span>
+                      </td>
+                   </tr>
+                </tbody>
+             </table>
+          </div>
+       </div>
     </div>
 
     <!-- PRESCRIPTIONS LIST -->
@@ -264,9 +379,12 @@ import { ToastService } from '../../core/services/language.service';
   `
 })
 export class PharmacyComponent implements OnInit {
-  tab = 'prescriptions';
+  tab = 'overview';
   prescriptions: any[] = [];
   pendingItems: any[] = [];
+  expiringBatches: any[] = [];
+  dashboard: any = null;
+  runningJob = false;
   patients: any[] = [];
   medicines: any[] = [];
   search = '';
@@ -288,9 +406,29 @@ export class PharmacyComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.loadPrescriptions();
+    this.loadDashboard();
     this.patientSvc.getAll({ pageSize: 1000 }).subscribe((r: any) => this.patients = r.items);
     this.invSvc.getItems({ pageSize: 1000 } as any, 'Medicine').subscribe((r: any) => this.medicines = r.items);
+  }
+
+  loadDashboard() {
+    this.pharmacy.getDashboard().subscribe(d => this.dashboard = d);
+  }
+
+  runExpiryJob() {
+    this.runningJob = true;
+    this.pharmacy.runExpiryCheck().subscribe({
+      next: (r) => {
+        this.toast.success(r.message);
+        this.loadDashboard();
+        this.runningJob = false;
+      },
+      error: () => this.runningJob = false
+    });
+  }
+
+  loadExpiring() {
+    this.invSvc.getBatches({ page: 1, pageSize: 100 }, { excludeExhausted: true }).subscribe(r => this.expiringBatches = r.items);
   }
 
   loadPrescriptions() {

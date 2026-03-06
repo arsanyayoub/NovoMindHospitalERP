@@ -501,6 +501,14 @@ public record CreatePrescriptionItemDto(int ItemId, string Dosage, string Freque
 
 public record DispenseItemDto(int? ItemBatchId, decimal Quantity);
 
+public record PharmacyDashboardDto(
+    int PendingPrescriptions,
+    int ExpiringSoonCount,
+    int LowStockCount,
+    List<PrescriptionDto> RecentPrescriptions,
+    List<ItemBatchDto> ExpiringBatches,
+    List<WarehouseStockDto> LowStockMedications);
+
 public record ClinicalEncounterDto(int Id, int PatientId, string PatientName, int? DoctorId, string? DoctorName, 
     int? AppointmentId, DateTime EncounterDate, string? ChiefComplaint, string? Subjective, string? Objective, 
     string? Assessment, string? Plan, string? InternalNotes, bool IsFinalized, DateTime CreatedDate);

@@ -65,4 +65,14 @@ public class PharmacyController : ControllerBase
         var administeredBy = User.FindFirstValue(ClaimTypes.Name) ?? "System";
         return Ok(await _service.CreateMedicationAdministrationAsync(dto, administeredBy));
     }
+
+    [HttpGet("dashboard")]
+    public async Task<IActionResult> GetDashboard() => Ok(await _service.GetPharmacyDashboardAsync());
+
+    [HttpPost("check-expiry")]
+    public async Task<IActionResult> CheckExpiry()
+    {
+        await _service.CheckExpiringBatchesAsync();
+        return Ok(new { message = "Expiry check completed and notifications sent." });
+    }
 }

@@ -439,6 +439,9 @@ export class PharmacyService {
         return this.http.get<any[]>(`${this.API}/items/${itemId}/available-batches`);
     }
     dispenseItem(id: number, dto: any): Observable<any> { return this.http.post<any>(`${this.API}/items/${id}/dispense`, dto); }
+
+    getDashboard(): Observable<any> { return this.http.get<any>(`${this.API}/dashboard`); }
+    runExpiryCheck(): Observable<any> { return this.http.post<any>(`${this.API}/check-expiry`, {}); }
 }
 
 @Injectable({ providedIn: 'root' })

@@ -234,6 +234,78 @@ public class PharmacyService : IPharmacyService
             entity.PrescriptionItem.IsDispensed, entity.PrescriptionItem.DispensedDate, entity.PrescriptionItem.DispensedBy);
     }
 
+    public async Task<PharmacyDashboardDto> GetPharmacyDashboardAsync()
+    {
+        var pendingPrescrCount = await _uow.Prescriptions.Query().CountAsync(p => p.Status == "Pending" || p.Status == "Partially Dispensed");
+        
+        var now = DateTime.UtcNow;
+        var expiringSoonDate = now.AddDays(30);
+        
+        var expiringSoonBatches = await _uow.ItemBatches.Query()
+            .Include(b => b.Item)
+            .Include(b => b.Warehouse)
+            .Where(b => b.ExpiryDate <= expiringSoonDate && b.QuantityRemaining > 0 && b.Status == "Active")
+            .OrderBy(b => b.ExpiryDate)
+            .Take(10)
+            .ToListAsync();
+            
+        var expiringCount = await _uow.ItemBatches.Query()
+            .CountAsync(b => b.ExpiryDate <= expiringSoonDate && b.QuantityRemaining > 0 && b.Status == "Active");
+
+        var lowStockCount = await _uow.WarehouseStocks.Query()
+            .CountAsync(ws => ws.Quantity <= ws.ReorderLevel);
+
+        var recentPrescr = await _uow.Prescriptions.Query()
+            .Include(p => p.Patient)
+            .Include(p => p.Doctor)
+            .OrderByDescending(p => p.PrescriptionDate)
+            .Take(5)
+            .ToListAsync();
+
+        var lowStockMedications = await _uow.WarehouseStocks.Query()
+            .Include(ws => ws.Item)
+            .Include(ws => ws.Warehouse)
+            .Where(ws => ws.Quantity <= ws.ReorderLevel && ws.Item.Category == "Medication")
+            .Take(10)
+            .ToListAsync();
+
+        return new PharmacyDashboardDto(
+            pendingPrescrCount,
+            expiringCount,
+            lowStockCount,
+            recentPrescr.Select(ToDto).ToList(),
+            expiringSoonBatches.Select(MapBatchToDto).ToList(), 
+            lowStockMedications.Select(ToStockDto).ToList() 
+        );
+    }
+
+    public async Task CheckExpiringBatchesAsync()
+    {
+        var now = DateTime.UtcNow;
+        var alertDate = now.AddDays(30);
+        
+        var expiring = await _uow.ItemBatches.Query()
+            .Include(b => b.Item)
+            .Where(b => (b.ExpiryDate <= alertDate || b.ExpiryDate <= now) && b.QuantityRemaining > 0 && b.Status == "Active")
+            .ToListAsync();
+            
+        foreach(var b in expiring)
+        {
+            var isExpired = b.ExpiryDate <= now;
+            var title = isExpired ? "Batch Expired!" : "Batch Expiring Soon";
+            var msg = isExpired? $"Batch {b.BatchNumber} for {b.Item?.ItemName} has expired." : $"Batch {b.BatchNumber} for {b.Item?.ItemName} expires on {b.ExpiryDate:d}.";
+            
+            await _notif.CreateNotificationAsync(title, msg, isExpired ? "ExpiryError" : "ExpiryWarning", null, "ItemBatch", b.Id);
+            
+            if (isExpired) {
+                b.Status = "Expired";
+                _uow.ItemBatches.Update(b);
+            }
+        }
+        
+        await _uow.SaveChangesAsync();
+    }
+
     internal static PrescriptionDto ToDto(Prescription p)
     {
         return new PrescriptionDto(
@@ -244,5 +316,23 @@ public class PharmacyService : IPharmacyService
                 pi.IsDispensed, pi.DispensedDate, pi.DispensedBy
             )).ToList()
         );
+    }
+
+    private static ItemBatchDto MapBatchToDto(ItemBatch b)
+    {
+        int days = (b.ExpiryDate - DateTime.UtcNow).Days;
+        return new ItemBatchDto(
+            b.Id, b.ItemId, b.Item?.ItemName ?? "Unknown Medicine", b.Item?.ItemCode ?? "N/A", b.SupplierId, null,
+            b.WarehouseId, b.Warehouse?.WarehouseName, b.BatchNumber, b.Barcode, b.ManufactureDate, b.ExpiryDate,
+            b.QuantityReceived, b.QuantityRemaining, b.UnitCost, b.Status, b.LotNumber, b.Notes, b.ReceivedDate,
+            days, days <= 0, (days > 0 && days <= 30)
+        );
+    }
+
+    private static WarehouseStockDto ToStockDto(WarehouseStock ws)
+    {
+        return new WarehouseStockDto(
+            ws.Id, ws.WarehouseId, ws.Warehouse?.WarehouseName ?? "N/A", ws.ItemId, ws.Item?.ItemName ?? "N/A",
+            ws.Quantity, ws.ReorderLevel, ws.MaxLevel, ws.Quantity <= ws.ReorderLevel, ws.Item?.PurchasePrice ?? 0);
     }
 }
