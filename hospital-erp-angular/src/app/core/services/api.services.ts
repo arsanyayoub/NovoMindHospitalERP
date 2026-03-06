@@ -315,6 +315,10 @@ export class ReportingService {
     getBeds(from: string, to: string): Observable<any> {
         return this.http.get<any>(`${this.API}/beds`, { params: new HttpParams().set('from', from).set('to', to) });
     }
+    getOT(from: string, to: string): Observable<any> {
+        return this.http.get<any>(`${this.API}/ot`, { params: new HttpParams().set('from', from).set('to', to) });
+    }
+
 }
 
 @Injectable({ providedIn: 'root' })
@@ -587,4 +591,34 @@ export class OTService {
     cancelSurgery(id: number, reason: string): Observable<void> {
         return this.http.post<void>(`${this.API}/surgeries/${id}/cancel?reason=${reason}`, {});
     }
+
+    getResources(surgeryId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API}/surgeries/${surgeryId}/resources`);
+    }
+    addResource(surgeryId: number, dto: any): Observable<void> {
+        return this.http.post<void>(`${this.API}/surgeries/${surgeryId}/resources`, dto);
+    }
+    removeResource(resourceId: number): Observable<void> {
+        return this.http.delete<void>(`${this.API}/resources/${resourceId}`);
+    }
+    finalizeBill(surgeryId: number): Observable<{ invoiceId: number }> {
+        return this.http.post<{ invoiceId: number }>(`${this.API}/surgeries/${surgeryId}/finalize-bill`, {});
+    }
 }
+
+@Injectable({ providedIn: 'root' })
+export class SystemService {
+    private readonly API = `${environment.apiUrl}/system`;
+    constructor(private http: HttpClient) { }
+
+    getAuditLogs(page = 1, pageSize = 50, search?: string, entityName?: string, entityId?: number): Observable<PagedResult<any>> {
+        let params = new HttpParams().set('page', page).set('pageSize', pageSize);
+        if (search) params = params.set('search', search);
+        if (entityName) params = params.set('entityName', entityName);
+        if (entityId) params = params.set('entityId', entityId);
+        return this.http.get<PagedResult<any>>(`${this.API}/audit-logs`, { params });
+    }
+}
+
+
+

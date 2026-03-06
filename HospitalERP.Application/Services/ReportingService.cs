@@ -232,4 +232,64 @@ public class ReportingService : IReportingService
 
         return new BedAnalyticsDto(totalWards, totalRooms, totalBeds, occupiedBeds, maintenanceBeds, rate, wardOccupancy, roomTypeOccupancy, admissionTrend);
     }
+
+    public async Task<OTAnalyticsDto> GetOTAnalyticsAsync(DateTime from, DateTime to)
+    {
+        var theaters = await _uow.OperatingTheaters.GetAllAsync();
+        var surgeries = await _uow.ScheduledSurgeries.Query()
+            .Include(s => s.OperatingTheater)
+            .Where(s => s.ScheduledStartTime >= from && s.ScheduledStartTime <= to)
+            .ToListAsync();
+
+        var totalTheaters = theaters.Count;
+        var totalSurgeries = surgeries.Count;
+
+        // Utilization Calculation (Assuming 8 hours availability per day per OT)
+        var totalDays = (to - from).Days + 1;
+        if (totalDays <= 0) totalDays = 1;
+        var availableHoursPerOT = totalDays * 8; 
+        
+        var theaterUtilization = new List<GroupValueDto>();
+        foreach (var ot in theaters)
+        {
+            var otSurgeries = surgeries.Where(s => s.OperatingTheaterId == ot.Id).ToList();
+            double occupiedHours = otSurgeries.Sum(s => (s.ScheduledEndTime - s.ScheduledStartTime).TotalHours);
+            var utilRate = availableHoursPerOT > 0 ? (decimal)(occupiedHours / availableHoursPerOT) * 100 : 0;
+            theaterUtilization.Add(new GroupValueDto(ot.Name, Math.Min(utilRate, 100)));
+        }
+
+        var overallUtilization = theaterUtilization.Any() ? theaterUtilization.Average(x => x.Value) : 0;
+
+        var statusBreakdown = surgeries.GroupBy(s => s.Status)
+            .Select(g => new GroupCountDto(g.Key, g.Count()))
+            .ToList();
+
+        var priorityBreakdown = surgeries.GroupBy(s => s.Priority)
+            .Select(g => new GroupCountDto(g.Key, g.Count()))
+            .ToList();
+
+        var trend = new List<MonthlyCountDto>();
+        for (var d = new DateTime(from.Year, from.Month, 1); d <= to; d = d.AddMonths(1))
+        {
+            var count = surgeries.Count(s => s.ScheduledStartTime >= d && s.ScheduledStartTime < d.AddMonths(1));
+            trend.Add(new MonthlyCountDto(d.ToString("MMM yyyy"), count));
+        }
+
+        // Resource Cost & Top Items
+        var resources = await _uow.SurgeryResources.Query()
+            .Include(r => r.Item)
+            .Where(r => r.ConsumedDate >= from && r.ConsumedDate <= to)
+            .ToListAsync();
+
+        var totalCost = resources.Sum(r => r.Quantity * (r.Item?.PurchasePrice ?? 0));
+        var topItems = resources.GroupBy(r => r.Item?.ItemName ?? "Unknown")
+            .Select(g => new GroupCountDto(g.Key, (int)g.Sum(r => r.Quantity)))
+            .OrderByDescending(x => x.Count)
+            .Take(5)
+            .ToList();
+
+        return new OTAnalyticsDto(totalTheaters, totalSurgeries, overallUtilization, totalCost, theaterUtilization, statusBreakdown, priorityBreakdown, trend, topItems);
+    }
 }
+
+

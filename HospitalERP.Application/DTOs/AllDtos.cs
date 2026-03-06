@@ -390,6 +390,22 @@ public record BedAnalyticsDto(
     List<MonthlyCountDto> AdmissionTrend
 );
 
+public record OTAnalyticsDto(
+    int TotalTheaters,
+    int TotalSurgeries,
+    decimal UtilizationRate,
+    decimal TotalResourceCost,
+    List<GroupValueDto> TheaterUtilization,
+    List<GroupCountDto> StatusBreakdown,
+    List<GroupCountDto> PriorityBreakdown,
+    List<MonthlyCountDto> SurgeryTrend,
+    List<GroupCountDto> TopConsumedItems
+);
+
+
+public record GroupValueDto(string GroupName, decimal Value);
+
+
 // ═══════════════════════════════════════════════════════════════
 //  STOCK TRANSACTIONS (INVENTORY REPORTS)
 // ═══════════════════════════════════════════════════════════════
@@ -460,7 +476,11 @@ public record CreateOperatingTheaterDto(string Name, string? Location, string St
 public record ScheduledSurgeryDto(int Id, int PatientId, string PatientName, int LeadSurgeonId, string LeadSurgeonName, 
     int? AnesthetistId, string? AnesthetistName, int OperatingTheaterId, string OperatingTheaterName, 
     string ProcedureName, DateTime ScheduledStartTime, DateTime ScheduledEndTime, string Priority, string Status, 
-    string? PreOpDiagnosis, string? PostOpDiagnosis, string? Notes);
+    string? PreOpDiagnosis, string? PostOpDiagnosis, string? Notes, int? InvoiceId = null, decimal? TotalCost = null, List<SurgeryResourceDto>? Resources = null);
+
+public record SurgeryResourceDto(int Id, int ScheduledSurgeryId, int ItemId, string ItemName, decimal Quantity, string? BatchNumber, string? Notes, DateTime ConsumedDate);
+public record CreateSurgeryResourceDto(int ItemId, decimal Quantity, string? BatchNumber, string? Notes);
+
 
 public record CreateScheduledSurgeryDto(int PatientId, int LeadSurgeonId, int? AnesthetistId, int OperatingTheaterId, 
     string ProcedureName, DateTime ScheduledStartTime, DateTime ScheduledEndTime, string Priority, 

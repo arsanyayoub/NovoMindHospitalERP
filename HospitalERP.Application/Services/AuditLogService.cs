@@ -32,21 +32,21 @@ public class AuditLogService : IAuditLogService
         await _uow.SaveChangesAsync();
     }
 
-    public async Task<PagedResult<AuditLogDto>> GetLogsAsync(int page = 1, int pageSize = 50, string? search = null)
+    public async Task<PagedResult<AuditLogDto>> GetLogsAsync(int page = 1, int pageSize = 50, string? search = null, string? entityName = null, int? entityId = null)
     {
-        var query = await _uow.AuditLogs.QueryAsync(l => 
-            string.IsNullOrEmpty(search) || 
-            l.EntityName.Contains(search) || 
-            l.Action.Contains(search) || 
-            l.Username.Contains(search));
-        
-        var total = query.Count();
-
         var logs = await _uow.AuditLogs.FindAsync(
-            l => string.IsNullOrEmpty(search) || l.EntityName.Contains(search) || l.Action.Contains(search) || l.Username.Contains(search),
+            l => (string.IsNullOrEmpty(search) || l.EntityName.Contains(search) || l.Action.Contains(search) || l.Username.Contains(search)) &&
+                 (string.IsNullOrEmpty(entityName) || l.EntityName == entityName) &&
+                 (!entityId.HasValue || l.EntityId == entityId),
             q => q.OrderByDescending(x => x.Timestamp),
             null,
             page, pageSize);
+
+        var total = (await _uow.AuditLogs.QueryAsync(l => 
+            (string.IsNullOrEmpty(search) || l.EntityName.Contains(search) || l.Action.Contains(search) || l.Username.Contains(search)) &&
+            (string.IsNullOrEmpty(entityName) || l.EntityName == entityName) &&
+            (!entityId.HasValue || l.EntityId == entityId)
+        )).Count();
 
         var dtos = logs.Select(l => new AuditLogDto
         {
@@ -60,12 +60,7 @@ public class AuditLogService : IAuditLogService
             Timestamp = l.Timestamp
         });
 
-        return new PagedResult<AuditLogDto>
-        {
-            Items = dtos,
-            TotalCount = total,
-            Page = page,
-            PageSize = pageSize
-        };
+        return new PagedResult<AuditLogDto>(dtos, total, page, pageSize);
     }
 }
+

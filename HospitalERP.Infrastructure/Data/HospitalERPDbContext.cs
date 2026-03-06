@@ -81,6 +81,7 @@ public class HospitalERPDbContext : DbContext
     // Operating Theater
     public DbSet<OperatingTheater> OperatingTheaters => Set<OperatingTheater>();
     public DbSet<ScheduledSurgery> ScheduledSurgeries => Set<ScheduledSurgery>();
+    public DbSet<SurgeryResource> SurgeryResources => Set<SurgeryResource>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -126,6 +127,7 @@ public class HospitalERPDbContext : DbContext
         modelBuilder.Entity<AuditLog>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<OperatingTheater>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<ScheduledSurgery>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<SurgeryResource>().HasQueryFilter(e => !e.IsDeleted);
 
         // ── Decimal precision ────────────────────────────────────────
         foreach (var property in modelBuilder.Model.GetEntityTypes()

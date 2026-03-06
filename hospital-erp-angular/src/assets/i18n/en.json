@@ -479,5 +479,12 @@
     "POST_OP": "Post-Op",
     "NEW_OT": "New Operating Theater",
     "OT_MANAGEMENT": "Theaters",
-    "UPCOMING_SURGERIES": "Upcoming Surgeries"
+    "UPCOMING_SURGERIES": "Upcoming Surgeries",
+    "OT_REPORTS": "OT Reports",
+    "TOTAL_THEATERS": "T. Operating Theaters",
+    "TOTAL_SURGERIES_IN_PERIOD": "Total Surgeries",
+    "SURGICAL_UTILIZATION": "Surg. Utilization",
+    "SURGERY_VOLUME_TREND": "Surgery Volume Trend",
+    "UTILIZATION_BY_THEATER": "Utilization by Theater",
+    "PRIORITY_BREAKDOWN": "Priority Breakdown"
 }

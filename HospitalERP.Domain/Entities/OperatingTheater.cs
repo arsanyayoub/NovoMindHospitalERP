@@ -33,4 +33,10 @@ public class ScheduledSurgery : BaseEntity
     public string? PreOpDiagnosis { get; set; }
     public string? PostOpDiagnosis { get; set; }
     public string? Notes { get; set; }
+
+    public ICollection<SurgeryResource> Resources { get; set; } = new List<SurgeryResource>();
+    public int? InvoiceId { get; set; }
+    public Invoice? Invoice { get; set; }
+    public decimal? TotalCost { get; set; }
 }
+

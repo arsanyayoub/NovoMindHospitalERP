@@ -59,4 +59,11 @@ public class ReportingController : ControllerBase
     {
         return Ok(await _reportingService.GetBedAnalyticsAsync(from, to));
     }
+
+    [HttpGet("ot")]
+    public async Task<IActionResult> GetOTAnalytics([FromQuery] DateTime from, [FromQuery] DateTime to)
+    {
+        return Ok(await _reportingService.GetOTAnalyticsAsync(from, to));
+    }
 }
+

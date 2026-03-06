@@ -187,8 +187,41 @@ public static class DemoDataSeeder
         }
         await db.SaveChangesAsync();
 
-        logger?.LogInformation("Demo data seeded – {Patients} patients, {Doctors} doctors, {Appointments} appointments, {Items} inventory items.",
-            patients.Count, doctors.Count, appts.Count, items.Count);
+        // ── Operating Theaters ──────────────────────────────────────
+        var theaters = new List<OperatingTheater>
+        {
+            new() { Id = 1, Name = "OT 1 (General Surgery)", Location = "Floor 2, Wing A", Status = "Available", CreatedBy = SYS, CreatedDate = _base },
+            new() { Id = 2, Name = "OT 2 (Orthopedic)",      Location = "Floor 2, Wing A", Status = "Available", CreatedBy = SYS, CreatedDate = _base },
+            new() { Id = 3, Name = "OT 3 (Emergency)",       Location = "Floor 1, ER",     Status = "Available", CreatedBy = SYS, CreatedDate = _base },
+        };
+        db.OperatingTheaters.AddRange(theaters);
+        await db.SaveChangesAsync();
+
+        // ── Scheduled Surgeries ──────────────────────────────────────
+        var surgeries = new List<ScheduledSurgery>
+        {
+            new() { 
+                PatientId = 1, LeadSurgeonId = 4, AnesthetistId = 1, OperatingTheaterId = 1, 
+                ProcedureName = "Laparoscopic Cholecystectomy", 
+                ScheduledStartTime = DateTime.UtcNow.AddHours(2), 
+                ScheduledEndTime = DateTime.UtcNow.AddHours(4),
+                Priority = "Routine", Status = "Scheduled", 
+                PreOpDiagnosis = "Chronic Cholecystitis", CreatedBy = SYS, CreatedDate = _base 
+            },
+            new() { 
+                PatientId = 3, LeadSurgeonId = 4, AnesthetistId = 2, OperatingTheaterId = 2, 
+                ProcedureName = "Total Knee Replacement", 
+                ScheduledStartTime = DateTime.UtcNow.AddHours(5), 
+                ScheduledEndTime = DateTime.UtcNow.AddHours(8),
+                Priority = "Urgent", Status = "Scheduled", 
+                PreOpDiagnosis = "Severe Osteoarthritis", CreatedBy = SYS, CreatedDate = _base 
+            }
+        };
+        db.ScheduledSurgeries.AddRange(surgeries);
+        await db.SaveChangesAsync();
+
+        logger?.LogInformation("Demo data seeded – {Patients} patients, {Doctors} doctors, {Appointments} appointments, {Items} inventory items, {OTs} theaters.",
+            patients.Count, doctors.Count, appts.Count, items.Count, theaters.Count);
     }
 
     // ── Helper factories ────────────────────────────────────────────

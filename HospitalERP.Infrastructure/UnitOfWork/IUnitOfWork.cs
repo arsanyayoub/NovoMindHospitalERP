@@ -62,6 +62,8 @@ public interface IUnitOfWork : IDisposable
     // Operating Theater
     IRepository<OperatingTheater> OperatingTheaters { get; }
     IRepository<ScheduledSurgery> ScheduledSurgeries { get; }
+    IRepository<SurgeryResource> SurgeryResources { get; }
 
     Task<int> SaveChangesAsync();
+
 }

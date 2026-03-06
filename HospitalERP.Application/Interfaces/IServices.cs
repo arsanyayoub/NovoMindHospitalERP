@@ -151,7 +151,9 @@ public interface IReportingService
     Task<InventoryAnalyticsDto> GetInventoryAnalyticsAsync();
     Task<HRAnalyticsDto> GetHRAnalyticsAsync(int year);
     Task<BedAnalyticsDto> GetBedAnalyticsAsync(DateTime from, DateTime to);
+    Task<OTAnalyticsDto> GetOTAnalyticsAsync(DateTime from, DateTime to);
 }
+
 
 public interface ILabService
 {
@@ -253,13 +255,19 @@ public interface IOTService
 {
     // Operating Theater
     Task<IEnumerable<OperatingTheaterDto>> GetOperatingTheatersAsync();
-    Task<OperatingTheaterDto> CreateOperatingTheaterAsync(CreateOperatingTheaterDto dto);
-    Task UpdateOTStatusAsync(int id, string status);
+    Task<OperatingTheaterDto> CreateOperatingTheaterAsync(CreateOperatingTheaterDto dto, string userId);
+    Task UpdateOTStatusAsync(int id, string status, string userId);
 
     // Scheduled Surgeries
     Task<PagedResult<ScheduledSurgeryDto>> GetScheduledSurgeriesAsync(PagedRequest request, string? status = null, int? otId = null);
     Task<ScheduledSurgeryDto?> GetSurgeryByIdAsync(int id);
-    Task<ScheduledSurgeryDto> ScheduleSurgeryAsync(CreateScheduledSurgeryDto dto);
-    Task UpdateSurgeryStatusAsync(int id, string status, string? postOpDiagnosis = null, string? notes = null);
-    Task CancelSurgeryAsync(int id, string reason);
+    Task<ScheduledSurgeryDto> ScheduleSurgeryAsync(CreateScheduledSurgeryDto dto, string userId);
+    Task UpdateSurgeryStatusAsync(int id, string status, string? postOpDiagnosis, string? notes, string userId);
+    Task CancelSurgeryAsync(int id, string reason, string userId);
+
+    // Resource Tracking
+    Task AddSurgeryResourceAsync(int surgeryId, CreateSurgeryResourceDto dto, string userId);
+    Task<IEnumerable<SurgeryResourceDto>> GetSurgeryResourcesAsync(int surgeryId);
+    Task RemoveSurgeryResourceAsync(int resourceId, string userId);
 }
+

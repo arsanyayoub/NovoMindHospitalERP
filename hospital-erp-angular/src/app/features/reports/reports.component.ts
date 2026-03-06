@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { AccountingService, ReportingService } from '../../core/services/api.services';
+import { AccountingService, ReportingService, SystemService } from '../../core/services/api.services';
 import { ExportService } from '../../core/services/export.service';
 import { ToastService } from '../../core/services/language.service';
 
@@ -72,6 +72,13 @@ import { ToastService } from '../../core/services/language.service';
       <button class="report-tab-btn" [class.active]="tab==='bed_stats'" (click)="loadBeds()">
         <span class="material-icons-round">hotel</span> {{ 'BEDS' | translate }}
       </button>
+      <button class="report-tab-btn" [class.active]="tab==='ot_stats'" (click)="loadOT()">
+        <span class="material-icons-round">meeting_room</span> {{ 'OT_REPORTS' | translate }}
+      </button>
+      <button class="report-tab-btn" [class.active]="tab==='audit'" (click)="loadAudit()">
+        <span class="material-icons-round">history</span> {{ 'AUDIT_LOGS' | translate || 'Audit Logs' }}
+      </button>
+
     </div>
 
     <!-- FILTERS -->
@@ -387,6 +394,134 @@ import { ToastService } from '../../core/services/language.service';
          </div>
       </div>
 
+       <!-- OT ANALYTICS -->
+       <div *ngIf="tab==='ot_stats' && otData">
+          <div class="rep-summary-grid mb-8">
+             <div class="rep-card glass-primary">
+                <div class="rep-icon"><span class="material-icons-round">meeting_room</span></div>
+                <div class="text-[0.65rem] font-black uppercase tracking-widest text-primary">{{ 'TOTAL_THEATERS' | translate }}</div>
+                <div class="text-3xl font-black text-primary">{{ otData.totalTheaters }}</div>
+             </div>
+             <div class="rep-card glass-success">
+                <div class="rep-icon"><span class="material-icons-round">calendar_today</span></div>
+                <div class="text-[0.65rem] font-black uppercase tracking-widest text-success">{{ 'TOTAL_SURGERIES_IN_PERIOD' | translate }}</div>
+                <div class="text-3xl font-black text-success">{{ otData.totalSurgeries }}</div>
+             </div>
+             <div class="rep-card glass-info">
+                <div class="rep-icon"><span class="material-icons-round">speed</span></div>
+                <div class="text-[0.65rem] font-black uppercase tracking-widest text-info">{{ 'SURGICAL_UTILIZATION' | translate }}</div>
+                <div class="text-3xl font-black text-info">{{ otData.utilizationRate.toFixed(1) }}%</div>
+             </div>
+             <div class="rep-card glass-accent">
+                <div class="rep-icon"><span class="material-icons-round">monetization_on</span></div>
+                <div class="text-[0.65rem] font-black uppercase tracking-widest text-accent">{{ 'RESOURCE_EXPENDITURE' | translate || 'Resource Expenditure' }}</div>
+                <div class="text-3xl font-black text-accent">\${{ otData.totalResourceCost.toLocaleString() }}</div>
+             </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-8 mb-8">
+             <div class="card">
+                <h3 class="font-black text-lg mb-6 flex items-center gap-2"><span class="material-icons-round text-primary">analytics</span> {{ 'SURGERY_VOLUME_TREND' | translate }}</h3>
+                <div class="rep-chart-box">
+                   <div *ngFor="let m of otData.surgeryTrend" class="rep-bar" 
+                        [style.height.%]="getBarHeight(m.count, otData.surgeryTrend)" 
+                        [attr.data-label]="m.month">
+                   </div>
+                </div>
+             </div>
+             <div class="card">
+                <h3 class="font-black text-lg mb-6 flex items-center gap-2"><span class="material-icons-round text-accent">pie_chart</span> {{ 'UTILIZATION_BY_THEATER' | translate }}</h3>
+                <div class="flex flex-col gap-6">
+                   <div *ngFor="let g of otData.theaterUtilization" class="flex flex-col gap-2">
+                      <div class="flex justify-between font-bold text-xs"><span>{{ g.groupName }}</span><span>{{ g.value.toFixed(1) }}%</span></div>
+                      <div class="progress-bar mini"><div class="progress-fill" [style.width.%]="g.value"></div></div>
+                   </div>
+                </div>
+             </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-8 mb-8">
+             <div class="card">
+                <h3 class="font-black text-lg mb-6">{{ 'STATUS_BREAKDOWN' | translate }}</h3>
+                <div class="flex flex-col gap-4">
+                   <div *ngFor="let g of otData.statusBreakdown" class="flex justify-between items-center p-3 bg-glass border rounded-xl">
+                      <span class="font-bold">{{ g.groupName | translate }}</span>
+                      <span class="badge badge-primary">{{ g.count }}</span>
+                   </div>
+                </div>
+             </div>
+             <div class="card">
+                <h3 class="font-black text-lg mb-6">{{ 'PRIORITY_BREAKDOWN' | translate }}</h3>
+                <div class="flex flex-col gap-4">
+                   <div *ngFor="let g of otData.priorityBreakdown" class="flex justify-between items-center p-3 bg-glass border rounded-xl">
+                      <span class="font-bold">{{ g.groupName | translate }}</span>
+                      <span class="badge badge-accent">{{ g.count }}</span>
+                   </div>
+                </div>
+             </div>
+             <div class="card bg-glass border-primary/20">
+                <h3 class="font-black text-lg mb-6 flex items-center gap-2 text-primary"><span class="material-icons-round">inventory_2</span> {{ 'TOP_CONSUMED_ITEMS' | translate || 'Top Consumed Items' }}</h3>
+                <div class="flex flex-col gap-3">
+                   <div *ngFor="let i of otData.topConsumedItems" class="flex justify-between items-end p-2 border-b border-dashed border-primary/10">
+                      <div>
+                        <div class="text-xs font-black uppercase text-muted">{{ i.groupName }}</div>
+                        <div class="text-xs font-bold">{{ 'QUANTITY' | translate }}: {{ i.count }}</div>
+                      </div>
+                      <span class="material-icons-round text-primary/30 text-lg">trending_up</span>
+                   </div>
+             
+                   <div *ngIf="otData.topConsumedItems.length === 0" class="text-center py-10 text-muted italic text-xs">No records found</div>
+                </div>
+             </div>
+          </div>
+       </div>
+
+       <!-- Audit Tab -->
+       <div *ngIf="tab==='audit'">
+          <div class="card mb-8">
+             <div class="flex justify-between items-center mb-6">
+                <h3 class="font-black text-lg flex items-center gap-2"><span class="material-icons-round text-primary">history</span> {{ 'SYSTEM_AUDIT_TRAIL' | translate || 'System Audit Trail' }}</h3>
+                <div class="flex gap-4">
+                   <input type="text" class="form-control" [placeholder]="'SEARCH_LOGS' | translate" [(ngModel)]="logFilter" (input)="loadAuditLogs()">
+                </div>
+             </div>
+             
+             <div class="table-container">
+                <table class="table hoverable">
+                   <thead>
+                      <tr>
+                         <th>{{ 'TIMESTAMP' | translate }}</th>
+                         <th>{{ 'USER' | translate }}</th>
+                         <th>{{ 'ACTION' | translate }}</th>
+                         <th>{{ 'ENTITY' | translate }}</th>
+                         <th>{{ 'DETAILS' | translate }}</th>
+                      </tr>
+                   </thead>
+                   <tbody>
+                      <tr *ngFor="let l of auditLogs">
+                         <td class="text-xs text-muted">{{ l.timestamp | date:'medium' }}</td>
+                         <td>
+                            <div class="flex items-center gap-2">
+                               <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">{{ l.username[0] }}</div>
+                               <span class="font-bold text-sm">{{ l.username }}</span>
+                            </div>
+                         </td>
+                         <td><span class="badge badge-outline text-[0.6rem] uppercase tracking-tighter">{{ l.action }}</span></td>
+                         <td><span class="text-xs font-black">{{ l.entityName }} #{{ l.entityId }}</span></td>
+                         <td class="max-w-[300px] truncate text-xs italic">{{ l.changes }}</td>
+                      </tr>
+                      <tr *ngIf="auditLogs.length === 0">
+                         <td colspan="5" class="text-center py-20 italic opacity-50">No activity logs found</td>
+                      </tr>
+                   </tbody>
+                </table>
+             </div>
+          </div>
+       </div>
+
+
+
+
        <div *ngIf="tabIsEmpty()" class="p-20 text-center card bg-glass grayscale opacity-30">
           <span class="material-icons-round text-6xl mb-4">analytics</span>
           <h3 class="font-black uppercase tracking-widest">{{ 'NO_DATA_GENERATED' | translate }}</h3>
@@ -409,16 +544,21 @@ export class ReportsComponent implements OnInit {
    invData: any = null;
    hrData: any = null;
    bedData: any = null;
+   otData: any = null;
    report: any = null;
    trialBalance: any[] = [];
+   auditLogs: any[] = [];
+   logFilter = '';
 
    constructor(
       private accounting: AccountingService,
       private reportsSvc: ReportingService,
+      private systemSvc: SystemService,
       private exportSvc: ExportService,
       private translate: TranslateService,
       private toast: ToastService
    ) { }
+
 
    ngOnInit() { this.load(); }
 
@@ -432,6 +572,21 @@ export class ReportsComponent implements OnInit {
    loadInventory() { this.tab = 'inv_stats'; this.load(); }
    loadHR() { this.tab = 'hr_stats'; this.load(); }
    loadBeds() { this.tab = 'bed_stats'; this.load(); }
+   loadOT() { this.tab = 'ot_stats'; this.load(); }
+   loadAudit() { this.tab = 'audit'; this.loadAuditLogs(); }
+
+   loadAuditLogs() {
+      this.loading = true;
+      this.systemSvc.getAuditLogs(1, 100, this.logFilter).subscribe({
+         next: (res) => {
+            this.auditLogs = res.items;
+            this.loading = false;
+         },
+         error: () => this.loading = false
+      });
+   }
+
+
 
    load() {
       this.loading = true;
@@ -449,6 +604,7 @@ export class ReportsComponent implements OnInit {
             else if (this.tab === 'inv_stats') this.invData = r;
             else if (this.tab === 'hr_stats') this.hrData = r;
             else if (this.tab === 'bed_stats') this.bedData = r;
+            else if (this.tab === 'ot_stats') this.otData = r;
             this.loading = false;
          },
          error: () => { this.loading = false; this.toast.error(this.translate.instant('ERROR_REFRESHING')); }
@@ -466,6 +622,7 @@ export class ReportsComponent implements OnInit {
          case 'inv_stats': return this.reportsSvc.getInventory();
          case 'hr_stats': return this.reportsSvc.getHR(new Date(this.to).getFullYear());
          case 'bed_stats': return this.reportsSvc.getBeds(this.from, this.to);
+         case 'ot_stats': return this.reportsSvc.getOT(this.from, this.to);
          default: return null;
       }
    }
@@ -491,6 +648,7 @@ export class ReportsComponent implements OnInit {
       if (this.tab === 'inv_stats') return !this.invData;
       if (this.tab === 'hr_stats') return !this.hrData;
       if (this.tab === 'bed_stats') return !this.bedData;
+      if (this.tab === 'ot_stats') return !this.otData;
       return true;
    }
 
