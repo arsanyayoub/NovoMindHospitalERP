@@ -11,12 +11,14 @@ public class SurgeryBillingService : ISurgeryBillingService
 {
     private readonly IUnitOfWork _uow;
     private readonly IInvoiceService _invoiceService;
+    private readonly INotificationService _notifService;
     private readonly ILogger<SurgeryBillingService> _logger;
 
-    public SurgeryBillingService(IUnitOfWork uow, IInvoiceService invoiceService, ILogger<SurgeryBillingService> logger)
+    public SurgeryBillingService(IUnitOfWork uow, IInvoiceService invoiceService, INotificationService notifService, ILogger<SurgeryBillingService> logger)
     {
         _uow = uow;
         _invoiceService = invoiceService;
+        _notifService = notifService;
         _logger = logger;
     }
 
@@ -97,6 +99,7 @@ public class SurgeryBillingService : ISurgeryBillingService
         await _uow.SaveChangesAsync();
 
         _logger.LogInformation("Generated Invoice #{InvoiceId} for Surgery #{SurgeryId}", invoice.Id, surgeryId);
+        await _notifService.CreateNotificationAsync("Surgery Billed", $"Invoice #{invoice.Id} generated for {surgery.Patient.FullName} - {surgery.ProcedureName}", "Invoice", null, "Invoice", invoice.Id);
         
         return invoice.Id;
     }

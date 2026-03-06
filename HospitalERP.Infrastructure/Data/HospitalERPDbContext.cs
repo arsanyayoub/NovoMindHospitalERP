@@ -44,6 +44,7 @@ public class HospitalERPDbContext : DbContext
     // HR
     public DbSet<Employee> Employees => Set<Employee>();
     public DbSet<Payroll> Payrolls => Set<Payroll>();
+    public DbSet<AttendanceRecord> AttendanceRecords => Set<AttendanceRecord>();
 
     // Misc
     public DbSet<Expense> Expenses => Set<Expense>();

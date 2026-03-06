@@ -10,11 +10,13 @@ public class OTService : IOTService
 {
     private readonly IUnitOfWork _uow;
     private readonly IAuditLogService _auditLog;
+    private readonly INotificationService _notifService;
 
-    public OTService(IUnitOfWork uow, IAuditLogService auditLog)
+    public OTService(IUnitOfWork uow, IAuditLogService auditLog, INotificationService notifService)
     {
         _uow = uow;
         _auditLog = auditLog;
+        _notifService = notifService;
     }
 
     public async Task<IEnumerable<OperatingTheaterDto>> GetOperatingTheatersAsync()
@@ -113,6 +115,7 @@ public class OTService : IOTService
         await _uow.SaveChangesAsync();
         
         await _auditLog.LogAsync(userId, userId, "Schedule", "ScheduledSurgery", s.Id, $"Scheduled {s.ProcedureName} for patient ID {s.PatientId}");
+        await _notifService.CreateNotificationAsync("Surgery Scheduled", $"Surgery '{s.ProcedureName}' scheduled for {s.ScheduledStartTime:f}", "OT", null, "ScheduledSurgery", s.Id);
 
         return (await GetSurgeryByIdAsync(s.Id))!;
     }
@@ -129,6 +132,7 @@ public class OTService : IOTService
         
         await _uow.SaveChangesAsync();
         await _auditLog.LogAsync(userId, userId, "Update Status", "ScheduledSurgery", id, $"Changed surgery status from {oldStatus} to {status}");
+        await _notifService.CreateNotificationAsync("Surgery Update", $"Surgery status changed to {status}", "OT", null, "ScheduledSurgery", id);
     }
 
     public async Task CancelSurgeryAsync(int id, string reason, string userId)
@@ -141,6 +145,7 @@ public class OTService : IOTService
 
         await _uow.SaveChangesAsync();
         await _auditLog.LogAsync(userId, userId, "Cancel", "ScheduledSurgery", id, $"Cancelled surgery. Reason: {reason}");
+        await _notifService.CreateNotificationAsync("Surgery Cancelled", $"Surgery was cancelled: {reason}", "OT", null, "ScheduledSurgery", id);
     }
 
     public async Task AddSurgeryResourceAsync(int surgeryId, CreateSurgeryResourceDto dto, string userId)

@@ -318,6 +318,12 @@ public record PayrollDto(
     decimal BasicSalary, decimal Allowances, decimal Bonuses,
     decimal Deductions, decimal NetSalary, string Status, DateTime? PaidDate);
 
+public record AttendanceRecordDto(
+    int Id, int EmployeeId, string EmployeeName, DateTime Date, DateTime? ClockIn, DateTime? ClockOut, 
+    string Status, string? Notes);
+
+public record CreateAttendanceRecordDto(
+    int EmployeeId, DateTime Date, DateTime? ClockIn, DateTime? ClockOut, string Status, string? Notes);
 public record CreatePayrollDto(int EmployeeId, int Month, int Year, decimal Bonuses, decimal Deductions, string? Notes);
 
 // ═══════════════════════════════════════════════════════════════

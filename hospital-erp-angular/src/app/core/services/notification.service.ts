@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import * as signalR from '@microsoft/signalr';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
+import { ToastService } from './language.service';
 
 export interface NotificationDto {
     id: number;
@@ -26,7 +27,14 @@ export class NotificationService {
     private unreadCountSubject = new BehaviorSubject<number>(0);
     unreadCount$ = this.unreadCountSubject.asObservable();
 
-    constructor(private http: HttpClient, private auth: AuthService) { }
+    private newMessageSubject = new Subject<any>();
+    newMessage$ = this.newMessageSubject.asObservable();
+
+    constructor(
+        private http: HttpClient,
+        private auth: AuthService,
+        private toast: ToastService
+    ) { }
 
     startConnection(): void {
         if (!this.auth.token) return;
@@ -43,12 +51,33 @@ export class NotificationService {
             const current = this.notificationsSubject.value;
             this.notificationsSubject.next([notification, ...current]);
             this.unreadCountSubject.next(this.unreadCountSubject.value + 1);
+            this.toast.info(notification.title + ': ' + notification.message);
         });
 
-        this.hubConnection.on('AppointmentCreated', (data: any) => console.log('Appointment created:', data));
-        this.hubConnection.on('InvoiceCreated', (data: any) => console.log('Invoice created:', data));
-        this.hubConnection.on('PaymentReceived', (data: any) => console.log('Payment received:', data));
-        this.hubConnection.on('StockUpdated', (data: any) => console.log('Stock updated:', data));
+        this.hubConnection.on('ReceiveMessage', (message: any) => {
+            this.toast.info('New message from: ' + message.senderName);
+            this.newMessageSubject.next(message);
+        });
+
+        this.hubConnection.on('AppointmentCreated', (data: any) => {
+            this.toast.info('New Appointment: ' + data.patientName);
+        });
+
+        this.hubConnection.on('InvoiceCreated', (data: any) => {
+            this.toast.success('Invoice Generated: #' + data.id);
+        });
+
+        this.hubConnection.on('PaymentReceived', (data: any) => {
+            this.toast.success('Payment Received: ' + data.amount + ' ' + (data.currency || 'USD'));
+        });
+
+        this.hubConnection.on('StockUpdated', (data: any) => {
+            if (data.quantity < data.reorderLevel) {
+                this.toast.error('Inventory Alert: ' + data.itemName + ' is low on stock!');
+            } else {
+                this.toast.info('Inventory Updated: ' + data.itemName);
+            }
+        });
 
         this.hubConnection.start().catch(err => console.error('SignalR error:', err));
     }

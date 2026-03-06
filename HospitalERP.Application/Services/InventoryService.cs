@@ -131,6 +131,7 @@ public class InventoryService : IInventoryService
 
         await _auditLog.LogAsync(createdBy, createdBy, "Stock Transfer", "Item", dto.ItemId, $"Transferred {dto.Quantity} units from warehouse ID {dto.FromWarehouseId} to {dto.ToWarehouseId}.");
         await _notif.CreateNotificationAsync("Stock Updated", $"Stock transfer of {dto.Quantity} units completed.", "StockUpdated");
+        await _notif.CheckStockLevelAsync(dto.ItemId, dto.FromWarehouseId);
     }
 
     // ── Packaging Units ───────────────────────────────────────────────

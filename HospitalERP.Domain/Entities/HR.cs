@@ -18,6 +18,18 @@ public class Employee : BaseEntity
     public string? Email { get; set; }
     public bool IsActive { get; set; } = true;
     public ICollection<Payroll> Payrolls { get; set; } = new List<Payroll>();
+    public ICollection<AttendanceRecord> AttendanceRecords { get; set; } = new List<AttendanceRecord>();
+}
+
+public class AttendanceRecord : BaseEntity
+{
+    public int EmployeeId { get; set; }
+    public Employee Employee { get; set; } = null!;
+    public DateTime Date { get; set; }
+    public DateTime? ClockIn { get; set; }
+    public DateTime? ClockOut { get; set; }
+    public string Status { get; set; } = "Present"; // Present, Absent, Half-Day, Late
+    public string? Notes { get; set; }
 }
 
 public class Payroll : BaseEntity

@@ -268,6 +268,11 @@ interface NavItem {
       .notification-panel { width: calc(100vw - 32px); inset-inline-end: 16px; }
       .welcome-text { display: none; }
     }
+
+    @keyframes slideUp {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
   `]
 })
 export class ShellComponent implements OnInit {

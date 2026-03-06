@@ -113,6 +113,13 @@ public class PharmacyService : IPharmacyService
         batch.QuantityRemaining -= dto.Quantity;
         if (batch.QuantityRemaining == 0) batch.Status = "Exhausted";
 
+        var wStock = await _uow.WarehouseStocks.Query().FirstOrDefaultAsync(ws => ws.ItemId == pi.ItemId && ws.WarehouseId == batch.WarehouseId);
+        if (wStock != null) 
+        {
+            wStock.Quantity -= dto.Quantity;
+            _uow.WarehouseStocks.Update(wStock);
+        }
+
         // Stock Transaction
         await _uow.StockTransactions.AddAsync(new StockTransaction
         {
@@ -144,8 +151,12 @@ public class PharmacyService : IPharmacyService
         {
             pi.Prescription.Status = "Partially Dispensed";
         }
-
         await _uow.SaveChangesAsync();
+
+        if (batch.WarehouseId.HasValue && pi.ItemId.HasValue) 
+        {
+            await _notif.CheckStockLevelAsync(pi.ItemId.Value, batch.WarehouseId.Value);
+        }
     }
 
     public async Task<List<PrescriptionItemDto>> GetPendingDispensingAsync(int? patientId)

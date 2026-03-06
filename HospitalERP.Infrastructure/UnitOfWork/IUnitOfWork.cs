@@ -31,6 +31,7 @@ public interface IUnitOfWork : IDisposable
     IRepository<SalesInvoiceItem> SalesInvoiceItems { get; }
     IRepository<Employee> Employees { get; }
     IRepository<Payroll> Payrolls { get; }
+    IRepository<AttendanceRecord> AttendanceRecords { get; }
     IRepository<Expense> Expenses { get; }
     IRepository<Asset> Assets { get; }
     IRepository<Notification> Notifications { get; }

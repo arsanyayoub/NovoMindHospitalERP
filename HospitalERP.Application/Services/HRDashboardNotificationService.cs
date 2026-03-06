@@ -1,7 +1,9 @@
+using HospitalERP.API.Hubs;
 using HospitalERP.Application.DTOs;
 using HospitalERP.Application.Interfaces;
 using HospitalERP.Domain.Entities;
 using HospitalERP.Infrastructure.UnitOfWork;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace HospitalERP.Application.Services;
@@ -104,8 +106,62 @@ public class HRService : IHRService
         await _auditLog.LogAsync(paidBy, paidBy, "Process Payroll", "Payroll", payrollId, $"Payroll ID {payrollId} payment processed.");
     }
 
+    public async Task<PagedResult<AttendanceRecordDto>> GetAttendanceRecordsAsync(PagedRequest request, int? employeeId, DateTime? fromDate, DateTime? toDate)
+    {
+        var query = _uow.AttendanceRecords.Query().Include(a => a.Employee).AsQueryable();
+        if (employeeId.HasValue) query = query.Where(a => a.EmployeeId == employeeId.Value);
+        if (fromDate.HasValue) query = query.Where(a => a.Date >= fromDate.Value.Date);
+        if (toDate.HasValue) query = query.Where(a => a.Date <= toDate.Value.Date);
+        
+        var total = await query.CountAsync();
+        var items = await query.OrderByDescending(a => a.Date).Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToListAsync();
+        return new PagedResult<AttendanceRecordDto>(items.Select(ToADto), total, request.Page, request.PageSize);
+    }
+    
+    public async Task<AttendanceRecordDto> RecordAttendanceAsync(CreateAttendanceRecordDto dto, string createdBy)
+    {
+        var existing = await _uow.AttendanceRecords.Query().FirstOrDefaultAsync(a => a.EmployeeId == dto.EmployeeId && a.Date.Date == dto.Date.Date);
+        if (existing != null) throw new InvalidOperationException("Attendance already recorded for this date");
+        
+        var record = new AttendanceRecord
+        {
+            EmployeeId = dto.EmployeeId,
+            Date = dto.Date.Date,
+            ClockIn = dto.ClockIn,
+            ClockOut = dto.ClockOut,
+            Status = dto.Status,
+            Notes = dto.Notes,
+            CreatedBy = createdBy
+        };
+        
+        await _uow.AttendanceRecords.AddAsync(record);
+        await _uow.SaveChangesAsync();
+        
+        var emp = await _uow.Employees.GetByIdAsync(dto.EmployeeId);
+        record.Employee = emp!;
+        
+        return ToADto(record);
+    }
+
+    public async Task<AttendanceRecordDto> UpdateAttendanceAsync(int id, CreateAttendanceRecordDto dto, string updatedBy)
+    {
+        var record = await _uow.AttendanceRecords.Query().Include(a => a.Employee).FirstOrDefaultAsync(a => a.Id == id) ?? throw new KeyNotFoundException();
+        
+        record.ClockIn = dto.ClockIn;
+        record.ClockOut = dto.ClockOut;
+        record.Status = dto.Status;
+        record.Notes = dto.Notes;
+        record.UpdatedBy = updatedBy;
+        
+        _uow.AttendanceRecords.Update(record);
+        await _uow.SaveChangesAsync();
+        
+        return ToADto(record);
+    }
+
     private static EmployeeDto ToDto(Employee e) => new(e.Id, e.EmployeeCode, e.FullName, e.NationalId, e.Department, e.Position, e.HireDate, e.BasicSalary, e.Allowances, e.Deductions, e.PhoneNumber, e.Email, e.IsActive, e.CreatedDate);
     private static PayrollDto ToPDto(Payroll p) => new(p.Id, p.EmployeeId, p.Employee?.FullName ?? "", p.Month, p.Year, p.BasicSalary, p.Allowances, p.Bonuses, p.Deductions, p.NetSalary, p.Status, p.PaidDate);
+    private static AttendanceRecordDto ToADto(AttendanceRecord a) => new(a.Id, a.EmployeeId, a.Employee?.FullName ?? "", a.Date, a.ClockIn, a.ClockOut, a.Status, a.Notes);
 }
 
 public class DashboardService : IDashboardService
@@ -192,7 +248,13 @@ public class DashboardService : IDashboardService
 public class NotificationService : INotificationService
 {
     private readonly IUnitOfWork _uow;
-    public NotificationService(IUnitOfWork uow) => _uow = uow;
+    private readonly IHubContext<NotificationHub> _hubContext;
+
+    public NotificationService(IUnitOfWork uow, IHubContext<NotificationHub> hubContext)
+    {
+        _uow = uow;
+        _hubContext = hubContext;
+    }
 
     public async Task<IEnumerable<NotificationDto>> GetUserNotificationsAsync(int userId)
     {
@@ -217,13 +279,61 @@ public class NotificationService : INotificationService
 
     public async Task CreateNotificationAsync(string title, string message, string type, int? userId = null, string? entityType = null, int? entityId = null)
     {
-        var notif = new Notification { Title = title, Message = message, NotificationType = type, UserId = userId, EntityType = entityType, EntityId = entityId, CreatedBy = "system" };
+        var notif = new Notification 
+        { 
+            Title = title, 
+            Message = message, 
+            NotificationType = type, 
+            UserId = userId, 
+            EntityType = entityType, 
+            EntityId = entityId, 
+            CreatedBy = "system",
+            CreatedDate = DateTime.UtcNow
+        };
         await _uow.Notifications.AddAsync(notif);
         await _uow.SaveChangesAsync();
+
+        // Real-time via SignalR
+        var dto = ToDto(notif);
+        if (userId.HasValue)
+        {
+            await _hubContext.Clients.Group($"user-{userId}").SendAsync("ReceiveNotification", dto);
+        }
+        else
+        {
+            await _hubContext.Clients.Group("all").SendAsync("ReceiveNotification", dto);
+        }
     }
 
     public async Task<int> GetUnreadCountAsync(int userId)
         => await _uow.Notifications.CountAsync(n => (n.UserId == userId || n.UserId == null) && !n.IsRead);
+
+    public async Task CheckStockLevelAsync(int itemId, int warehouseId)
+    {
+        var stock = await _uow.WarehouseStocks.Query()
+            .Include(x => x.Item)
+            .Include(x => x.Warehouse)
+            .FirstOrDefaultAsync(x => x.ItemId == itemId && x.WarehouseId == warehouseId);
+
+        if (stock != null)
+        {
+            await _hubContext.Clients.Group("all").SendAsync("StockUpdated", new 
+            { 
+                itemName = stock.Item.ItemName,
+                warehouseName = stock.Warehouse.WarehouseName,
+                quantity = stock.Quantity,
+                reorderLevel = stock.ReorderLevel
+            });
+            
+            if (stock.Quantity <= stock.ReorderLevel)
+            {
+                await CreateNotificationAsync(
+                    "Low Stock Alert", 
+                    $"Item '{stock.Item.ItemName}' is low on stock ({stock.Quantity} remaining in {stock.Warehouse.WarehouseName}).", 
+                    "Inventory", null, "Item", itemId);
+            }
+        }
+    }
 
     private static NotificationDto ToDto(Notification n) => new(n.Id, n.Title, n.Message, n.NotificationType, n.IsRead, n.CreatedDate);
 }

@@ -5,12 +5,13 @@ import { TranslateModule } from '@ngx-translate/core';
 import { MessagingService, UserService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
-    selector: 'app-messaging',
-    standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule],
-    template: `
+  selector: 'app-messaging',
+  standalone: true,
+  imports: [CommonModule, FormsModule, TranslateModule],
+  template: `
     <div class="page-header">
       <div class="header-content">
         <h1 class="page-title">{{ 'MESSAGES' | translate }}</h1>
@@ -150,7 +151,7 @@ import { AuthService } from '../../core/services/auth.service';
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     .messaging-layout {
       display: flex; height: calc(100vh - 220px);
       background: var(--bg-card); border: 1px solid var(--border);
@@ -210,95 +211,104 @@ import { AuthService } from '../../core/services/auth.service';
   `]
 })
 export class MessagingComponent implements OnInit {
-    messages: any[] = [];
-    users: any[] = [];
-    unreadCount = 0;
-    activeFolder = 'inbox';
-    selectedMessage: any = null;
-    loading = false;
-    sending = false;
-    showCompose = false;
+  messages: any[] = [];
+  users: any[] = [];
+  unreadCount = 0;
+  activeFolder = 'inbox';
+  selectedMessage: any = null;
+  loading = false;
+  sending = false;
+  showCompose = false;
 
-    composeForm: any = { receiverId: '', content: '' };
+  composeForm: any = { receiverId: '', content: '' };
 
-    constructor(
-        private service: MessagingService,
-        private userService: UserService,
-        public auth: AuthService,
-        private toast: ToastService
-    ) { }
+  constructor(
+    private service: MessagingService,
+    private userService: UserService,
+    public auth: AuthService,
+    private toast: ToastService,
+    private notifService: NotificationService
+  ) { }
 
-    ngOnInit() {
-        this.refreshInbox();
-        this.loadUsers();
+  ngOnInit() {
+    this.refreshInbox();
+    this.loadUsers();
+    this.refreshUnreadCount();
+
+    // Listen to Real-time SignalR Messages
+    this.notifService.newMessage$.subscribe(msg => {
+      if (this.activeFolder === 'inbox') {
+        this.messages.unshift(msg);
+      }
+      this.unreadCount++;
+    });
+  }
+
+  loadUsers() {
+    this.userService.getUsers({ pageSize: 100 }).subscribe(res => this.users = res.items);
+  }
+
+  setFolder(folder: string) {
+    this.activeFolder = folder;
+    this.selectedMessage = null;
+    if (folder === 'inbox') this.refreshInbox();
+    else this.refreshSent();
+  }
+
+  refreshInbox() {
+    this.loading = true;
+    this.service.getInbox({ pageSize: 50 }).subscribe({
+      next: (res) => { this.messages = res.items; this.loading = false; },
+      error: () => { this.toast.error('Failed to load inbox'); this.loading = false; }
+    });
+  }
+
+  refreshSent() {
+    this.loading = true;
+    this.service.getSent({ pageSize: 50 }).subscribe({
+      next: (res) => { this.messages = res.items; this.loading = false; },
+      error: () => { this.toast.error('Failed to load sent messages'); this.loading = false; }
+    });
+  }
+
+  refreshUnreadCount() {
+    this.service.getUnreadCount().subscribe(count => this.unreadCount = count);
+  }
+
+  selectMessage(msg: any) {
+    this.selectedMessage = msg;
+    if (this.activeFolder === 'inbox' && !msg.isRead) {
+      this.service.markAsRead(msg.id).subscribe(() => {
+        msg.isRead = true;
         this.refreshUnreadCount();
+      });
     }
+  }
 
-    loadUsers() {
-        this.userService.getUsers({ pageSize: 100 }).subscribe(res => this.users = res.items);
-    }
+  openCompose() {
+    this.composeForm = { receiverId: '', content: '' };
+    this.showCompose = true;
+  }
 
-    setFolder(folder: string) {
-        this.activeFolder = folder;
-        this.selectedMessage = null;
-        if (folder === 'inbox') this.refreshInbox();
-        else this.refreshSent();
-    }
+  reply() {
+    if (!this.selectedMessage) return;
+    this.composeForm = {
+      receiverId: this.activeFolder === 'inbox' ? this.selectedMessage.senderId : this.selectedMessage.receiverId,
+      content: `\n\n------------------\nOriginal: ${this.selectedMessage.content}`
+    };
+    this.showCompose = true;
+  }
 
-    refreshInbox() {
-        this.loading = true;
-        this.service.getInbox({ pageSize: 50 }).subscribe({
-            next: (res) => { this.messages = res.items; this.loading = false; },
-            error: () => { this.toast.error('Failed to load inbox'); this.loading = false; }
-        });
-    }
-
-    refreshSent() {
-        this.loading = true;
-        this.service.getSent({ pageSize: 50 }).subscribe({
-            next: (res) => { this.messages = res.items; this.loading = false; },
-            error: () => { this.toast.error('Failed to load sent messages'); this.loading = false; }
-        });
-    }
-
-    refreshUnreadCount() {
-        this.service.getUnreadCount().subscribe(count => this.unreadCount = count);
-    }
-
-    selectMessage(msg: any) {
-        this.selectedMessage = msg;
-        if (this.activeFolder === 'inbox' && !msg.isRead) {
-            this.service.markAsRead(msg.id).subscribe(() => {
-                msg.isRead = true;
-                this.refreshUnreadCount();
-            });
-        }
-    }
-
-    openCompose() {
-        this.composeForm = { receiverId: '', content: '' };
-        this.showCompose = true;
-    }
-
-    reply() {
-        if (!this.selectedMessage) return;
-        this.composeForm = {
-            receiverId: this.activeFolder === 'inbox' ? this.selectedMessage.senderId : this.selectedMessage.receiverId,
-            content: `\n\n------------------\nOriginal: ${this.selectedMessage.content}`
-        };
-        this.showCompose = true;
-    }
-
-    send() {
-        this.sending = true;
-        this.service.sendMessage(this.composeForm).subscribe({
-            next: () => {
-                this.toast.success('Message sent successfully');
-                this.sending = false;
-                this.showCompose = false;
-                if (this.activeFolder === 'sent') this.refreshSent();
-            },
-            error: (e) => { this.toast.error(e.error?.message || 'Failed to send message'); this.sending = false; }
-        });
-    }
+  send() {
+    this.sending = true;
+    this.service.sendMessage(this.composeForm).subscribe({
+      next: () => {
+        this.toast.success('Message sent successfully');
+        this.sending = false;
+        this.showCompose = false;
+        if (this.activeFolder === 'sent') this.refreshSent();
+      },
+      error: (e) => { this.toast.error(e.error?.message || 'Failed to send message'); this.sending = false; }
+    });
+  }
 }

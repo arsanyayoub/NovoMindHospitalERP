@@ -134,6 +134,11 @@ public interface IHRService
     Task<PagedResult<PayrollDto>> GetPayrollsAsync(PagedRequest request, int? year, int? month);
     Task<PayrollDto> GeneratePayrollAsync(CreatePayrollDto dto, string createdBy);
     Task ProcessPayrollPaymentAsync(int payrollId, string paidBy);
+    
+    // Attendance
+    Task<PagedResult<AttendanceRecordDto>> GetAttendanceRecordsAsync(PagedRequest request, int? employeeId, DateTime? fromDate, DateTime? toDate);
+    Task<AttendanceRecordDto> RecordAttendanceAsync(CreateAttendanceRecordDto dto, string createdBy);
+    Task<AttendanceRecordDto> UpdateAttendanceAsync(int id, CreateAttendanceRecordDto dto, string updatedBy);
 }
 
 public interface IDashboardService
@@ -226,6 +231,7 @@ public interface INotificationService
     Task MarkAllAsReadAsync(int userId);
     Task CreateNotificationAsync(string title, string message, string type, int? userId = null, string? entityType = null, int? entityId = null);
     Task<int> GetUnreadCountAsync(int userId);
+    Task CheckStockLevelAsync(int itemId, int warehouseId);
 }
 
 public interface IPdfService

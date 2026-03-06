@@ -36,6 +36,7 @@ public class UnitOfWork : IUnitOfWork
         SalesInvoiceItems = new Repository<SalesInvoiceItem>(context);
         Employees = new Repository<Employee>(context);
         Payrolls = new Repository<Payroll>(context);
+        AttendanceRecords = new Repository<AttendanceRecord>(context);
         Expenses = new Repository<Expense>(context);
         Assets = new Repository<Asset>(context);
         Notifications = new Repository<Notification>(context);
@@ -87,6 +88,7 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<SalesInvoiceItem> SalesInvoiceItems { get; }
     public IRepository<Employee> Employees { get; }
     public IRepository<Payroll> Payrolls { get; }
+    public IRepository<AttendanceRecord> AttendanceRecords { get; }
     public IRepository<Expense> Expenses { get; }
     public IRepository<Asset> Assets { get; }
     public IRepository<Notification> Notifications { get; }
