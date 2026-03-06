@@ -4,12 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { RadiologyService, PatientService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
-  selector: 'app-radiology',
-  standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
-  styles: [`
+   selector: 'app-radiology',
+   standalone: true,
+   imports: [CommonModule, FormsModule, TranslateModule],
+   styles: [`
     .rad-tab-nav { display: flex; gap: 4px; background: rgba(0,0,0,0.15); padding: 5px; border-radius: 14px; margin-bottom: 24px; width: fit-content; border: 1px solid var(--border); }
     .rad-tab-btn { padding: 10px 20px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
     .rad-tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3); }
@@ -26,7 +27,7 @@ import { ToastService } from '../../core/services/language.service';
     .rad-textarea { background: transparent; border: 1px solid var(--border); border-radius: 14px; padding: 16px; width: 100%; color: var(--text-primary); font-family: inherit; resize: none; transition: 0.2s; }
     .rad-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1); outline: none; }
   `],
-  template: `
+   template: `
     <div class="page-header">
       <div>
         <h1 class="page-title">{{ 'IMAGING_RADIOLOGY' | translate }}</h1>
@@ -210,94 +211,96 @@ import { ToastService } from '../../core/services/language.service';
   `
 })
 export class RadiologyComponent implements OnInit {
-  tab = 'requests';
-  requests: any[] = [];
-  tests: any[] = [];
-  reqSearch = '';
-  testSearch = '';
-  showDetails = false;
-  selectedReq: any = null;
-  showReqForm = false;
-  reqForm: any = { patientId: null, testIds: [], notes: '' };
-  patientsList: any[] = [];
+   tab = 'requests';
+   requests: any[] = [];
+   tests: any[] = [];
+   reqSearch = '';
+   testSearch = '';
+   showDetails = false;
+   selectedReq: any = null;
+   showReqForm = false;
+   reqForm: any = { patientId: null, testIds: [], notes: '' };
+   patientsList: any[] = [];
 
-  constructor(
-    private radiology: RadiologyService,
-    private patientSvc: PatientService,
-    private toast: ToastService,
-    private translate: TranslateService
-  ) { }
+   constructor(
+      private radiology: RadiologyService,
+      private patientSvc: PatientService,
+      private toast: ToastService,
+      private translate: TranslateService,
+      private notif: NotificationService
+   ) { }
 
-  ngOnInit() {
-    this.loadRequests();
-    this.loadTests();
-    this.patientSvc.getAll({ pageSize: 1000 }).subscribe((r: any) => this.patientsList = r.items);
-  }
+   ngOnInit() {
+      this.loadRequests();
+      this.loadTests();
+      this.patientSvc.getAll({ pageSize: 1000 }).subscribe((r: any) => this.patientsList = r.items);
+      this.notif.radiologyUpdate$.subscribe(() => this.loadRequests());
+   }
 
-  loadRequests() {
-    this.radiology.getRequests({ search: this.reqSearch, page: 1, pageSize: 50 }).subscribe(r => this.requests = r.items);
-  }
+   loadRequests() {
+      this.radiology.getRequests({ search: this.reqSearch, page: 1, pageSize: 50 }).subscribe(r => this.requests = r.items);
+   }
 
-  loadTests() {
-    this.radiology.getTests({ search: this.testSearch, page: 1, pageSize: 100 }).subscribe(r => this.tests = r.items);
-  }
+   loadTests() {
+      this.radiology.getTests({ search: this.testSearch, page: 1, pageSize: 100 }).subscribe(r => this.tests = r.items);
+   }
 
-  openRequestForm() {
-    this.reqForm = { patientId: null, testIds: [], notes: '', requestDate: new Date().toISOString() };
-    this.showReqForm = true;
-  }
+   openRequestForm() {
+      this.reqForm = { patientId: null, testIds: [], notes: '', requestDate: new Date().toISOString() };
+      this.showReqForm = true;
+   }
 
-  isTestSelected(id: number) { return this.reqForm.testIds.includes(id); }
+   isTestSelected(id: number) { return this.reqForm.testIds.includes(id); }
 
-  toggleTest(id: number) {
-    const idx = this.reqForm.testIds.indexOf(id);
-    if (idx > -1) this.reqForm.testIds.splice(idx, 1);
-    else this.reqForm.testIds.push(id);
-  }
+   toggleTest(id: number) {
+      const idx = this.reqForm.testIds.indexOf(id);
+      if (idx > -1) this.reqForm.testIds.splice(idx, 1);
+      else this.reqForm.testIds.push(id);
+   }
 
-  calculateTotal() {
-    return this.tests.filter(t => this.isTestSelected(t.id)).reduce((acc, t) => acc + (t.price || 0), 0);
-  }
+   calculateTotal() {
+      return this.tests.filter(t => this.isTestSelected(t.id)).reduce((acc, t) => acc + (t.price || 0), 0);
+   }
 
-  createRequest() {
-    this.radiology.createRequest(this.reqForm).subscribe({
-      next: () => {
-        this.toast.success(this.translate.instant('SUCCESS_SAVE'));
-        this.showReqForm = false;
-        this.loadRequests();
-      },
-      error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
-    });
-  }
+   createRequest() {
+      this.radiology.createRequest(this.reqForm).subscribe({
+         next: () => {
+            this.toast.success(this.translate.instant('SUCCESS_SAVE'));
+            this.showReqForm = false;
+            this.loadRequests();
+         },
+         error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
 
-  viewDetails(r: any) {
-    this.radiology.getRequest(r.id).subscribe(data => {
-      this.selectedReq = data;
-      this.showDetails = true;
-    });
-  }
+   viewDetails(r: any) {
+      this.radiology.getRequest(r.id).subscribe(data => {
+         this.selectedReq = data;
+         this.showDetails = true;
+      });
+   }
 
-  saveResult(res: any) {
-    this.radiology.updateResult(res.id, {
-      findings: res.findings,
-      impression: res.impression,
-      imageUrl: res.imageUrl,
-      performedBy: res.performedBy,
-      radiologistName: res.radiologistName
-    }).subscribe({
-      next: () => this.toast.success(this.translate.instant('SUCCESS_RADIOLOGY')),
-      error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
-    });
-  }
+   saveResult(res: any) {
+      this.radiology.updateResult(res.id, {
+         findings: res.findings,
+         impression: res.impression,
+         imageUrl: res.imageUrl,
+         performedBy: res.performedBy,
+         radiologistName: res.radiologistName
+      }).subscribe({
+         next: () => this.toast.success(this.translate.instant('SUCCESS_RADIOLOGY')),
+         error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
 
-  completeRequest() {
-    this.radiology.completeRequest(this.selectedReq.id).subscribe({
-      next: () => {
-        this.toast.success(this.translate.instant('RADIOLOGY_COMPLETED'));
-        this.showDetails = false;
-        this.loadRequests();
-      },
-      error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
-    });
-  }
+   completeRequest() {
+      this.radiology.completeRequest(this.selectedReq.id).subscribe({
+         next: () => {
+            this.toast.success(this.translate.instant('RADIOLOGY_COMPLETED'));
+            this.showDetails = false;
+            this.loadRequests();
+         },
+         error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
 }

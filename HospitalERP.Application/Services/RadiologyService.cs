@@ -10,10 +10,12 @@ public class RadiologyService : IRadiologyService
 {
     private readonly IUnitOfWork _uow;
     private readonly IAuditLogService _auditLog;
-    public RadiologyService(IUnitOfWork uow, IAuditLogService auditLog)
+    private readonly INotificationService _notif;
+    public RadiologyService(IUnitOfWork uow, IAuditLogService auditLog, INotificationService notif)
     {
         _uow = uow;
         _auditLog = auditLog;
+        _notif = notif;
     }
 
     // ── Tests ──────────────────────────────────────────────────────
@@ -122,11 +124,20 @@ public class RadiologyService : IRadiologyService
 
     public async Task CompleteRequestAsync(int requestId, string updatedBy)
     {
-        var req = await _uow.RadiologyRequests.GetByIdAsync(requestId) ?? throw new KeyNotFoundException();
+        var req = await _uow.RadiologyRequests.Query().Include(r => r.Patient).FirstOrDefaultAsync(r => r.Id == requestId) ?? throw new KeyNotFoundException();
         req.Status = "Completed"; req.UpdatedBy = updatedBy;
         _uow.RadiologyRequests.Update(req);
         await _uow.SaveChangesAsync();
         await _auditLog.LogAsync(updatedBy, updatedBy, "Complete", "RadiologyRequest", requestId, $"Radiology Request {req.RequestNumber} marked as Completed.");
+
+        // Notify ordering doctor/user
+        await _notif.CreateNotificationAsync(
+            "Radiology Results Ready", 
+            $"Imaging results for {req.Patient?.FullName ?? "Patient"}'s request {req.RequestNumber} are now finalized.", 
+            "Radiology", 
+            int.TryParse(req.CreatedBy, out var userId) ? userId : null,
+            "RadiologyRequest", 
+            req.Id);
     }
 
     internal static RadiologyTestDto ToDto(RadiologyTest t) => new(t.Id, t.TestCode, t.Name, t.NameAr, t.Category, t.PreparationInstructions, t.Price, t.IsActive);

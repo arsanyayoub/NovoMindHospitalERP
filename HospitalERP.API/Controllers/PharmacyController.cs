@@ -42,6 +42,10 @@ public class PharmacyController : ControllerBase
     public async Task<IActionResult> GetPendingDispensing([FromQuery] int? patientId) =>
         Ok(await _service.GetPendingDispensingAsync(patientId));
 
+    [HttpGet("items/{itemId}/available-batches")]
+    public async Task<IActionResult> GetAvailableBatches(int itemId) =>
+        Ok(await _service.GetAvailableBatchesForItemAsync(itemId));
+
     [HttpPost("items/{id}/dispense")]
     public async Task<IActionResult> DispenseItem(int id, [FromBody] DispenseItemDto dto)
     {

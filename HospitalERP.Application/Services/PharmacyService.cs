@@ -159,6 +159,23 @@ public class PharmacyService : IPharmacyService
         }
     }
 
+    public async Task<List<ItemBatchDto>> GetAvailableBatchesForItemAsync(int itemId)
+    {
+        var now = DateTime.UtcNow;
+        var batches = await _uow.ItemBatches.Query()
+            .Include(b => b.Warehouse)
+            .Where(b => b.ItemId == itemId && b.QuantityRemaining > 0 && b.Status == "Available")
+            .OrderBy(b => b.ExpiryDate) // FEFO: First Expired First Out
+            .ToListAsync();
+
+        return batches.Select(b => new ItemBatchDto(
+            b.Id, b.ItemId, "", "", b.SupplierId, null, b.WarehouseId, b.Warehouse?.WarehouseName,
+            b.BatchNumber, b.Barcode, b.ManufactureDate, b.ExpiryDate, b.QuantityReceived, b.QuantityRemaining,
+            b.UnitCost, b.Status, b.LotNumber, b.Notes, b.ReceivedDate,
+            (b.ExpiryDate - now).Days, b.ExpiryDate < now, (b.ExpiryDate - now).Days < 30
+        )).ToList();
+    }
+
     public async Task<List<PrescriptionItemDto>> GetPendingDispensingAsync(int? patientId)
     {
         var query = _uow.PrescriptionItems.Query()
@@ -185,7 +202,8 @@ public class PharmacyService : IPharmacyService
 
         return administrations.Select(ma => new MedicationAdministrationDto(
             ma.Id, ma.PrescriptionItemId, ma.PrescriptionItem.Item?.ItemName ?? "Unknown Medicine",
-            ma.BedAdmissionId, ma.AdministeredDate, ma.AdministeredBy, ma.Status, ma.Dose, ma.Notes));
+            ma.BedAdmissionId, ma.AdministeredDate, ma.AdministeredBy, ma.Status, ma.Dose, ma.Notes,
+            ma.PrescriptionItem.IsDispensed, ma.PrescriptionItem.DispensedDate, ma.PrescriptionItem.DispensedBy));
     }
 
     public async Task<MedicationAdministrationDto> CreateMedicationAdministrationAsync(CreateMedicationAdministrationDto dto, string administeredBy)
@@ -212,7 +230,8 @@ public class PharmacyService : IPharmacyService
             
         return new MedicationAdministrationDto(
             entity!.Id, entity.PrescriptionItemId, entity.PrescriptionItem.Item?.ItemName ?? "Unknown Medicine",
-            entity.BedAdmissionId, entity.AdministeredDate, entity.AdministeredBy, entity.Status, entity.Dose, entity.Notes);
+            entity.BedAdmissionId, entity.AdministeredDate, entity.AdministeredBy, entity.Status, entity.Dose, entity.Notes,
+            entity.PrescriptionItem.IsDispensed, entity.PrescriptionItem.DispensedDate, entity.PrescriptionItem.DispensedBy);
     }
 
     internal static PrescriptionDto ToDto(Prescription p)

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LabService, PatientService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
    selector: 'app-lab',
@@ -223,13 +224,15 @@ export class LabComponent implements OnInit {
       private lab: LabService,
       private patientSvc: PatientService,
       private toast: ToastService,
-      private translate: TranslateService
+      private translate: TranslateService,
+      private notif: NotificationService
    ) { }
 
    ngOnInit() {
       this.loadRequests();
       this.loadTests();
       this.patientSvc.getAll({ pageSize: 1000 }).subscribe((r: any) => this.patientsList = r.items);
+      this.notif.labUpdate$.subscribe(() => this.loadRequests());
    }
 
    loadRequests() {

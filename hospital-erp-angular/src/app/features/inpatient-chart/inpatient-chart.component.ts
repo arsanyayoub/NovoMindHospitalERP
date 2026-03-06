@@ -197,6 +197,7 @@ import { ToastService } from '../../core/services/language.service';
                              <th>{{ 'DATE' | translate }}</th>
                              <th>{{ 'MEDICINE_NAME' | translate }}</th>
                              <th>{{ 'DOSE' | translate }}</th>
+                             <th>{{ 'DISPENSED' | translate }}</th>
                              <th>{{ 'STATUS' | translate }}</th>
                              <th>{{ 'BY' | translate }}</th>
                           </tr>
@@ -206,6 +207,11 @@ import { ToastService } from '../../core/services/language.service';
                              <td class="whitespace-nowrap font-bold text-xs">{{ h.administeredDate | date:'short' }}</td>
                              <td class="font-black text-xs text-primary">{{ h.medicineName }}</td>
                              <td class="text-xs font-bold">{{ h.dose }}</td>
+                             <td>
+                                <span class="badge text-[0.6rem]" [ngClass]="h.isDispensed ? 'badge-success' : 'badge-danger'">
+                                   {{ (h.isDispensed ? 'DISPENSED' : 'NOT_DISPENSED') | translate }}
+                                </span>
+                             </td>
                              <td>
                                 <span class="badge text-[0.6rem]" 
                                    [class.badge-success]="h.status === 'Given'" 
@@ -341,9 +347,19 @@ import { ToastService } from '../../core/services/language.service';
           <button class="btn btn-icon text-muted" (click)="showMARForm = false"><span class="material-icons-round">close</span></button>
         </div>
         <div class="modal-body">
-          <div class="card bg-primary bg-opacity-5 border-primary mb-4">
+          <div class="card bg-primary bg-opacity-5 border-primary mb-4 p-4">
              <div class="font-black text-primary">{{ selectedMedication?.itemName }}</div>
              <div class="text-xs font-bold">{{ selectedMedication?.dosage }} • {{ selectedMedication?.frequency }}</div>
+             <div class="mt-2 pt-2 border-t flex justify-between items-center">
+                <span class="text-[0.6rem] font-black uppercase text-muted tracking-widest">Pharmacy Status</span>
+                <span class="badge text-[0.6rem]" [ngClass]="selectedMedication?.isDispensed ? 'badge-success' : 'badge-danger'">
+                  {{ (selectedMedication?.isDispensed ? 'DISPENSED' : 'NOT_DISPENSED') | translate }}
+                </span>
+             </div>
+             <div *ngIf="!selectedMedication?.isDispensed" class="mt-3 p-2 bg-danger bg-opacity-10 text-danger text-[0.65rem] font-bold rounded-lg border border-danger border-opacity-20">
+                <span class="material-icons-round text-sm align-middle mr-1">warning</span>
+                {{ 'NOT_DISPENSED_WARNING' | translate }}
+             </div>
           </div>
 
           <div class="form-group mb-4">

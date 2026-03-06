@@ -472,7 +472,7 @@ public record PrescriptionDto(int Id, string PrescriptionNumber, int PatientId, 
 public record CreatePrescriptionDto(int PatientId, int? DoctorId, int? AppointmentId, int? BedAdmissionId, string? Notes, List<CreatePrescriptionItemDto> Items);
 
 public record MedicationAdministrationDto(int Id, int PrescriptionItemId, string MedicineName, int BedAdmissionId, DateTime AdministeredDate, 
-    string AdministeredBy, string Status, string? Dose, string? Notes);
+    string AdministeredBy, string Status, string? Dose, string? Notes, bool IsDispensed = false, DateTime? DispensedDate = null, string? DispensedBy = null);
 
 public record CreateMedicationAdministrationDto(int PrescriptionItemId, int BedAdmissionId, string Status, string? Dose, string? Notes);
 

@@ -435,6 +435,9 @@ export class PharmacyService {
         if (patientId) p = p.set('patientId', patientId);
         return this.http.get<any>(`${this.API}/pending-dispensing`, { params: p });
     }
+    getAvailableBatches(itemId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API}/items/${itemId}/available-batches`);
+    }
     dispenseItem(id: number, dto: any): Observable<any> { return this.http.post<any>(`${this.API}/items/${id}/dispense`, dto); }
 }
 

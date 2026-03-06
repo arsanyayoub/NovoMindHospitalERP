@@ -233,10 +233,17 @@ import { ToastService } from '../../core/services/language.service';
                    <div *ngFor="let b of itemBatches" 
                         (click)="dispenseForm.itemBatchId = b.id"
                         class="batch-option"
-                        [class.selected]="dispenseForm.itemBatchId == b.id">
-                      <div class="font-black text-lg">{{ b.batchNumber }}</div>
+                        [class.selected]="dispenseForm.itemBatchId == b.id"
+                        [ngClass]="{'border-danger bg-danger bg-opacity-5': b.isExpired, 'border-warning bg-warning bg-opacity-5': b.isExpiringSoon && !b.isExpired}">
+                      <div class="flex justify-between items-start">
+                         <div class="font-black text-lg">{{ b.batchNumber }}</div>
+                         <span class="material-icons-round text-warning text-sm" *ngIf="b.isExpiringSoon && !b.isExpired">warning</span>
+                         <span class="material-icons-round text-danger text-sm" *ngIf="b.isExpired">history_toggle_off</span>
+                      </div>
                       <div class="text-xs text-muted font-bold">{{ 'STOCK' | translate }}: <span class="text-primary">{{ b.quantityRemaining }}</span></div>
-                      <div class="text-[0.6rem] text-muted mt-1">{{ b.expiryDate | date:'MM/yy' }}</div>
+                      <div class="text-[0.6rem] font-bold mt-1" [class.text-danger]="b.isExpired" [class.text-warning]="b.isExpiringSoon && !b.isExpired">
+                         {{ 'EXP' | translate }}: {{ b.expiryDate | date:'MMM yyyy' }}
+                      </div>
                    </div>
                 </div>
              </div>
@@ -324,8 +331,13 @@ export class PharmacyComponent implements OnInit {
   openDispenseForm(pi: any) {
     this.selectedDispense = pi;
     this.dispenseForm = { itemBatchId: null, quantity: pi.quantity };
-    this.invSvc.getBatches({ pageSize: 100 }, { itemId: pi.itemId }).subscribe(r => {
-      this.itemBatches = r.items.filter((b: any) => b.quantityRemaining > 0 && b.status === 'Active');
+    this.pharmacy.getAvailableBatches(pi.itemId).subscribe(batches => {
+      this.itemBatches = batches;
+      if (this.itemBatches.length > 0) {
+        // Auto-select the first batch (which is best per FEFO) unless it's expired
+        const bestBatch = this.itemBatches.find(b => !b.isExpired);
+        if (bestBatch) this.dispenseForm.itemBatchId = bestBatch.id;
+      }
       this.showDispense = true;
     });
   }

@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DashboardService } from '../../core/services/api.services';
+import { NotificationService } from '../../core/services/notification.service';
+import { Subscription } from 'rxjs';
 
 @Component({
    selector: 'app-dashboard',
@@ -245,14 +247,24 @@ export class DashboardComponent implements OnInit {
    loading = true;
    today = new Date();
    maxRevenue = 1;
+   private sub = new Subscription();
 
    constructor(
       private dashboardService: DashboardService,
-      private translate: TranslateService
+      private translate: TranslateService,
+      private notif: NotificationService
    ) { }
 
    ngOnInit() {
       this.refresh();
+
+      // Auto-refresh stats on important events
+      this.sub.add(this.notif.notifications$.subscribe(() => this.refresh()));
+      this.sub.add(this.notif.stockUpdate$.subscribe(() => this.refresh()));
+   }
+
+   ngOnDestroy() {
+      this.sub.unsubscribe();
    }
 
    refresh() {

@@ -222,6 +222,7 @@ public interface IPharmacyService
     // Dispensing
     Task DispenseItemAsync(int prescriptionItemId, DispenseItemDto dto, string dispensedBy);
     Task<List<PrescriptionItemDto>> GetPendingDispensingAsync(int? patientId);
+    Task<List<ItemBatchDto>> GetAvailableBatchesForItemAsync(int itemId);
 }
 
 public interface INotificationService

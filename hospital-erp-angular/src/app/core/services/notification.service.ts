@@ -33,6 +33,12 @@ export class NotificationService {
     private stockUpdateSubject = new Subject<any>();
     stockUpdate$ = this.stockUpdateSubject.asObservable();
 
+    private labUpdateSubject = new Subject<any>();
+    labUpdate$ = this.labUpdateSubject.asObservable();
+
+    private radiologyUpdateSubject = new Subject<any>();
+    radiologyUpdate$ = this.radiologyUpdateSubject.asObservable();
+
     constructor(
         private http: HttpClient,
         private auth: AuthService,
@@ -55,6 +61,9 @@ export class NotificationService {
             this.notificationsSubject.next([notification, ...current]);
             this.unreadCountSubject.next(this.unreadCountSubject.value + 1);
             this.toast.info(notification.title + ': ' + notification.message);
+
+            if (notification.notificationType === 'Lab') this.labUpdateSubject.next(notification);
+            if (notification.notificationType === 'Radiology') this.radiologyUpdateSubject.next(notification);
         });
 
         this.hubConnection.on('ReceiveMessage', (message: any) => {

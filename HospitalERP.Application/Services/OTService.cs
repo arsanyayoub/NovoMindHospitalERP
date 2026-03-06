@@ -197,6 +197,11 @@ public class OTService : IOTService
                 Notes = "Consumed in Operating Theater",
                 CreatedBy = userId
             });
+
+            if (batch.WarehouseId.HasValue)
+            {
+                await _notifService.CheckStockLevelAsync(dto.ItemId, batch.WarehouseId.Value);
+            }
         }
         
         await _uow.SaveChangesAsync();

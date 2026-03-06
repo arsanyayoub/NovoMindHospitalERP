@@ -10,10 +10,12 @@ public class LabService : ILabService
 {
     private readonly IUnitOfWork _uow;
     private readonly IAuditLogService _auditLog;
-    public LabService(IUnitOfWork uow, IAuditLogService auditLog) 
+    private readonly INotificationService _notif;
+    public LabService(IUnitOfWork uow, IAuditLogService auditLog, INotificationService notif) 
     { 
         _uow = uow; 
         _auditLog = auditLog;
+        _notif = notif;
     }
 
     // ── Tests ──────────────────────────────────────────────────────
@@ -121,11 +123,20 @@ public class LabService : ILabService
 
     public async Task CompleteRequestAsync(int requestId, string updatedBy)
     {
-        var req = await _uow.LabRequests.GetByIdAsync(requestId) ?? throw new KeyNotFoundException();
+        var req = await _uow.LabRequests.Query().Include(r => r.Patient).FirstOrDefaultAsync(r => r.Id == requestId) ?? throw new KeyNotFoundException();
         req.Status = "Completed"; req.UpdatedBy = updatedBy;
         _uow.LabRequests.Update(req); 
         await _uow.SaveChangesAsync();
         await _auditLog.LogAsync(updatedBy, updatedBy, "Complete", "LabRequest", requestId, $"Lab Request {req.RequestNumber} marked as Completed.");
+
+        // Notify ordering doctor/user
+        await _notif.CreateNotificationAsync(
+            "Lab Results Ready", 
+            $"Results for {req.Patient?.FullName ?? "Patient"}'s lab request {req.RequestNumber} are now finalized.", 
+            "Lab", 
+            int.TryParse(req.CreatedBy, out var userId) ? userId : null,
+            "LabRequest", 
+            req.Id);
     }
 
     internal static LabTestDto ToDto(LabTest t) => new(t.Id, t.TestCode, t.Name, t.NameAr, t.Category, t.NormalRange, t.Unit, t.Price, t.IsActive);
