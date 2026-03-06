@@ -486,5 +486,6 @@
     "SURGICAL_UTILIZATION": "Surg. Utilization",
     "SURGERY_VOLUME_TREND": "Surgery Volume Trend",
     "UTILIZATION_BY_THEATER": "Utilization by Theater",
-    "PRIORITY_BREAKDOWN": "Priority Breakdown"
+    "PRIORITY_BREAKDOWN": "Priority Breakdown",
+    "DOWNLOAD_REPORT": "Download PDF Report"
 }

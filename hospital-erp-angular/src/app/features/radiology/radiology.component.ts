@@ -164,6 +164,9 @@ import { NotificationService } from '../../core/services/notification.service';
              <div class="text-[0.65rem] font-black uppercase text-muted tracking-widest flex items-center gap-2"><span class="material-icons-round text-primary">info</span> {{ 'PACS_INTEGRATION_HINT' | translate }}</div>
              <div class="flex gap-2">
                 <button class="btn btn-secondary px-6 rounded-xl font-bold" (click)="showDetails=false">{{ 'CANCEL' | translate }}</button>
+                <button class="btn btn-info px-8 rounded-xl font-black shadow-info h-12 flex items-center gap-2" (click)="downloadReport()" *ngIf="selectedReq?.status==='Completed'">
+                   <span class="material-icons-round">picture_as_pdf</span> {{ 'DOWNLOAD_REPORT' | translate }}
+                </button>
                 <button class="btn btn-success px-10 rounded-xl font-black shadow-lg h-12 text-white" (click)="completeRequest()" *ngIf="selectedReq?.status==='Pending'">
                    {{ 'SUBMIT_FINAL_REPORT' | translate }}
                 </button>
@@ -301,6 +304,16 @@ export class RadiologyComponent implements OnInit {
             this.loadRequests();
          },
          error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
+
+   downloadReport() {
+      this.radiology.downloadPdf(this.selectedReq.id).subscribe(blob => {
+         const url = window.URL.createObjectURL(blob);
+         const link = document.createElement('a');
+         link.href = url;
+         link.download = `RadiologyReport_${this.selectedReq.requestNumber}.pdf`;
+         link.click();
       });
    }
 }

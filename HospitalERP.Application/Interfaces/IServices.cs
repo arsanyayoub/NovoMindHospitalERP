@@ -242,6 +242,8 @@ public interface IPdfService
 {
     Task<byte[]> GenerateInvoicePdfAsync(int invoiceId);
     Task<byte[]> GenerateEmrPdfAsync(int patientId, int? admissionId = null);
+    Task<byte[]> GenerateLabReportPdfAsync(int requestId);
+    Task<byte[]> GenerateRadiologyReportPdfAsync(int requestId);
 }
 
 public interface IUserService

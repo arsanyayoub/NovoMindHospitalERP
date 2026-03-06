@@ -12,7 +12,12 @@ namespace HospitalERP.API.Controllers;
 public class LabController : ControllerBase
 {
     private readonly ILabService _service;
-    public LabController(ILabService service) => _service = service;
+    private readonly IPdfService _pdf;
+    public LabController(ILabService service, IPdfService pdf)
+    {
+        _service = service;
+        _pdf = pdf;
+    }
 
     // ── Tests ──────────────────
     [HttpGet("tests")]
@@ -48,4 +53,12 @@ public class LabController : ControllerBase
 
     [HttpPost("requests/{id}/complete")]
     public async Task<IActionResult> CompleteRequest(int id) { var u = User.FindFirstValue(ClaimTypes.Name) ?? "system"; await _service.CompleteRequestAsync(id, u); return Ok(new { message = "Request completed." }); }
+
+    [HttpGet("requests/{id}/pdf")]
+    public async Task<IActionResult> DownloadPdf(int id)
+    {
+        var pdf = await _pdf.GenerateLabReportPdfAsync(id);
+        if (pdf == null) return NotFound();
+        return File(pdf, "application/pdf", $"LabReport_{id}.pdf");
+    }
 }

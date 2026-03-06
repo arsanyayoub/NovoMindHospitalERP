@@ -346,6 +346,7 @@ export class LabService {
     createRequest(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/requests`, dto); }
     updateResult(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/results/${id}`, dto); }
     completeRequest(id: number): Observable<any> { return this.http.post<any>(`${this.API}/requests/${id}/complete`, {}); }
+    downloadPdf(id: number): Observable<Blob> { return this.http.get(`${this.API}/requests/${id}/pdf`, { responseType: 'blob' }); }
 }
 
 @Injectable({ providedIn: 'root' })
@@ -366,6 +367,7 @@ export class RadiologyService {
     createRequest(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/requests`, dto); }
     updateResult(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/results/${id}`, dto); }
     completeRequest(id: number): Observable<any> { return this.http.post<any>(`${this.API}/requests/${id}/complete`, {}); }
+    downloadPdf(id: number): Observable<Blob> { return this.http.get(`${this.API}/requests/${id}/pdf`, { responseType: 'blob' }); }
 }
 
 @Injectable({ providedIn: 'root' })

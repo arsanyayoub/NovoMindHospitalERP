@@ -165,8 +165,11 @@ import { NotificationService } from '../../core/services/notification.service';
           </div>
           <div class="modal-footer bg-glass flex justify-between">
              <div class="text-xs font-black uppercase text-muted tracking-widest flex items-center gap-2"><span class="material-icons-round text-success">verified</span> {{ 'DOUBLE_CHECK_VALUES_NOTICE' | translate }}</div>
-             <div class="flex gap-3">
+              <div class="flex gap-3">
                 <button class="btn btn-secondary px-8 rounded-xl font-bold" (click)="showDetails=false">{{ 'CANCEL'|translate }}</button>
+                <button class="btn btn-info px-10 rounded-xl font-black shadow-info h-12 flex items-center gap-2" (click)="downloadReport()" *ngIf="selectedReq.status==='Completed'">
+                   <span class="material-icons-round">picture_as_pdf</span> {{ 'DOWNLOAD_REPORT'|translate }}
+                </button>
                 <button class="btn btn-primary px-10 rounded-xl font-black shadow-primary h-12" (click)="completeRequest()" *ngIf="selectedReq.status==='Pending'">{{ 'FINALIZE_REPORT'|translate }}</button>
              </div>
           </div>
@@ -291,6 +294,16 @@ export class LabComponent implements OnInit {
             this.loadRequests();
          },
          error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
+
+   downloadReport() {
+      this.lab.downloadPdf(this.selectedReq.id).subscribe(blob => {
+         const url = window.URL.createObjectURL(blob);
+         const link = document.createElement('a');
+         link.href = url;
+         link.download = `LabReport_${this.selectedReq.requestNumber}.pdf`;
+         link.click();
       });
    }
 }

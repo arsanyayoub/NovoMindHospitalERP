@@ -345,6 +345,206 @@ public class PdfService : IPdfService
         return document.GeneratePdf();
     }
 
+    public async Task<byte[]> GenerateLabReportPdfAsync(int requestId)
+    {
+        var r = await _uow.LabRequests.Query()
+            .Include(x => x.Patient)
+            .Include(x => x.Doctor)
+            .Include(x => x.Results).ThenInclude(res => res.LabTest)
+            .FirstOrDefaultAsync(x => x.Id == requestId);
+
+        if (r == null) return null!;
+
+        var document = Document.Create(container =>
+        {
+            container.Page(page =>
+            {
+                page.Size(PageSizes.A4);
+                page.Margin(1, Unit.Centimetre);
+                page.PageColor(Colors.White);
+                page.DefaultTextStyle(x => x.FontSize(10).FontFamily(Fonts.Arial));
+
+                page.Header().Row(row =>
+                {
+                    row.RelativeItem().Column(col =>
+                    {
+                        col.Item().Text("NovoMind Hospital").FontSize(20).SemiBold().FontColor(Colors.Blue.Medium);
+                        col.Item().Text("Laboratory Diagnostic Report").FontSize(14).SemiBold().FontColor(Colors.Grey.Medium);
+                    });
+
+                    row.RelativeItem().AlignRight().Column(col =>
+                    {
+                        col.Item().Text($"Ref: {r.RequestNumber}").FontSize(12).SemiBold();
+                        col.Item().Text($"Date: {r.RequestDate:d}").FontSize(10);
+                    });
+                });
+
+                page.Content().PaddingVertical(1, Unit.Centimetre).Column(col =>
+                {
+                    // Patient Header
+                    col.Item().BorderVertical(2).BorderColor(Colors.Blue.Medium).Background(Colors.Grey.Lighten4).Padding(10).Row(row =>
+                    {
+                        row.RelativeItem().Column(c =>
+                        {
+                            c.Item().Text("PATIENT").FontSize(8).SemiBold().FontColor(Colors.Grey.Darken1);
+                            c.Item().Text(r.Patient.FullName).FontSize(12).Bold();
+                            c.Item().Text($"Age/Sex: {CalculateAge(r.Patient.DateOfBirth)}Y / {r.Patient.Gender}");
+                        });
+                        row.RelativeItem().Column(c =>
+                        {
+                            c.Item().Text("REFERRING DOCTOR").FontSize(8).SemiBold().FontColor(Colors.Grey.Darken1);
+                            c.Item().Text($"Dr. {r.Doctor?.FullName ?? "N/A"}").FontSize(11).Medium();
+                        });
+                    });
+
+                    col.Item().PaddingTop(20).Table(table =>
+                    {
+                        table.ColumnsDefinition(columns =>
+                        {
+                            columns.RelativeColumn(3);
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
+                            columns.RelativeColumn(2);
+                        });
+
+                        table.Header(header =>
+                        {
+                            header.Cell().Element(CellStyle).Text("Test Analysis");
+                            header.Cell().Element(CellStyle).Text("Result");
+                            header.Cell().Element(CellStyle).Text("Units");
+                            header.Cell().Element(CellStyle).Text("Reference Range");
+
+                            static IContainer CellStyle(IContainer container) => container.DefaultTextStyle(x => x.SemiBold()).PaddingVertical(8).BorderBottom(1).BorderColor(Colors.Black);
+                        });
+
+                        foreach (var res in r.Results)
+                        {
+                            table.Cell().Element(CellStyle).Column(c => {
+                                c.Item().Text(res.LabTest.Name).Bold();
+                                if (!string.IsNullOrEmpty(res.Remarks)) c.Item().Text(res.Remarks).FontSize(8).Italic();
+                            });
+                            table.Cell().Element(CellStyle).Text(res.ResultValue ?? "Pending").Bold().FontColor(Colors.Blue.Medium);
+                            table.Cell().Element(CellStyle).Text(res.Unit ?? "");
+                            table.Cell().Element(CellStyle).Text(res.NormalRange ?? "");
+
+                            static IContainer CellStyle(IContainer container) => container.PaddingVertical(8).BorderBottom(1).BorderColor(Colors.Grey.Lighten3);
+                        }
+                    });
+
+                    col.Item().PaddingTop(40).Row(row => {
+                        row.RelativeItem().Column(c => {
+                            c.Item().Text("Validated By:").FontSize(8).SemiBold();
+                            c.Item().PaddingTop(20).BorderTop(1).AlignCenter().Text("Head of Laboratory").FontSize(9);
+                        });
+                        row.ConstantItem(100);
+                        row.RelativeItem().Column(c => {
+                            c.Item().Text("Reported On:").FontSize(8).SemiBold();
+                            c.Item().PaddingTop(20).BorderTop(1).AlignCenter().Text($"{DateTime.Now:g}").FontSize(9);
+                        });
+                    });
+                });
+
+                page.Footer().AlignCenter().Text(t => {
+                    t.Span("This is a digitally verified report. NovoMind Diagnostic Center - Page ");
+                    t.CurrentPageNumber();
+                });
+            });
+        });
+
+        return document.GeneratePdf();
+    }
+
+    public async Task<byte[]> GenerateRadiologyReportPdfAsync(int requestId)
+    {
+        var r = await _uow.RadiologyRequests.Query()
+            .Include(x => x.Patient)
+            .Include(x => x.Doctor)
+            .Include(x => x.Results).ThenInclude(res => res.RadiologyTest)
+            .FirstOrDefaultAsync(x => x.Id == requestId);
+
+        if (r == null) return null!;
+
+        var document = Document.Create(container =>
+        {
+            container.Page(page =>
+            {
+                page.Size(PageSizes.A4);
+                page.Margin(1, Unit.Centimetre);
+                page.PageColor(Colors.White);
+                page.DefaultTextStyle(x => x.FontSize(10).FontFamily(Fonts.Arial));
+
+                page.Header().Row(row =>
+                {
+                    row.RelativeItem().Column(col =>
+                    {
+                        col.Item().Text("NovoMind Hospital").FontSize(20).SemiBold().FontColor(Colors.DeepPurple.Medium);
+                        col.Item().Text("Department of Radiology & Imaging").FontSize(14).SemiBold().FontColor(Colors.Grey.Medium);
+                    });
+
+                    row.RelativeItem().AlignRight().Column(col =>
+                    {
+                        col.Item().Text($"File No: {r.RequestNumber}").FontSize(12).SemiBold();
+                        col.Item().Text($"Exam Date: {r.RequestDate:d}").FontSize(10);
+                    });
+                });
+
+                page.Content().PaddingVertical(1, Unit.Centimetre).Column(col =>
+                {
+                    // Patient Header
+                    col.Item().Padding(10).Border(1).BorderColor(Colors.Grey.Lighten2).Row(row =>
+                    {
+                        row.RelativeItem().Column(c =>
+                        {
+                            c.Item().Text("PATIENT NAME").FontSize(8).SemiBold().FontColor(Colors.Grey.Medium);
+                            c.Item().Text(r.Patient.FullName).FontSize(12).Bold();
+                        });
+                        row.RelativeItem().Column(c =>
+                        {
+                            c.Item().Text("ID / SEX / AGE").FontSize(8).SemiBold().FontColor(Colors.Grey.Medium);
+                            c.Item().Text($"{r.Patient.PatientCode} / {r.Patient.Gender} / {CalculateAge(r.Patient.DateOfBirth)}Y");
+                        });
+                        row.RelativeItem().AlignRight().Column(c =>
+                        {
+                            c.Item().Text("REFERRED BY").FontSize(8).SemiBold().FontColor(Colors.Grey.Medium);
+                            c.Item().Text($"Dr. {r.Doctor?.FullName ?? "N/A"}").FontSize(10).Medium();
+                        });
+                    });
+
+                    foreach (var res in r.Results)
+                    {
+                        col.Item().PaddingTop(25).Column(c =>
+                        {
+                            c.Item().Background(Colors.Grey.Lighten3).Padding(5).Text($"STUDY: {res.RadiologyTest.Name.ToUpper()}").FontSize(12).Bold();
+                            
+                            c.Item().PaddingTop(15).Text("CLINICAL FINDINGS").SemiBold().Underline();
+                            c.Item().PaddingTop(5).Text(res.Findings ?? "No findings recorded.").LineHeight(1.5f);
+
+                            c.Item().PaddingTop(20).Text("IMPRESSION").SemiBold().Underline();
+                            c.Item().PaddingTop(5).Text(res.Impression ?? "No impression recorded.").Bold().LineHeight(1.5f);
+
+                            c.Item().PaddingTop(30).AlignRight().Column(sig => {
+                                sig.Item().Text($"Radiologist: {res.RadiologistName ?? "N/A"}").Medium();
+                                sig.Item().Text($"Electronic Signature Verification").FontSize(8).Italic();
+                            });
+                        });
+                    }
+                });
+
+                page.Footer().PaddingTop(20).Column(c => {
+                    c.Item().BorderTop(1).PaddingTop(5).Row(row => {
+                        row.RelativeItem().Text("NovoMind Imaging Center").FontSize(9).FontColor(Colors.Grey.Medium);
+                        row.RelativeItem().AlignRight().Text(t => {
+                            t.Span("Page ");
+                            t.CurrentPageNumber();
+                        });
+                    });
+                });
+            });
+        });
+
+        return document.GeneratePdf();
+    }
+
     private int CalculateAge(DateTime dob)
     {
         var today = DateTime.Today;
