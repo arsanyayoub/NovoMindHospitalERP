@@ -21,7 +21,7 @@ public class MessagingController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<MessageDto>> SendMessage([FromBody] SendMessageDto dto)
     {
-        var userIdStr = User.FindFirst("id")?.Value;
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             return Unauthorized();
 
@@ -32,7 +32,7 @@ public class MessagingController : ControllerBase
     [HttpGet("inbox")]
     public async Task<ActionResult<PagedResult<MessageDto>>> GetInbox([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var userIdStr = User.FindFirst("id")?.Value;
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             return Unauthorized();
 
@@ -43,7 +43,7 @@ public class MessagingController : ControllerBase
     [HttpGet("sent")]
     public async Task<ActionResult<PagedResult<MessageDto>>> GetSent([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var userIdStr = User.FindFirst("id")?.Value;
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             return Unauthorized();
 
@@ -54,7 +54,7 @@ public class MessagingController : ControllerBase
     [HttpPut("{id}/read")]
     public async Task<ActionResult> MarkAsRead(int id)
     {
-        var userIdStr = User.FindFirst("id")?.Value;
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             return Unauthorized();
 
@@ -65,7 +65,7 @@ public class MessagingController : ControllerBase
     [HttpGet("unread-count")]
     public async Task<ActionResult<int>> GetUnreadCount()
     {
-        var userIdStr = User.FindFirst("id")?.Value;
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             return Unauthorized();
 

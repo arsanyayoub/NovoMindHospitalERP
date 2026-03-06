@@ -4,12 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { InventoryService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
-  selector: 'app-inventory',
-  standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
-  styles: [`
+   selector: 'app-inventory',
+   standalone: true,
+   imports: [CommonModule, FormsModule, TranslateModule],
+   styles: [`
     .inv-tab-nav { display: flex; gap: 4px; background: rgba(0,0,0,0.15); padding: 5px; border-radius: 14px; margin-bottom: 24px; width: fit-content; border: 1px solid var(--border); overflow-x: auto; max-width: 100%; }
     .inv-tab-btn { padding: 10px 20px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
     .inv-tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3); }
@@ -25,7 +26,7 @@ import { ToastService } from '../../core/services/language.service';
     
     .scan-display { background: rgba(var(--primary-rgb), 0.05); border: 2px dashed var(--primary); border-radius: 24px; padding: 40px; text-align: center; }
   `],
-  template: `
+   template: `
     <div class="page-header">
       <div>
         <h1 class="page-title">{{ 'INVENTORY_MANAGEMENT' | translate }}</h1>
@@ -322,127 +323,138 @@ import { ToastService } from '../../core/services/language.service';
   `
 })
 export class InventoryComponent implements OnInit {
-  tab = 'items';
-  items: any[] = [];
-  search = '';
-  showItemForm = false;
-  itemForm: any = {};
-  batches: any[] = [];
-  batchSearch = '';
-  batchFilterExpired = false;
-  batchFilterExhausted = false;
-  showBatchForm = false;
-  batchForm: any = {};
-  stock: any[] = [];
-  showTransfer = false;
-  transForm: any = {};
-  warehouses: any[] = [];
-  showWhForm = false;
-  whForm: any = {};
-  showPkgModal = false;
-  pkgItem: any = null;
-  pkgUnits: any[] = [];
-  pkgForm: any = {};
-  scanBarcode = '';
-  scanResult: any = null;
-  transactions: any[] = [];
+   tab = 'items';
+   items: any[] = [];
+   search = '';
+   showItemForm = false;
+   itemForm: any = {};
+   batches: any[] = [];
+   batchSearch = '';
+   batchFilterExpired = false;
+   batchFilterExhausted = false;
+   showBatchForm = false;
+   batchForm: any = {};
+   stock: any[] = [];
+   showTransfer = false;
+   transForm: any = {};
+   warehouses: any[] = [];
+   showWhForm = false;
+   whForm: any = {};
+   showPkgModal = false;
+   pkgItem: any = null;
+   pkgUnits: any[] = [];
+   pkgForm: any = {};
+   scanBarcode = '';
+   scanResult: any = null;
+   transactions: any[] = [];
 
-  constructor(
-    private svc: InventoryService,
-    private toast: ToastService,
-    private translate: TranslateService
-  ) { }
+   constructor(
+      private svc: InventoryService,
+      private toast: ToastService,
+      private translate: TranslateService,
+      private notifService: NotificationService
+   ) { }
 
-  ngOnInit() { this.loadItems(); this.loadWarehouses(); }
+   ngOnInit() {
+      this.loadItems();
+      this.loadWarehouses();
 
-  loadItems() { this.svc.getItems({ search: this.search }).subscribe(r => this.items = r.items); }
-  openItemForm() { this.showItemForm = true; this.itemForm = { trackBatches: false }; }
-  editItem(i: any) { this.showItemForm = true; this.itemForm = { ...i }; }
-  saveItem() {
-    const obs = this.itemForm.id ? this.svc.updateItem(this.itemForm.id, this.itemForm) : this.svc.createItem(this.itemForm);
-    obs.subscribe({
-      next: () => { this.toast.success(this.translate.instant('SUCCESS_SAVE')); this.showItemForm = false; this.loadItems(); },
-      error: (e: any) => this.toast.error(e.error?.message || this.translate.instant('ERROR_OCCURRED'))
-    });
-  }
+      this.notifService.stockUpdate$.subscribe(data => {
+         // Refresh relevant data
+         if (this.tab === 'stock') this.loadStock();
+         if (this.tab === 'batches') this.loadBatches();
+         if (this.tab === 'reports') this.loadTransactions();
+      });
+   }
 
-  loadBatches() {
-    this.svc.getBatches(
-      { search: this.batchSearch },
-      { excludeExpired: this.batchFilterExpired || undefined, excludeExhausted: this.batchFilterExhausted || undefined }
-    ).subscribe(r => this.batches = r.items);
-  }
-  openBatchForm() { this.showBatchForm = true; this.batchForm = {}; }
-  editBatch(b: any) { this.showBatchForm = true; this.batchForm = { id: b.id, warehouseId: b.warehouseId, quantityRemaining: b.quantityRemaining, status: b.status, notes: b.notes }; }
-  saveBatch() {
-    const obs = this.batchForm.id ? this.svc.updateBatch(this.batchForm.id, this.batchForm) : this.svc.createBatch(this.batchForm);
-    obs.subscribe({
-      next: () => { this.toast.success(this.translate.instant('SUCCESS_SAVE')); this.showBatchForm = false; this.loadBatches(); },
-      error: (e: any) => this.toast.error(e.error?.message || this.translate.instant('ERROR_OCCURRED'))
-    });
-  }
-  deleteBatch(id: number) {
-    if (!confirm(this.translate.instant('CONFIRM_DELETE'))) return;
-    this.svc.deleteBatch(id).subscribe({ next: () => { this.toast.success(this.translate.instant('SUCCESS_DELETE')); this.loadBatches(); }, error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED')) });
-  }
+   loadItems() { this.svc.getItems({ search: this.search }).subscribe(r => this.items = r.items); }
+   openItemForm() { this.showItemForm = true; this.itemForm = { trackBatches: false }; }
+   editItem(i: any) { this.showItemForm = true; this.itemForm = { ...i }; }
+   saveItem() {
+      const obs = this.itemForm.id ? this.svc.updateItem(this.itemForm.id, this.itemForm) : this.svc.createItem(this.itemForm);
+      obs.subscribe({
+         next: () => { this.toast.success(this.translate.instant('SUCCESS_SAVE')); this.showItemForm = false; this.loadItems(); },
+         error: (e: any) => this.toast.error(e.error?.message || this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
 
-  loadStock() { this.svc.getStock().subscribe(s => this.stock = s); }
-  transfer() {
-    this.svc.transferStock(this.transForm).subscribe({
-      next: () => { this.toast.success(this.translate.instant('SUCCESS_SAVE')); this.showTransfer = false; this.loadStock(); },
-      error: (e: any) => this.toast.error(e.error?.message || this.translate.instant('ERROR_OCCURRED'))
-    });
-  }
+   loadBatches() {
+      this.svc.getBatches(
+         { search: this.batchSearch },
+         { excludeExpired: this.batchFilterExpired || undefined, excludeExhausted: this.batchFilterExhausted || undefined }
+      ).subscribe(r => this.batches = r.items);
+   }
+   openBatchForm() { this.showBatchForm = true; this.batchForm = {}; }
+   editBatch(b: any) { this.showBatchForm = true; this.batchForm = { id: b.id, warehouseId: b.warehouseId, quantityRemaining: b.quantityRemaining, status: b.status, notes: b.notes }; }
+   saveBatch() {
+      const obs = this.batchForm.id ? this.svc.updateBatch(this.batchForm.id, this.batchForm) : this.svc.createBatch(this.batchForm);
+      obs.subscribe({
+         next: () => { this.toast.success(this.translate.instant('SUCCESS_SAVE')); this.showBatchForm = false; this.loadBatches(); },
+         error: (e: any) => this.toast.error(e.error?.message || this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
+   deleteBatch(id: number) {
+      if (!confirm(this.translate.instant('CONFIRM_DELETE'))) return;
+      this.svc.deleteBatch(id).subscribe({ next: () => { this.toast.success(this.translate.instant('SUCCESS_DELETE')); this.loadBatches(); }, error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED')) });
+   }
 
-  loadWarehouses() { this.svc.getWarehouses().subscribe(w => this.warehouses = w); }
-  saveWh() {
-    this.svc.createWarehouse(this.whForm).subscribe({
-      next: () => { this.toast.success(this.translate.instant('SUCCESS_SAVE')); this.showWhForm = false; this.loadWarehouses(); },
-      error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
-    });
-  }
+   loadStock() { this.svc.getStock().subscribe(s => this.stock = s); }
+   transfer() {
+      this.svc.transferStock(this.transForm).subscribe({
+         next: () => { this.toast.success(this.translate.instant('SUCCESS_SAVE')); this.showTransfer = false; this.loadStock(); },
+         error: (e: any) => this.toast.error(e.error?.message || this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
 
-  openPackagingUnits(item: any) {
-    this.pkgItem = item;
-    this.pkgForm = { itemId: item.id, unitsPerPackage: 1, baseUnitQty: 1, sortOrder: 0, isBaseUnit: false, salePrice: 0, purchasePrice: 0 };
-    this.pkgUnits = [];
-    this.showPkgModal = true;
-    this.svc.getPackagingUnits(item.id).subscribe(u => this.pkgUnits = u);
-  }
-  addPkgUnit() {
-    this.svc.createPackagingUnit({ ...this.pkgForm, itemId: this.pkgItem.id }).subscribe({
-      next: () => {
-        this.toast.success(this.translate.instant('SUCCESS_SAVE'));
-        this.pkgForm = { itemId: this.pkgItem.id, unitsPerPackage: 1, baseUnitQty: 1, sortOrder: 0, isBaseUnit: false, salePrice: 0, purchasePrice: 0 };
-        this.svc.getPackagingUnits(this.pkgItem.id).subscribe(u => this.pkgUnits = u);
-      },
-      error: (e: any) => this.toast.error(e.error?.message || this.translate.instant('ERROR_OCCURRED'))
-    });
-  }
-  deletePkgUnit(id: number) {
-    if (!confirm(this.translate.instant('CONFIRM_DELETE'))) return;
-    this.svc.deletePackagingUnit(id).subscribe({
-      next: () => { this.toast.success(this.translate.instant('SUCCESS_DELETE')); this.svc.getPackagingUnits(this.pkgItem.id).subscribe(u => this.pkgUnits = u); },
-      error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
-    });
-  }
+   loadWarehouses() { this.svc.getWarehouses().subscribe(w => this.warehouses = w); }
+   saveWh() {
+      this.svc.createWarehouse(this.whForm).subscribe({
+         next: () => { this.toast.success(this.translate.instant('SUCCESS_SAVE')); this.showWhForm = false; this.loadWarehouses(); },
+         error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
 
-  scan() {
-    if (!this.scanBarcode.trim()) return;
-    this.scanResult = null;
-    this.svc.scanBarcode(this.scanBarcode.trim()).subscribe({
-      next: r => this.scanResult = r,
-      error: () => this.scanResult = { found: false, errorMessage: this.translate.instant('SCAN_FAILED') }
-    });
-  }
+   openPackagingUnits(item: any) {
+      this.pkgItem = item;
+      this.pkgForm = { itemId: item.id, unitsPerPackage: 1, baseUnitQty: 1, sortOrder: 0, isBaseUnit: false, salePrice: 0, purchasePrice: 0 };
+      this.pkgUnits = [];
+      this.showPkgModal = true;
+      this.svc.getPackagingUnits(item.id).subscribe(u => this.pkgUnits = u);
+   }
+   addPkgUnit() {
+      this.svc.createPackagingUnit({ ...this.pkgForm, itemId: this.pkgItem.id }).subscribe({
+         next: () => {
+            this.toast.success(this.translate.instant('SUCCESS_SAVE'));
+            this.pkgForm = { itemId: this.pkgItem.id, unitsPerPackage: 1, baseUnitQty: 1, sortOrder: 0, isBaseUnit: false, salePrice: 0, purchasePrice: 0 };
+            this.svc.getPackagingUnits(this.pkgItem.id).subscribe(u => this.pkgUnits = u);
+         },
+         error: (e: any) => this.toast.error(e.error?.message || this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
+   deletePkgUnit(id: number) {
+      if (!confirm(this.translate.instant('CONFIRM_DELETE'))) return;
+      this.svc.deletePackagingUnit(id).subscribe({
+         next: () => { this.toast.success(this.translate.instant('SUCCESS_DELETE')); this.svc.getPackagingUnits(this.pkgItem.id).subscribe(u => this.pkgUnits = u); },
+         error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
 
-  loadTransactions() {
-    this.svc.getTransactions().subscribe(t => this.transactions = t);
-    this.loadBatches();
-    this.loadStock();
-  }
+   scan() {
+      if (!this.scanBarcode.trim()) return;
+      this.scanResult = null;
+      this.svc.scanBarcode(this.scanBarcode.trim()).subscribe({
+         next: r => this.scanResult = r,
+         error: () => this.scanResult = { found: false, errorMessage: this.translate.instant('SCAN_FAILED') }
+      });
+   }
 
-  getTotalValuation(): number {
-    return this.stock.reduce((sum, s) => sum + (s.quantity * s.purchasePrice), 0);
-  }
+   loadTransactions() {
+      this.svc.getTransactions().subscribe(t => this.transactions = t);
+      this.loadBatches();
+      this.loadStock();
+   }
+
+   getTotalValuation(): number {
+      return this.stock.reduce((sum, s) => sum + (s.quantity * s.purchasePrice), 0);
+   }
 }

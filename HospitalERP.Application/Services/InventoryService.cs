@@ -237,6 +237,8 @@ public class InventoryService : IInventoryService
         
         await _uow.ItemBatches.AddAsync(batch);
         await _uow.SaveChangesAsync();
+        if (batch.WarehouseId.HasValue) 
+            await _notif.CheckStockLevelAsync(batch.ItemId, batch.WarehouseId.Value);
         await _auditLog.LogAsync(createdBy, createdBy, "Create", "ItemBatch", batch.Id, $"Batch {batch.BatchNumber} created for Item ID {batch.ItemId}.");
         
         var fullBatch = await _uow.ItemBatches.Query()
@@ -260,6 +262,8 @@ public class InventoryService : IInventoryService
         
         _uow.ItemBatches.Update(batch);
         await _uow.SaveChangesAsync();
+        if (batch.WarehouseId.HasValue) 
+            await _notif.CheckStockLevelAsync(batch.ItemId, batch.WarehouseId.Value);
         await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "ItemBatch", batch.Id, $"Batch {batch.BatchNumber} updated.");
         return ToBatchDto(batch);
     }

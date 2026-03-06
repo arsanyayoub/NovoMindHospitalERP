@@ -119,6 +119,13 @@ public class PurchaseService : IPurchaseService
         var supplier = await _uow.Suppliers.GetByIdAsync(dto.SupplierId);
         if (supplier is not null) { supplier.Balance += pi.TotalAmount; _uow.Suppliers.Update(supplier); }
         await _uow.SaveChangesAsync();
+        
+        // Broadcast stock updates
+        foreach (var lineDto in dto.Items)
+        {
+            await _notif.CheckStockLevelAsync(lineDto.ItemId, lineDto.WarehouseId);
+        }
+
         await _notif.CreateNotificationAsync("Purchase Invoice Created", $"Invoice {pi.InvoiceNumber} created.", "InvoiceCreated");
         return (await GetPurchaseInvoiceByIdAsync(pi.Id))!;
     }
@@ -247,6 +254,13 @@ public class SalesService : ISalesService
         var customer = await _uow.Customers.GetByIdAsync(dto.CustomerId);
         if (customer is not null) { customer.Balance += si.TotalAmount; _uow.Customers.Update(customer); }
         await _uow.SaveChangesAsync();
+
+        // Broadcast stock updates
+        foreach (var lineDto in dto.Items)
+        {
+            await _notif.CheckStockLevelAsync(lineDto.ItemId, lineDto.WarehouseId);
+        }
+
         await _notif.CreateNotificationAsync("Sales Invoice Created", $"Invoice {si.InvoiceNumber} for {si.TotalAmount:C2}.", "InvoiceCreated");
         return (await GetSalesInvoiceByIdAsync(si.Id))!;
     }

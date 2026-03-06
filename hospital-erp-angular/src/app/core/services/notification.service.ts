@@ -30,6 +30,9 @@ export class NotificationService {
     private newMessageSubject = new Subject<any>();
     newMessage$ = this.newMessageSubject.asObservable();
 
+    private stockUpdateSubject = new Subject<any>();
+    stockUpdate$ = this.stockUpdateSubject.asObservable();
+
     constructor(
         private http: HttpClient,
         private auth: AuthService,
@@ -72,11 +75,12 @@ export class NotificationService {
         });
 
         this.hubConnection.on('StockUpdated', (data: any) => {
-            if (data.quantity < data.reorderLevel) {
+            if (data.quantity <= data.reorderLevel) {
                 this.toast.error('Inventory Alert: ' + data.itemName + ' is low on stock!');
             } else {
                 this.toast.info('Inventory Updated: ' + data.itemName);
             }
+            this.stockUpdateSubject.next(data);
         });
 
         this.hubConnection.start().catch(err => console.error('SignalR error:', err));
