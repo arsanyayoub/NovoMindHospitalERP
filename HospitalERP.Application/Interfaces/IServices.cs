@@ -278,3 +278,22 @@ public interface IOTService
     Task RemoveSurgeryResourceAsync(int resourceId, string userId);
 }
 
+public interface IInsuranceService
+{
+    // Providers
+    Task<IEnumerable<InsuranceProviderDto>> GetProvidersAsync();
+    Task<InsuranceProviderDto?> GetProviderByIdAsync(int id);
+    Task<InsuranceProviderDto> CreateProviderAsync(CreateInsuranceProviderDto dto, string userId);
+    Task<InsuranceProviderDto> UpdateProviderAsync(int id, CreateInsuranceProviderDto dto, string userId);
+    
+    // Plans
+    Task<IEnumerable<InsurancePlanDto>> GetPlansAsync(int? providerId);
+    Task<InsurancePlanDto> CreatePlanAsync(CreateInsurancePlanDto dto, string userId);
+    Task<InsurancePlanDto> UpdatePlanAsync(int id, CreateInsurancePlanDto dto, string userId);
+    
+    // Claims
+    Task<PagedResult<InsuranceClaimDto>> GetClaimsAsync(PagedRequest request, string? status);
+    Task<InsuranceClaimDto> CreateClaimAsync(CreateInsuranceClaimDto dto, string userId);
+    Task<InsuranceClaimDto> UpdateClaimStatusAsync(int id, UpdateClaimStatusDto dto, string userId);
+}
+

@@ -295,6 +295,7 @@ export class ShellComponent implements OnInit {
     { label: 'PHARMACY', icon: 'medication', route: '/pharmacy', roles: ['Admin', 'Doctor', 'Nurse'] },
     { label: 'BED MANAGEMENT', icon: 'hotel', route: '/bed-management', roles: ['Admin', 'Doctor', 'Nurse', 'Receptionist'] },
     { label: 'OT_MANAGEMENT', icon: 'meeting_room', route: '/ot-management', roles: ['Admin', 'Doctor', 'Nurse'] },
+    { label: 'INSURANCE_TPA', icon: 'verified_user', route: '/insurance', roles: ['Admin', 'Accountant'] },
     { label: 'INPATIENT BILLING', icon: 'payments', route: '/inpatient-billing', roles: ['Admin', 'Accountant'] },
     { label: 'MESSAGES', icon: 'chat', route: '/messaging' },
     { label: 'AUDIT_LOG', icon: 'history_edu', route: '/audit-logs', roles: ['Admin'] },

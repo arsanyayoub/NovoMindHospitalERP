@@ -18,6 +18,8 @@ public class Invoice : BaseEntity
     public decimal TaxAmount { get; set; }
     public decimal DiscountAmount { get; set; }
     public decimal TotalAmount { get; set; }
+    public decimal InsuranceShare { get; set; }
+    public decimal PatientShare { get; set; }
     public decimal PaidAmount { get; set; }
     public decimal BalanceDue => TotalAmount - PaidAmount;
     public string? Notes { get; set; }

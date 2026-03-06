@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { RouterModule } from '@angular/router';
-import { PatientService, InvoiceService, AppointmentService } from '../../core/services/api.services';
+import { PatientService, InvoiceService, AppointmentService, InsuranceService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
 @Component({
@@ -180,15 +180,25 @@ import { ToastService } from '../../core/services/language.service';
                    <div class="grid grid-cols-2 gap-4">
                       <div class="form-group">
                          <label class="form-label font-black text-[0.6rem] uppercase">{{ 'INSURANCE_PROVIDER' | translate }}</label>
-                         <input class="form-control h-12 rounded-xl" [(ngModel)]="form.insuranceProvider" placeholder="e.g. AXA, Bupa...">
+                         <select class="form-control h-12 rounded-xl" [(ngModel)]="form.insuranceProviderId" (change)="loadPlans()">
+                            <option [ngValue]="null">-- {{ 'NO_INSURANCE' | translate }} --</option>
+                            <option *ngFor="let p of providers" [value]="p.id">{{ p.name }}</option>
+                         </select>
+                      </div>
+                      <div class="form-group">
+                         <label class="form-label font-black text-[0.6rem] uppercase">{{ 'INSURANCE_PLAN' | translate }}</label>
+                         <select class="form-control h-12 rounded-xl" [(ngModel)]="form.insurancePlanId" [disabled]="!form.insuranceProviderId">
+                            <option [ngValue]="null">-- {{ 'SELECT_PLAN' | translate }} --</option>
+                            <option *ngFor="let pl of plans" [value]="pl.id">{{ pl.planName }} ({{ pl.coveragePercentage }}%)</option>
+                         </select>
                       </div>
                       <div class="form-group">
                          <label class="form-label font-black text-[0.6rem] uppercase">{{ 'POLICY_NUMBER' | translate }}</label>
                          <input class="form-control h-12 rounded-xl" [(ngModel)]="form.insurancePolicyNumber">
                       </div>
-                      <div class="form-group col-span-2">
-                         <label class="form-label font-black text-[0.6rem] uppercase">{{ 'COVERAGE_TERMS' | translate }}</label>
-                         <input class="form-control h-12 rounded-xl" [(ngModel)]="form.insuranceCoverage" placeholder="e.g. 80/20 Co-pay, Full Coverage...">
+                      <div class="form-group">
+                         <label class="form-label font-black text-[0.6rem] uppercase">{{ 'MANUAL_PROVIDER_NAME' | translate }}</label>
+                         <input class="form-control h-12 rounded-xl" [(ngModel)]="form.insuranceProviderNameManual" [disabled]="!!form.insuranceProviderId" placeholder="If not in list...">
                       </div>
                    </div>
                 </div>
@@ -236,14 +246,21 @@ export class PatientsComponent implements OnInit {
    form: any = {};
    selectedInvoice: any = null;
    payAmount = 0;
+   providers: any[] = [];
+   plans: any[] = [];
+
    constructor(
       private svc: PatientService,
       private invSvc: InvoiceService,
+      private insSvc: InsuranceService,
       private translate: TranslateService,
       private toast: ToastService
    ) { }
 
-   ngOnInit() { this.loadData(); }
+   ngOnInit() {
+      this.loadData();
+      this.insSvc.getProviders().subscribe(res => this.providers = res);
+   }
 
    loadData() {
       this.loading = true;
@@ -261,8 +278,17 @@ export class PatientsComponent implements OnInit {
 
    openForm(patient?: any) {
       this.editing = patient || null;
-      this.form = patient ? { ...patient, dateOfBirth: patient.dateOfBirth?.split('T')[0] } : { gender: 'Male', isActive: true };
+      this.form = patient ? { ...patient, dateOfBirth: patient.dateOfBirth?.split('T')[0] } : { gender: 'Male', isActive: true, insuranceProviderId: null, insurancePlanId: null };
+      if (this.form.insuranceProviderId) this.loadPlans();
       this.showForm = true;
+   }
+
+   loadPlans() {
+      if (!this.form.insuranceProviderId) {
+         this.plans = [];
+         return;
+      }
+      this.insSvc.getPlans(this.form.insuranceProviderId).subscribe(res => this.plans = res);
    }
 
    openPayModal(inv: any) {

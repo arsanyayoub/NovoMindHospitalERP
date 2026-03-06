@@ -79,10 +79,14 @@ public class HospitalERPDbContext : DbContext
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
-    // Operating Theater
     public DbSet<OperatingTheater> OperatingTheaters => Set<OperatingTheater>();
     public DbSet<ScheduledSurgery> ScheduledSurgeries => Set<ScheduledSurgery>();
     public DbSet<SurgeryResource> SurgeryResources => Set<SurgeryResource>();
+
+    // Insurance & TPA
+    public DbSet<InsuranceProvider> InsuranceProviders => Set<InsuranceProvider>();
+    public DbSet<InsurancePlan> InsurancePlans => Set<InsurancePlan>();
+    public DbSet<InsuranceClaim> InsuranceClaims => Set<InsuranceClaim>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -129,6 +133,9 @@ public class HospitalERPDbContext : DbContext
         modelBuilder.Entity<OperatingTheater>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<ScheduledSurgery>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<SurgeryResource>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<InsuranceProvider>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<InsurancePlan>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<InsuranceClaim>().HasQueryFilter(e => !e.IsDeleted);
 
         // ── Decimal precision ────────────────────────────────────────
         foreach (var property in modelBuilder.Model.GetEntityTypes()
@@ -157,6 +164,8 @@ public class HospitalERPDbContext : DbContext
         modelBuilder.Entity<Patient>(e =>
         {
             e.HasIndex(p => p.PatientCode).IsUnique();
+            e.HasOne(p => p.InsuranceProviderLink).WithMany().HasForeignKey(p => p.InsuranceProviderId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(p => p.InsurancePlan).WithMany().HasForeignKey(p => p.InsurancePlanId).OnDelete(DeleteBehavior.SetNull);
         });
 
         // ── Doctor ────────────────────────────────────────────────────
@@ -334,6 +343,20 @@ public class HospitalERPDbContext : DbContext
             e.HasOne(s => s.LeadSurgeon).WithMany().HasForeignKey(s => s.LeadSurgeonId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(s => s.Anesthetist).WithMany().HasForeignKey(s => s.AnesthetistId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(s => s.OperatingTheater).WithMany().HasForeignKey(s => s.OperatingTheaterId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ── Insurance & TPA ──────────────────────────────────────────
+        modelBuilder.Entity<InsuranceProvider>(e =>
+        {
+            e.HasMany(p => p.Plans).WithOne(pl => pl.InsuranceProvider).HasForeignKey(pl => pl.InsuranceProviderId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<InsuranceClaim>(e =>
+        {
+            e.HasIndex(c => c.ClaimNumber).IsUnique();
+            e.HasOne(c => c.Invoice).WithMany().HasForeignKey(c => c.InvoiceId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(c => c.Patient).WithMany().HasForeignKey(c => c.PatientId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(c => c.InsuranceProvider).WithMany().HasForeignKey(c => c.InsuranceProviderId).OnDelete(DeleteBehavior.Restrict);
         });
 
         // ── Seed Data ─────────────────────────────────────────────────

@@ -623,5 +623,35 @@ export class SystemService {
     }
 }
 
+@Injectable({ providedIn: 'root' })
+export class InsuranceService {
+    private readonly API = `${environment.apiUrl}/insurance`;
+    constructor(private http: HttpClient) { }
+
+    getProviders(): Observable<any[]> { return this.http.get<any[]>(`${this.API}/providers`); }
+    getProvider(id: number): Observable<any> { return this.http.get<any>(`${this.API}/providers/${id}`); }
+    createProvider(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/providers`, dto); }
+    updateProvider(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/providers/${id}`, dto); }
+
+    getPlans(providerId?: number): Observable<any[]> {
+        let params = new HttpParams();
+        if (providerId) params = params.set('providerId', providerId);
+        return this.http.get<any[]>(`${this.API}/plans`, { params });
+    }
+    createPlan(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/plans`, dto); }
+    updatePlan(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/plans/${id}`, dto); }
+
+    getClaims(request: PagedRequest = {}, status?: string): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (request.search) params = params.set('search', request.search);
+        if (status) params = params.set('status', status);
+        return this.http.get<PagedResult<any>>(`${this.API}/claims`, { params });
+    }
+    createClaim(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/claims`, dto); }
+    updateClaimStatus(id: number, dto: any): Observable<any> { return this.http.patch<any>(`${this.API}/claims/${id}/status`, dto); }
+}
+
 
 

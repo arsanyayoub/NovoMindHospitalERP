@@ -20,9 +20,13 @@ public class Patient : BaseEntity
     public bool IsActive { get; set; } = true;
 
     // --- Insurance Details ---
-    public string? InsuranceProvider { get; set; }
+    public int? InsuranceProviderId { get; set; }
+    public InsuranceProvider? InsuranceProviderLink { get; set; }
+    public int? InsurancePlanId { get; set; }
+    public InsurancePlan? InsurancePlan { get; set; }
     public string? InsurancePolicyNumber { get; set; }
-    public string? InsuranceCoverage { get; set; } // e.g. "Full", "80/20", "Fixed Co-pay"
+    public string? InsuranceProviderNameManual { get; set; } // Fallback for manual entry
+    public string? InsuranceCoverageType { get; set; } 
     public decimal InsuranceBalance { get; set; }
     public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
     public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();

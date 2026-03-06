@@ -61,6 +61,9 @@ public class UnitOfWork : IUnitOfWork
         OperatingTheaters = new Repository<OperatingTheater>(context);
         ScheduledSurgeries = new Repository<ScheduledSurgery>(context);
         SurgeryResources = new Repository<SurgeryResource>(context);
+        InsuranceProviders = new Repository<InsuranceProvider>(context);
+        InsurancePlans = new Repository<InsurancePlan>(context);
+        InsuranceClaims = new Repository<InsuranceClaim>(context);
     }
 
     public IRepository<User> Users { get; }
@@ -113,6 +116,9 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<OperatingTheater> OperatingTheaters { get; }
     public IRepository<ScheduledSurgery> ScheduledSurgeries { get; }
     public IRepository<SurgeryResource> SurgeryResources { get; }
+    public IRepository<InsuranceProvider> InsuranceProviders { get; }
+    public IRepository<InsurancePlan> InsurancePlans { get; }
+    public IRepository<InsuranceClaim> InsuranceClaims { get; }
 
     public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
 

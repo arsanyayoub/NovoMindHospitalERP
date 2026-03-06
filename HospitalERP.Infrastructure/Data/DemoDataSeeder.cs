@@ -220,6 +220,39 @@ public static class DemoDataSeeder
         db.ScheduledSurgeries.AddRange(surgeries);
         await db.SaveChangesAsync();
 
+        // ── Insurance & TPA ──────────────────────────────────────────
+        var providers = new List<InsuranceProvider>
+        {
+            new() { 
+                Id = 1, Name = "AXA Egypt", ContactPerson = "Sara Samir", Email = "claims@axa.eg", 
+                PhoneNumber = "16292", Address = "Nile City Towers", TPA = "AXA-TPA", CreatedBy = SYS, CreatedDate = _base 
+            },
+            new() { 
+                Id = 2, Name = "Bupa Global", ContactPerson = "John Doe", Email = "intl@bupa.com", 
+                PhoneNumber = "0800 001", TPA = "BUPA-INTL", CreatedBy = SYS, CreatedDate = _base 
+            }
+        };
+        db.InsuranceProviders.AddRange(providers);
+        await db.SaveChangesAsync();
+
+        var plans = new List<InsurancePlan>
+        {
+            new() { InsuranceProviderId = 1, PlanName = "Gold Plus", PlanCode = "AXA-G+", CoveragePercentage = 90, CoPayAmount = 100, MaxLimit = 500000, RequiresPreAuth = true, CreatedBy = SYS, CreatedDate = _base },
+            new() { InsuranceProviderId = 1, PlanName = "Silver Standard", PlanCode = "AXA-SS", CoveragePercentage = 80, CoPayAmount = 50, MaxLimit = 200000, RequiresPreAuth = false, CreatedBy = SYS, CreatedDate = _base },
+            new() { InsuranceProviderId = 2, PlanName = "Elite Global", PlanCode = "BUPA-EL", CoveragePercentage = 100, CoPayAmount = 0, MaxLimit = 1000000, RequiresPreAuth = true, CreatedBy = SYS, CreatedDate = _base },
+        };
+        db.InsurancePlans.AddRange(plans);
+        await db.SaveChangesAsync();
+
+        // Update some patients with insurance
+        var p1 = await db.Patients.FindAsync(1);
+        if (p1 != null) { p1.InsuranceProviderId = 1; p1.InsurancePlanId = 1; p1.InsurancePolicyNumber = "POL-00123456"; }
+        
+        var p2 = await db.Patients.FindAsync(2);
+        if (p2 != null) { p2.InsuranceProviderId = 2; p2.InsurancePlanId = 3; p2.InsurancePolicyNumber = "BUPA-9876543"; }
+        
+        await db.SaveChangesAsync();
+
         logger?.LogInformation("Demo data seeded – {Patients} patients, {Doctors} doctors, {Appointments} appointments, {Items} inventory items, {OTs} theaters.",
             patients.Count, doctors.Count, appts.Count, items.Count, theaters.Count);
     }

@@ -65,6 +65,11 @@ public interface IUnitOfWork : IDisposable
     IRepository<ScheduledSurgery> ScheduledSurgeries { get; }
     IRepository<SurgeryResource> SurgeryResources { get; }
 
+    // Insurance & TPA
+    IRepository<InsuranceProvider> InsuranceProviders { get; }
+    IRepository<InsurancePlan> InsurancePlans { get; }
+    IRepository<InsuranceClaim> InsuranceClaims { get; }
+
     Task<int> SaveChangesAsync();
 
 }

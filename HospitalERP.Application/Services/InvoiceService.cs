@@ -45,7 +45,32 @@ public class InvoiceService : IInvoiceService
         var count = await _uow.Invoices.CountAsync();
         if (!Enum.TryParse<InvoiceType>(dto.InvoiceType, out var invType))
             invType = InvoiceType.Hospital;
+
         var subTotal = dto.Items.Sum(i => i.Quantity * i.UnitPrice - i.Discount);
+        var totalAmount = subTotal + dto.TaxAmount - dto.DiscountAmount;
+
+        decimal insuranceShare = 0;
+        decimal patientShare = totalAmount;
+
+        // Auto-calculate insurance split if patient has a plan
+        if (dto.PatientId.HasValue)
+        {
+            var p = await _uow.Patients.Query()
+                .Include(patient => patient.InsurancePlan)
+                .FirstOrDefaultAsync(patient => patient.Id == dto.PatientId.Value);
+
+            if (p?.InsurancePlan != null && p.InsurancePlan.IsActive)
+            {
+                // Basic coverage % logic: coverage = 90% of total
+                insuranceShare = totalAmount * (p.InsurancePlan.CoveragePercentage / 100m);
+                // Subtract co-pay from insurance share (patient pays it)
+                if (p.InsurancePlan.CoPayAmount > 0) 
+                    insuranceShare = Math.Max(0, insuranceShare - p.InsurancePlan.CoPayAmount);
+                
+                patientShare = totalAmount - insuranceShare;
+            }
+        }
+
         var invoice = new Invoice
         {
             InvoiceNumber = $"INV{(count + 1):D6}",
@@ -57,7 +82,9 @@ public class InvoiceService : IInvoiceService
             SubTotal = subTotal,
             TaxAmount = dto.TaxAmount,
             DiscountAmount = dto.DiscountAmount,
-            TotalAmount = subTotal + dto.TaxAmount - dto.DiscountAmount,
+            TotalAmount = totalAmount,
+            InsuranceShare = insuranceShare,
+            PatientShare = patientShare,
             Notes = dto.Notes,
             CreatedBy = createdBy,
             InvoiceItems = dto.Items.Select(ii => new InvoiceItem
@@ -74,6 +101,34 @@ public class InvoiceService : IInvoiceService
         };
         await _uow.Invoices.AddAsync(invoice);
         await _uow.SaveChangesAsync();
+
+        // Automatically create an insurance claim if there's an insurance share
+        if (insuranceShare > 0 && dto.PatientId.HasValue)
+        {
+            var p = await _uow.Patients.GetByIdAsync(dto.PatientId.Value);
+            if (p?.InsuranceProviderId != null)
+            {
+                var claimCount = await _uow.InsuranceClaims.CountAsync();
+                var claim = new InsuranceClaim
+                {
+                    ClaimNumber = $"CLM{(claimCount + 1):D6}",
+                    InvoiceId = invoice.Id,
+                    PatientId = dto.PatientId.Value,
+                    InsuranceProviderId = p.InsuranceProviderId.Value,
+                    ClaimAmount = insuranceShare,
+                    Status = "Pending",
+                    SubmissionDate = DateTime.UtcNow,
+                    CreatedBy = createdBy
+                };
+                await _uow.InsuranceClaims.AddAsync(claim);
+                await _uow.SaveChangesAsync();
+                
+                await _notif.CreateNotificationAsync("Claim Generated", 
+                   $"Insurance claim {claim.ClaimNumber} for {claim.ClaimAmount:C2} generated for Invoice {invoice.InvoiceNumber}.", 
+                   "Claim", entityType: "InsuranceClaim", entityId: claim.Id);
+            }
+        }
+
         await _notif.CreateNotificationAsync("Invoice Created", $"Invoice {invoice.InvoiceNumber} for {invoice.TotalAmount:C2}.",
             "InvoiceCreated", entityType: "Invoice", entityId: invoice.Id);
         return (await GetByIdAsync(invoice.Id))!;
@@ -131,7 +186,7 @@ public class InvoiceService : IInvoiceService
     internal static InvoiceDto ToDto(Invoice i) => new(
         i.Id, i.InvoiceNumber, i.PatientId, i.Patient?.FullName, i.CustomerId, i.Customer?.CustomerName,
         i.InvoiceDate, i.DueDate, i.InvoiceType.ToString(), i.Status.ToString(),
-        i.SubTotal, i.TaxAmount, i.DiscountAmount, i.TotalAmount, i.PaidAmount, i.BalanceDue, i.Notes,
+        i.SubTotal, i.TaxAmount, i.DiscountAmount, i.TotalAmount, i.InsuranceShare, i.PatientShare, i.PaidAmount, i.BalanceDue, i.Notes,
         i.InvoiceItems.Select(ii => new InvoiceItemDto(
             ii.Id, ii.ItemId, ii.Item?.ItemName, ii.Description,
             ii.Quantity, ii.UnitPrice, ii.TaxRate, ii.Discount, ii.Total)).ToList(),

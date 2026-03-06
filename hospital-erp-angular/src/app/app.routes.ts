@@ -112,6 +112,10 @@ export const routes: Routes = [
             {
                 path: 'ot-management',
                 loadComponent: () => import('./features/ot-management/ot-management.component').then(m => m.OTManagementComponent)
+            },
+            {
+                path: 'insurance',
+                loadComponent: () => import('./features/insurance/insurance.component').then(m => m.InsuranceComponent)
             }
         ]
     },

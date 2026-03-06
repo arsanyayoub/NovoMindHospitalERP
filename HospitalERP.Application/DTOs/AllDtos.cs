@@ -20,20 +20,23 @@ public record PatientDto(
     string? PhoneNumber, string? Email, string? Address,
     string? EmergencyContact, string? EmergencyPhone,
     string? MedicalHistory, string? Allergies, bool IsActive, 
-    string? InsuranceProvider, string? InsurancePolicyNumber, string? InsuranceCoverage, decimal InsuranceBalance,
+    int? InsuranceProviderId, string? InsuranceProviderName, int? InsurancePlanId, string? InsurancePlanName,
+    string? InsurancePolicyNumber, string? InsuranceCoverageType, decimal InsuranceBalance,
     DateTime CreatedDate);
 
 public record CreatePatientDto(
     string FullName, string? NationalId, DateTime DateOfBirth, string Gender,
     string? BloodType, string? PhoneNumber, string? Email, string? Address,
     string? EmergencyContact, string? EmergencyPhone, string? MedicalHistory, string? Allergies,
-    string? InsuranceProvider = null, string? InsurancePolicyNumber = null, string? InsuranceCoverage = null);
+    int? InsuranceProviderId = null, int? InsurancePlanId = null, string? InsurancePolicyNumber = null, 
+    string? InsuranceProviderNameManual = null, string? InsuranceCoverageType = null);
 
 public record UpdatePatientDto(
     string FullName, string? NationalId, DateTime DateOfBirth, string Gender,
     string? BloodType, string? PhoneNumber, string? Email, string? Address,
     string? EmergencyContact, string? EmergencyPhone, string? MedicalHistory, string? Allergies, bool IsActive,
-    string? InsuranceProvider = null, string? InsurancePolicyNumber = null, string? InsuranceCoverage = null);
+    int? InsuranceProviderId = null, int? InsurancePlanId = null, string? InsurancePolicyNumber = null,
+    string? InsuranceProviderNameManual = null, string? InsuranceCoverageType = null);
 
 // ═══════════════════════════════════════════════════════════════
 //  DOCTOR
@@ -79,8 +82,8 @@ public record InvoiceDto(
     int Id, string InvoiceNumber, int? PatientId, string? PatientName,
     int? CustomerId, string? CustomerName, DateTime InvoiceDate, DateTime? DueDate,
     string InvoiceType, string Status, decimal SubTotal, decimal TaxAmount,
-    decimal DiscountAmount, decimal TotalAmount, decimal PaidAmount, decimal BalanceDue,
-    string? Notes, List<InvoiceItemDto> Items, DateTime CreatedDate);
+    decimal DiscountAmount, decimal TotalAmount, decimal InsuranceShare, decimal PatientShare,
+    decimal PaidAmount, decimal BalanceDue, string? Notes, List<InvoiceItemDto> Items, DateTime CreatedDate);
 
 public record InvoiceItemDto(
     int Id, int? ItemId, string? ItemName, string Description,
@@ -504,6 +507,19 @@ public record ClinicalEncounterDto(int Id, int PatientId, string PatientName, in
 
 public record CreateClinicalEncounterDto(int PatientId, int? DoctorId, int? AppointmentId, string? ChiefComplaint, 
     string? Subjective, string? Objective, string? Assessment, string? Plan, string? InternalNotes, bool IsFinalized = false);
+
+// ═══════════════════════════════════════════════════════════════
+//  INSURANCE & TPA MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+public record InsuranceProviderDto(int Id, string Name, string? ContactPerson, string? Email, string? PhoneNumber, string? Address, string? TPA, bool IsActive, List<InsurancePlanDto> Plans);
+public record CreateInsuranceProviderDto(string Name, string? ContactPerson, string? Email, string? PhoneNumber, string? Address, string? TPA, bool IsActive = true);
+
+public record InsurancePlanDto(int Id, int InsuranceProviderId, string? ProviderName, string PlanName, string PlanCode, decimal CoveragePercentage, decimal CoPayAmount, decimal MaxLimit, string? Exclusions, bool RequiresPreAuth, bool IsActive);
+public record CreateInsurancePlanDto(int InsuranceProviderId, string PlanName, string PlanCode, decimal CoveragePercentage, decimal CoPayAmount, decimal MaxLimit, string? Exclusions, bool RequiresPreAuth, bool IsActive = true);
+
+public record InsuranceClaimDto(int Id, string ClaimNumber, int InvoiceId, string InvoiceNumber, int PatientId, string PatientName, int InsuranceProviderId, string ProviderName, decimal ClaimAmount, decimal ApprovedAmount, string Status, DateTime? SubmissionDate, DateTime? StatusDate, string? RejectionReason, string? AuthCode);
+public record CreateInsuranceClaimDto(int InvoiceId, int PatientId, int InsuranceProviderId, decimal ClaimAmount, string? AuthCode = null);
+public record UpdateClaimStatusDto(string Status, decimal ApprovedAmount, string? RejectionReason = null);
 
 // ═══════════════════════════════════════════════════════════════
 //  USER & ROLE MANAGEMENT

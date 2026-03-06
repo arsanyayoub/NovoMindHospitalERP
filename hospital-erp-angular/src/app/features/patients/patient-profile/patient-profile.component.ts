@@ -383,7 +383,7 @@ import { ToastService } from '../../../core/services/language.service';
                </div>
 
                <!-- INSURANCE DETAILS -->
-               <div class="card bg-glass" *ngIf="patient.insuranceProvider">
+               <div class="card bg-glass" *ngIf="patient.insuranceProviderName">
                   <h3 class="font-black text-lg mb-4 flex items-center gap-2">
                      <span class="material-icons-round text-accent">health_and_safety</span>
                      {{ 'INSURANCE_DETAILS' | translate }}
@@ -391,15 +391,19 @@ import { ToastService } from '../../../core/services/language.service';
                   <div class="flex flex-col gap-3">
                      <div class="p-3 bg-glass border rounded-xl">
                         <div class="text-[0.6rem] font-black text-muted uppercase tracking-widest mb-1">{{ 'INSURANCE_PROVIDER' | translate }}</div>
-                        <div class="font-black">{{ patient.insuranceProvider }}</div>
+                        <div class="font-black">{{ patient.insuranceProviderName }}</div>
+                     </div>
+                     <div class="p-3 bg-glass border rounded-xl" *ngIf="patient.insurancePlanName">
+                        <div class="text-[0.6rem] font-black text-muted uppercase tracking-widest mb-1">{{ 'INSURANCE_PLAN' | translate }}</div>
+                        <div class="font-black text-sm">{{ patient.insurancePlanName }}</div>
                      </div>
                      <div class="p-3 bg-glass border rounded-xl" *ngIf="patient.insurancePolicyNumber">
                         <div class="text-[0.6rem] font-black text-muted uppercase tracking-widest mb-1">{{ 'POLICY_NUMBER' | translate }}</div>
                         <div class="font-mono font-black text-primary">{{ patient.insurancePolicyNumber }}</div>
                      </div>
-                     <div class="p-3 bg-glass border rounded-xl" *ngIf="patient.insuranceCoverage">
-                        <div class="text-[0.6rem] font-black text-muted uppercase tracking-widest mb-1">{{ 'COVERAGE_TERMS' | translate }}</div>
-                        <div class="font-bold text-sm">{{ patient.insuranceCoverage }}</div>
+                     <div class="p-3 bg-glass border rounded-xl" *ngIf="patient.insuranceCoverageType">
+                        <div class="text-[0.6rem] font-black text-muted uppercase tracking-widest mb-1">{{ 'COVERAGE_TYPE' | translate }}</div>
+                        <div class="font-bold text-sm">{{ patient.insuranceCoverageType }}</div>
                      </div>
                   </div>
                </div>

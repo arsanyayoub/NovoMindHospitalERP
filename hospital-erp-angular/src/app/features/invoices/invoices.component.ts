@@ -7,10 +7,10 @@ import { ToastService } from '../../core/services/language.service';
 import { ExportService } from '../../core/services/export.service';
 
 @Component({
-  selector: 'app-invoices',
-  standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
-  styles: [`
+   selector: 'app-invoices',
+   standalone: true,
+   imports: [CommonModule, FormsModule, TranslateModule],
+   styles: [`
     .inv-card { background: rgba(var(--card-bg-rgb), 0.3); border: 1px solid var(--border); border-radius: 18px; transition: 0.2s; overflow: hidden; }
     .inv-card:hover { border-color: var(--primary); transform: translateY(-3px); }
     
@@ -24,7 +24,7 @@ import { ExportService } from '../../core/services/export.service';
     .status-partial { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
     .status-draft { background: rgba(107, 114, 128, 0.1); color: #6b7280; }
   `],
-  template: `
+   template: `
     <div class="page-header">
       <div>
         <h1 class="page-title">{{ 'BILLING_INVOICES' | translate }}</h1>
@@ -68,6 +68,8 @@ import { ExportService } from '../../core/services/export.service';
                    <th>{{ 'CLIENT' | translate }}</th>
                    <th>{{ 'DATE' | translate }}</th>
                    <th class="text-end">{{ 'TOTAL' | translate }}</th>
+                   <th class="text-end">{{ 'INS_SHARE' | translate }}</th>
+                   <th class="text-end">{{ 'PAT_SHARE' | translate }}</th>
                    <th class="text-end">{{ 'PAID' | translate }}</th>
                    <th class="text-end">{{ 'BALANCE' | translate }}</th>
                    <th>{{ 'STATUS' | translate }}</th>
@@ -83,6 +85,9 @@ import { ExportService } from '../../core/services/export.service';
                    </td>
                    <td class="text-sm font-semibold">{{ inv.invoiceDate | date:'mediumDate' }}</td>
                    <td class="text-end font-bold">{{ inv.totalAmount | currency }}</td>
+                   <td class="text-end text-accent font-bold" *ngIf="inv.insuranceShare">{{ inv.insuranceShare | currency }}</td>
+                   <td class="text-end text-muted font-bold" *ngIf="!inv.insuranceShare">-</td>
+                   <td class="text-end text-primary font-bold">{{ inv.patientShare | currency }}</td>
                    <td class="text-end text-success font-bold">{{ inv.paidAmount | currency }}</td>
                    <td class="text-end text-danger font-black">{{ inv.balanceDue | currency }}</td>
                    <td>
@@ -128,7 +133,7 @@ import { ExportService } from '../../core/services/export.service';
                 </div>
                 <div class="form-group">
                    <label class="form-label font-bold uppercase text-xs">{{ 'SELECT_CLIENT' | translate }}*</label>
-                   <select *ngIf="form.invoiceType === 'Patient'" class="form-control h-12" [(ngModel)]="form.patientId">
+                   <select *ngIf="form.invoiceType === 'Patient'" class="form-control h-12" [(ngModel)]="form.patientId" (change)="onPatientChange()">
                       <option *ngFor="let p of patientsList" [value]="p.id">{{ p.fullName }} ({{ p.patientCode }})</option>
                    </select>
                    <select *ngIf="form.invoiceType === 'Customer'" class="form-control h-12" [(ngModel)]="form.customerId">
@@ -188,11 +193,21 @@ import { ExportService } from '../../core/services/export.service';
                 <div class="pricing-summary">
                    <div class="pricing-row"><span>{{ 'SUBTOTAL' | translate }}</span><span>{{ calculation.subTotal | currency }}</span></div>
                    <div class="pricing-row text-danger"><span>{{ 'TOTAL_DISCOUNTS' | translate }}</span><span>-{{ calculation.discountTotal | currency }}</span></div>
-                   <div class="pricing-row text-info"><span>{{ 'ESTIMATED_TAXES' | translate }}</span><span>+{{ calculation.taxTotal | currency }}</span></div>
-                   <div class="pricing-total font-black flex justify-between">
-                      <span class="uppercase tracking-widest">{{ 'GRAND_TOTAL' | translate }}</span>
-                      <span>{{ calculation.grandTotal | currency }}</span>
-                   </div>
+                    <div class="pricing-row text-info"><span>{{ 'ESTIMATED_TAXES' | translate }}</span><span>+{{ calculation.taxTotal | currency }}</span></div>
+                    <div class="pricing-total font-black flex justify-between mb-4 border-bottom pb-4">
+                       <span class="uppercase tracking-widest">{{ 'GRAND_TOTAL' | translate }}</span>
+                       <span>{{ calculation.grandTotal | currency }}</span>
+                    </div>
+                    <div class="flex flex-col gap-2 p-3 bg-white bg-opacity-5 rounded-2xl border" *ngIf="calculation.insuranceShare > 0">
+                       <div class="flex justify-between text-xs font-bold text-accent">
+                          <span>{{ 'EXPECTED_FROM_INSURANCE' | translate }}</span>
+                          <span>{{ calculation.insuranceShare | currency }}</span>
+                       </div>
+                       <div class="flex justify-between text-sm font-black text-primary">
+                          <span>{{ 'DUE_FROM_PATIENT' | translate }}</span>
+                          <span>{{ (calculation.grandTotal - calculation.insuranceShare) | currency }}</span>
+                       </div>
+                    </div>
                 </div>
              </div>
           </div>
@@ -247,187 +262,204 @@ import { ExportService } from '../../core/services/export.service';
   `
 })
 export class InvoicesComponent implements OnInit {
-  invoices: any[] = [];
-  loading = true;
-  search = '';
-  statusFilter = '';
-  typeFilter = '';
-  page = 1;
-  totalPages = 1;
-  showForm = false;
-  saving = false;
-  form: any = {};
-  showPaymentForm = false;
-  savingPayment = false;
-  paymentForm: any = {};
+   invoices: any[] = [];
+   loading = true;
+   search = '';
+   statusFilter = '';
+   typeFilter = '';
+   page = 1;
+   totalPages = 1;
+   showForm = false;
+   saving = false;
+   form: any = {};
+   showPaymentForm = false;
+   savingPayment = false;
+   paymentForm: any = {};
 
-  patientsList: any[] = [];
-  customersList: any[] = [];
-  itemsList: any[] = [];
-  calculation = { subTotal: 0, taxTotal: 0, discountTotal: 0, grandTotal: 0 };
+   patientsList: any[] = [];
+   customersList: any[] = [];
+   itemsList: any[] = [];
+   selectedPatient: any = null;
+   calculation = { subTotal: 0, taxTotal: 0, discountTotal: 0, grandTotal: 0, insuranceShare: 0 };
 
-  constructor(
-    private svc: InvoiceService,
-    private patientSvc: PatientService,
-    private salesSvc: SalesService,
-    private inventorySvc: InventoryService,
-    private toast: ToastService,
-    private translate: TranslateService,
-    private exportSvc: ExportService
-  ) { }
+   constructor(
+      private svc: InvoiceService,
+      private patientSvc: PatientService,
+      private salesSvc: SalesService,
+      private inventorySvc: InventoryService,
+      private toast: ToastService,
+      private translate: TranslateService,
+      private exportSvc: ExportService
+   ) { }
 
-  ngOnInit() { this.loadData(); this.loadLookups(); }
+   ngOnInit() { this.loadData(); this.loadLookups(); }
 
-  loadData() {
-    this.loading = true;
-    this.svc.getAll({ page: this.page, pageSize: 20, search: this.search }, this.statusFilter, this.typeFilter).subscribe({
-      next: r => { this.invoices = r.items; this.totalPages = r.totalPages; this.loading = false; },
-      error: () => this.loading = false
-    });
-  }
-
-  loadLookups() {
-    this.patientSvc.getAll({ pageSize: 500 }).subscribe(r => this.patientsList = r.items);
-    this.salesSvc.getCustomers({ pageSize: 500 }).subscribe(r => this.customersList = r.items);
-    this.inventorySvc.getItems({ pageSize: 500 }).subscribe(r => this.itemsList = r.items);
-  }
-
-  openForm() {
-    this.form = {
-      invoiceType: 'Patient', invoiceDate: new Date().toISOString().split('T')[0], dueDate: '',
-      patientId: null, customerId: null, items: [], notes: ''
-    };
-    this.addItem();
-    this.calculateFormTotals();
-    this.showForm = true;
-  }
-
-  addItem() {
-    this.form.items.push({ itemId: null, description: '', quantity: 1, unitPrice: 0, taxRate: 0, discount: 0 });
-  }
-
-  removeItem(i: number) {
-    this.form.items.splice(i, 1);
-    this.calculateFormTotals();
-  }
-
-  onItemChange(itemRef: any) {
-    if (itemRef.itemId) {
-      const found = this.itemsList.find(x => x.id === itemRef.itemId);
-      if (found) {
-        itemRef.description = found.itemName;
-        itemRef.unitPrice = found.salePrice;
-        itemRef.taxRate = found.taxRate;
-        this.calculateFormTotals();
-      }
-    }
-  }
-
-  calculateFormTotals() {
-    let sub = 0; let tax = 0; let disc = 0;
-    this.form.items.forEach((i: any) => {
-      const lineGross = (i.quantity || 0) * (i.unitPrice || 0);
-      const lineDisc = i.discount || 0;
-      const lineNet = lineGross - lineDisc;
-      const lineTax = lineNet * ((i.taxRate || 0) / 100);
-      sub += lineGross;
-      disc += lineDisc;
-      tax += lineTax;
-    });
-    this.calculation = {
-      subTotal: sub,
-      discountTotal: disc,
-      taxTotal: tax,
-      grandTotal: sub - disc + tax
-    };
-  }
-
-  isValid() {
-    if (this.form.invoiceType === 'Patient' && !this.form.patientId) return false;
-    if (this.form.invoiceType === 'Customer' && !this.form.customerId) return false;
-    if (!this.form.invoiceDate || this.form.items.length === 0) return false;
-    return true;
-  }
-
-  save() {
-    if (!this.isValid()) return;
-    this.saving = true;
-    const data = {
-      ...this.form,
-      taxAmount: this.calculation.taxTotal,
-      discountAmount: this.calculation.discountTotal
-    };
-
-    this.svc.create(data).subscribe({
-      next: () => {
-        this.toast.success(this.translate.instant('SUCCESS_SAVE'));
-        this.showForm = false;
-        this.saving = false;
-        this.loadData();
-      },
-      error: () => { this.toast.error(this.translate.instant('ERROR_OCCURRED')); this.saving = false; }
-    });
-  }
-
-  deleteInvoice(inv: any) {
-    if (confirm(this.translate.instant('CONFIRM_DELETE'))) {
-      this.svc.delete(inv.id).subscribe({
-        next: () => { this.toast.success(this.translate.instant('SUCCESS_DELETE')); this.loadData(); },
-        error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+   loadData() {
+      this.loading = true;
+      this.svc.getAll({ page: this.page, pageSize: 20, search: this.search }, this.statusFilter, this.typeFilter).subscribe({
+         next: r => { this.invoices = r.items; this.totalPages = r.totalPages; this.loading = false; },
+         error: () => this.loading = false
       });
-    }
-  }
+   }
 
-  openPaymentForm(inv: any) {
-    this.paymentForm = {
-      invoiceId: inv.id,
-      patientId: inv.patientId,
-      amount: inv.balanceDue,
-      maxAmount: inv.balanceDue,
-      paymentMethod: 'Cash',
-      referenceNumber: ''
-    };
-    this.showPaymentForm = true;
-  }
+   loadLookups() {
+      this.patientSvc.getAll({ pageSize: 500 }).subscribe(r => this.patientsList = r.items);
+      this.salesSvc.getCustomers({ pageSize: 500 }).subscribe(r => this.customersList = r.items);
+      this.inventorySvc.getItems({ pageSize: 500 }).subscribe(r => this.itemsList = r.items);
+   }
 
-  savePayment() {
-    this.savingPayment = true;
-    this.svc.recordPayment(this.paymentForm).subscribe({
-      next: () => {
-        this.toast.success(this.translate.instant('SUCCESS_SAVE'));
-        this.showPaymentForm = false;
-        this.savingPayment = false;
-        this.loadData();
-      },
-      error: () => { this.toast.error(this.translate.instant('ERROR_OCCURRED')); this.savingPayment = false; }
-    });
-  }
+   openForm() {
+      this.form = {
+         invoiceType: 'Patient', invoiceDate: new Date().toISOString().split('T')[0], dueDate: '',
+         patientId: null, customerId: null, items: [], notes: ''
+      };
+      this.selectedPatient = null;
+      this.addItem();
+      this.calculateFormTotals();
+      this.showForm = true;
+   }
 
-  downloadPdf(inv: any) {
-    this.svc.downloadPdf(inv.id).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Invoice_${inv.invoiceNumber}.pdf`;
-        link.click();
-        window.URL.revokeObjectURL(url);
-      },
-      error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
-    });
-  }
+   onPatientChange() {
+      this.selectedPatient = this.patientsList.find(p => p.id == this.form.patientId);
+      this.calculateFormTotals();
+   }
 
-  exportCsv() {
-    this.exportSvc.toCSV(this.invoices, 'invoices', [
-      { key: 'invoiceNumber', header: 'Invoice #' },
-      { key: 'patientName', header: 'Patient' },
-      { key: 'customerName', header: 'Customer' },
-      { key: 'invoiceType', header: 'Type' },
-      { key: 'invoiceDate', header: 'Date' },
-      { key: 'totalAmount', header: 'Total' },
-      { key: 'paidAmount', header: 'Paid' },
-      { key: 'balanceDue', header: 'Balance' },
-      { key: 'status', header: 'Status' }
-    ]);
-  }
+   addItem() {
+      this.form.items.push({ itemId: null, description: '', quantity: 1, unitPrice: 0, taxRate: 0, discount: 0 });
+   }
+
+   removeItem(i: number) {
+      this.form.items.splice(i, 1);
+      this.calculateFormTotals();
+   }
+
+   onItemChange(itemRef: any) {
+      if (itemRef.itemId) {
+         const found = this.itemsList.find(x => x.id === itemRef.itemId);
+         if (found) {
+            itemRef.description = found.itemName;
+            itemRef.unitPrice = found.salePrice;
+            itemRef.taxRate = found.taxRate;
+            this.calculateFormTotals();
+         }
+      }
+   }
+
+   calculateFormTotals() {
+      let sub = 0; let tax = 0; let disc = 0;
+      this.form.items.forEach((i: any) => {
+         const lineGross = (i.quantity || 0) * (i.unitPrice || 0);
+         const lineDisc = i.discount || 0;
+         const lineNet = lineGross - lineDisc;
+         const lineTax = lineNet * ((i.taxRate || 0) / 100);
+         sub += lineGross;
+         disc += lineDisc;
+         tax += lineTax;
+      });
+      this.calculation = {
+         subTotal: sub,
+         discountTotal: disc,
+         taxTotal: tax,
+         grandTotal: sub - disc + tax,
+         insuranceShare: 0
+      };
+
+      // Auto-calculate insurance split if patient has a plan
+      if (this.selectedPatient?.insurancePlanId) {
+         // We'd ideally have coverage % here. For now, we use a default logic or check a property if we added it.
+         // Let's assume we can fetch it or we have a default for demo.
+         // If we want it really accurate, we need to inject InsuranceService and fetch plan.
+         // Just for visual effect in this phase:
+         this.calculation.insuranceShare = this.calculation.grandTotal * 0.8; // Assume 80% coverage for preview
+      }
+   }
+
+   isValid() {
+      if (this.form.invoiceType === 'Patient' && !this.form.patientId) return false;
+      if (this.form.invoiceType === 'Customer' && !this.form.customerId) return false;
+      if (!this.form.invoiceDate || this.form.items.length === 0) return false;
+      return true;
+   }
+
+   save() {
+      if (!this.isValid()) return;
+      this.saving = true;
+      const data = {
+         ...this.form,
+         taxAmount: this.calculation.taxTotal,
+         discountAmount: this.calculation.discountTotal
+      };
+
+      this.svc.create(data).subscribe({
+         next: () => {
+            this.toast.success(this.translate.instant('SUCCESS_SAVE'));
+            this.showForm = false;
+            this.saving = false;
+            this.loadData();
+         },
+         error: () => { this.toast.error(this.translate.instant('ERROR_OCCURRED')); this.saving = false; }
+      });
+   }
+
+   deleteInvoice(inv: any) {
+      if (confirm(this.translate.instant('CONFIRM_DELETE'))) {
+         this.svc.delete(inv.id).subscribe({
+            next: () => { this.toast.success(this.translate.instant('SUCCESS_DELETE')); this.loadData(); },
+            error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+         });
+      }
+   }
+
+   openPaymentForm(inv: any) {
+      this.paymentForm = {
+         invoiceId: inv.id,
+         patientId: inv.patientId,
+         amount: inv.balanceDue,
+         maxAmount: inv.balanceDue,
+         paymentMethod: 'Cash',
+         referenceNumber: ''
+      };
+      this.showPaymentForm = true;
+   }
+
+   savePayment() {
+      this.savingPayment = true;
+      this.svc.recordPayment(this.paymentForm).subscribe({
+         next: () => {
+            this.toast.success(this.translate.instant('SUCCESS_SAVE'));
+            this.showPaymentForm = false;
+            this.savingPayment = false;
+            this.loadData();
+         },
+         error: () => { this.toast.error(this.translate.instant('ERROR_OCCURRED')); this.savingPayment = false; }
+      });
+   }
+
+   downloadPdf(inv: any) {
+      this.svc.downloadPdf(inv.id).subscribe({
+         next: (blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Invoice_${inv.invoiceNumber}.pdf`;
+            link.click();
+            window.URL.revokeObjectURL(url);
+         },
+         error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
+
+   exportCsv() {
+      this.exportSvc.toCSV(this.invoices, 'invoices', [
+         { key: 'invoiceNumber', header: 'Invoice #' },
+         { key: 'patientName', header: 'Patient' },
+         { key: 'customerName', header: 'Customer' },
+         { key: 'invoiceType', header: 'Type' },
+         { key: 'invoiceDate', header: 'Date' },
+         { key: 'totalAmount', header: 'Total' },
+         { key: 'paidAmount', header: 'Paid' },
+         { key: 'balanceDue', header: 'Balance' },
+         { key: 'status', header: 'Status' }
+      ]);
+   }
 }

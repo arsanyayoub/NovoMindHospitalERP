@@ -21,7 +21,9 @@ public class PatientService : IPatientService
 
     public async Task<PagedResult<PatientDto>> GetAllAsync(PagedRequest request)
     {
-        var query = _uow.Patients.Query();
+        var query = _uow.Patients.Query()
+            .Include(p => p.InsuranceProviderLink)
+            .Include(p => p.InsurancePlan);
         if (!string.IsNullOrWhiteSpace(request.Search))
             query = query.Where(p =>
                 p.FullName.Contains(request.Search) ||
@@ -41,7 +43,10 @@ public class PatientService : IPatientService
 
     public async Task<PatientDto?> GetByIdAsync(int id)
     {
-        var p = await _uow.Patients.GetByIdAsync(id);
+        var p = await _uow.Patients.Query()
+            .Include(p => p.InsuranceProviderLink)
+            .Include(p => p.InsurancePlan)
+            .FirstOrDefaultAsync(p => p.Id == id);
         return p is null ? null : ToDto(p);
     }
 
@@ -63,9 +68,11 @@ public class PatientService : IPatientService
             EmergencyPhone = dto.EmergencyPhone,
             MedicalHistory = dto.MedicalHistory,
             Allergies = dto.Allergies,
-            InsuranceProvider = dto.InsuranceProvider,
+            InsuranceProviderId = dto.InsuranceProviderId,
+            InsurancePlanId = dto.InsurancePlanId,
             InsurancePolicyNumber = dto.InsurancePolicyNumber,
-            InsuranceCoverage = dto.InsuranceCoverage,
+            InsuranceProviderNameManual = dto.InsuranceProviderNameManual,
+            InsuranceCoverageType = dto.InsuranceCoverageType,
             CreatedBy = createdBy
         };
         await _uow.Patients.AddAsync(patient);
@@ -97,9 +104,11 @@ public class PatientService : IPatientService
         patient.MedicalHistory = dto.MedicalHistory;
         patient.Allergies = dto.Allergies;
         patient.IsActive = dto.IsActive;
-        patient.InsuranceProvider = dto.InsuranceProvider;
+        patient.InsuranceProviderId = dto.InsuranceProviderId;
+        patient.InsurancePlanId = dto.InsurancePlanId;
         patient.InsurancePolicyNumber = dto.InsurancePolicyNumber;
-        patient.InsuranceCoverage = dto.InsuranceCoverage;
+        patient.InsuranceProviderNameManual = dto.InsuranceProviderNameManual;
+        patient.InsuranceCoverageType = dto.InsuranceCoverageType;
         patient.UpdatedBy = updatedBy;
         _uow.Patients.Update(patient);
         await _uow.SaveChangesAsync();
@@ -191,6 +200,8 @@ public class PatientService : IPatientService
         p.Id, p.PatientCode, p.FullName, p.NationalId, p.DateOfBirth, p.Gender,
         p.BloodType, p.PhoneNumber, p.Email, p.Address, p.EmergencyContact,
         p.EmergencyPhone, p.MedicalHistory, p.Allergies, p.IsActive,
-        p.InsuranceProvider, p.InsurancePolicyNumber, p.InsuranceCoverage, p.InsuranceBalance,
+        p.InsuranceProviderId, p.InsuranceProviderLink?.Name ?? p.InsuranceProviderNameManual, 
+        p.InsurancePlanId, p.InsurancePlan?.PlanName,
+        p.InsurancePolicyNumber, p.InsuranceCoverageType, p.InsuranceBalance,
         p.CreatedDate);
 }
