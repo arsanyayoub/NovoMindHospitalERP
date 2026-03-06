@@ -49,6 +49,7 @@ public class HospitalERPDbContext : DbContext
     // Misc
     public DbSet<Expense> Expenses => Set<Expense>();
     public DbSet<Asset> Assets => Set<Asset>();
+    public DbSet<MaintenanceTicket> MaintenanceTickets => Set<MaintenanceTicket>();
     public DbSet<Notification> Notifications => Set<Notification>();
 
     // Lab
@@ -136,6 +137,7 @@ public class HospitalERPDbContext : DbContext
         modelBuilder.Entity<InsuranceProvider>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<InsurancePlan>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<InsuranceClaim>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<MaintenanceTicket>().HasQueryFilter(e => !e.IsDeleted);
 
         // ── Decimal precision ────────────────────────────────────────
         foreach (var property in modelBuilder.Model.GetEntityTypes()

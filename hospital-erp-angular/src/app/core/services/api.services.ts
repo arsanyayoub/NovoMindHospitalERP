@@ -670,5 +670,40 @@ export class InsuranceService {
     updateClaimStatus(id: number, dto: any): Observable<any> { return this.http.patch<any>(`${this.API}/claims/${id}/status`, dto); }
 }
 
+@Injectable({ providedIn: 'root' })
+export class AssetService {
+    private readonly API = `${environment.apiUrl}/asset`;
+    constructor(private http: HttpClient) { }
+
+    getAssets(request: PagedRequest = {}, category?: string, status?: string): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (request.search) params = params.set('search', request.search);
+        if (category) params = params.set('category', category);
+        if (status) params = params.set('status', status);
+        return this.http.get<PagedResult<any>>(this.API, { params });
+    }
+
+    getAsset(id: number): Observable<any> { return this.http.get<any>(`${this.API}/${id}`); }
+    createAsset(dto: any): Observable<any> { return this.http.post<any>(this.API, dto); }
+    updateAsset(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/${id}`, dto); }
+    deleteAsset(id: number): Observable<void> { return this.http.delete<void>(`${this.API}/${id}`); }
+
+    getTickets(request: PagedRequest = {}, assetId?: number, status?: string, type?: string): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (request.search) params = params.set('search', request.search);
+        if (assetId) params = params.set('assetId', assetId);
+        if (status) params = params.set('status', status);
+        if (type) params = params.set('type', type);
+        return this.http.get<PagedResult<any>>(`${this.API}/tickets`, { params });
+    }
+
+    createTicket(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/tickets`, dto); }
+    updateTicketStatus(id: number, dto: any): Observable<any> { return this.http.patch<any>(`${this.API}/tickets/${id}/status`, dto); }
+}
+
 
 

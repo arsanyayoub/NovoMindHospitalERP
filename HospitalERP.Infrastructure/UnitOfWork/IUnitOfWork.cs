@@ -69,6 +69,7 @@ public interface IUnitOfWork : IDisposable
     IRepository<InsuranceProvider> InsuranceProviders { get; }
     IRepository<InsurancePlan> InsurancePlans { get; }
     IRepository<InsuranceClaim> InsuranceClaims { get; }
+    IRepository<MaintenanceTicket> MaintenanceTickets { get; }
 
     Task<int> SaveChangesAsync();
 

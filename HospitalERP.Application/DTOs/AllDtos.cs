@@ -548,3 +548,13 @@ public record PagedResult<T>(IEnumerable<T> Items, int TotalCount, int Page, int
 }
 
 public record PagedRequest(int Page = 1, int PageSize = 20, string? Search = null, string? SortBy = null, bool SortDescending = false);
+
+// ═══════════════════════════════════════════════════════════════
+//  FIXED ASSETS & MAINTENANCE
+// ═══════════════════════════════════════════════════════════════
+public record AssetDto(int Id, string AssetCode, string AssetName, string? Manufacturer, string? ModelNumber, string? SerialNumber, string Category, decimal PurchaseCost, DateTime PurchaseDate, DateTime? WarrantyExpiryDate, decimal DepreciationRate, decimal CurrentValue, string? Location, string Status, bool IsBioMedical, int? MaintenanceIntervalDays, DateTime? LastMaintenanceDate, DateTime? NextMaintenanceDate, string? Notes);
+public record CreateAssetDto(string AssetName, string? Manufacturer, string? ModelNumber, string? SerialNumber, string Category, decimal PurchaseCost, DateTime PurchaseDate, DateTime? WarrantyExpiryDate, decimal DepreciationRate, string? Location, bool IsBioMedical, int? MaintenanceIntervalDays, string? Notes);
+
+public record MaintenanceTicketDto(int Id, int AssetId, string AssetName, string TicketNumber, string Type, string Priority, string Description, string Status, DateTime ReportedDate, DateTime? CompletedDate, string? ReportedBy, string? TechnicianName, decimal? Cost, string? Resolution, string? Notes);
+public record CreateMaintenanceTicketDto(int AssetId, string Type, string Priority, string Description, string? ReportedBy, string? TechnicianName, decimal? Cost, string? Notes);
+public record UpdateMaintenanceTicketDto(string Status, DateTime? CompletedDate, string? TechnicianName, decimal? Cost, string? Resolution, string? Notes);

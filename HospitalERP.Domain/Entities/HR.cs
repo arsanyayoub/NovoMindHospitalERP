@@ -67,13 +67,40 @@ public class Asset : BaseEntity
 {
     public string AssetCode { get; set; } = string.Empty;
     public string AssetName { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
+    public string? Manufacturer { get; set; }
+    public string? ModelNumber { get; set; }
+    public string? SerialNumber { get; set; }
+    public string Category { get; set; } = string.Empty; // e.g., Bio-Medical, IT, Furniture, Facility
     public decimal PurchaseCost { get; set; }
     public DateTime PurchaseDate { get; set; }
+    public DateTime? WarrantyExpiryDate { get; set; }
     public decimal DepreciationRate { get; set; }
     public decimal CurrentValue { get; set; }
-    public string? Location { get; set; }
-    public string Status { get; set; } = "Active";
+    public string? Location { get; set; } // Room/Ward
+    public string Status { get; set; } = "Active"; // Active, Maintenance, Out of Service, Disposed
+    public bool IsBioMedical { get; set; } = false;
+    public int? MaintenanceIntervalDays { get; set; } // Preventive maintenance every X days
+    public DateTime? LastMaintenanceDate { get; set; }
+    public DateTime? NextMaintenanceDate { get; set; }
+    public string? Notes { get; set; }
+    public ICollection<MaintenanceTicket> MaintenanceHistory { get; set; } = new List<MaintenanceTicket>();
+}
+
+public class MaintenanceTicket : BaseEntity
+{
+    public int AssetId { get; set; }
+    public Asset Asset { get; set; } = null!;
+    public string TicketNumber { get; set; } = string.Empty;
+    public string Type { get; set; } = "Preventive"; // Preventive, Corrective, Calibration
+    public string Priority { get; set; } = "Medium"; // Low, Medium, High, Emergency
+    public string Description { get; set; } = string.Empty;
+    public string Status { get; set; } = "Open"; // Open, In Progress, Completed, Cancelled
+    public DateTime ReportedDate { get; set; } = DateTime.UtcNow;
+    public DateTime? CompletedDate { get; set; }
+    public string? ReportedBy { get; set; }
+    public string? TechnicianName { get; set; }
+    public decimal? Cost { get; set; }
+    public string? Resolution { get; set; }
     public string? Notes { get; set; }
 }
 

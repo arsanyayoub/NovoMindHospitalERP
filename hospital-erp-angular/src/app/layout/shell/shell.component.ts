@@ -301,6 +301,7 @@ export class ShellComponent implements OnInit {
     { label: 'AUDIT_LOG', icon: 'history_edu', route: '/audit-logs', roles: ['Admin'] },
     { label: 'USERS_AND_ROLES', icon: 'admin_panel_settings', route: '/users', roles: ['Admin'] },
     { label: 'HR', icon: 'people', route: '/hr', roles: ['Admin'] },
+    { label: 'ASSETS.TITLE', icon: 'construction', route: '/assets', roles: ['Admin', 'BioMedical'] },
   ];
 
   constructor(

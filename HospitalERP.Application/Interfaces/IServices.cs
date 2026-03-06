@@ -302,3 +302,18 @@ public interface IInsuranceService
     Task<InsuranceClaimDto> UpdateClaimStatusAsync(int id, UpdateClaimStatusDto dto, string userId);
 }
 
+public interface IAssetService
+{
+    Task<PagedResult<AssetDto>> GetAssetsAsync(PagedRequest request, string? category = null, string? status = null, bool? isBioMedical = null);
+    Task<AssetDto?> GetAssetByIdAsync(int id);
+    Task<AssetDto> CreateAssetAsync(CreateAssetDto dto, string userId);
+    Task<AssetDto> UpdateAssetAsync(int id, CreateAssetDto dto, string userId);
+    Task DeleteAssetAsync(int id, string userId);
+    
+    // Maintenance
+    Task<PagedResult<MaintenanceTicketDto>> GetMaintenanceTicketsAsync(PagedRequest request, int? assetId = null, string? status = null, string? type = null);
+    Task<MaintenanceTicketDto?> GetTicketByIdAsync(int id);
+    Task<MaintenanceTicketDto> CreateTicketAsync(CreateMaintenanceTicketDto dto, string userId);
+    Task<MaintenanceTicketDto> UpdateTicketStatusAsync(int id, UpdateMaintenanceTicketDto dto, string userId);
+}
+
