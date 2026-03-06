@@ -291,6 +291,18 @@ public class HRController : ControllerBase
     [HttpPost("payrolls/{id}/pay")]
     [Authorize(Roles = "Admin,Accountant")]
     public async Task<IActionResult> ProcessPayroll(int id) { var u = User.FindFirstValue(ClaimTypes.Name) ?? "system"; await _service.ProcessPayrollPaymentAsync(id, u); return Ok(new { message = "Payroll processed." }); }
+
+    // ---------- Attendance ----------
+    [HttpGet("attendance")]
+    public async Task<IActionResult> GetAttendance([FromQuery] PagedRequest request, [FromQuery] int? employeeId, [FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)
+        => Ok(await _service.GetAttendanceRecordsAsync(request, employeeId, fromDate, toDate));
+
+    [HttpPost("attendance")]
+    public async Task<IActionResult> RecordAttendance([FromBody] CreateAttendanceRecordDto dto)
+    {
+        var u = User.FindFirstValue(ClaimTypes.Name) ?? "system";
+        return Ok(await _service.RecordAttendanceAsync(dto, u));
+    }
 }
 
 [Authorize]

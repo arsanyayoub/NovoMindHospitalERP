@@ -40,6 +40,9 @@ import { ToastService } from '../../core/services/language.service';
       <button class="hr-tab" [class.active]="tab==='employees'" (click)="tab='employees';loadEmployees()">
         <span class="material-icons-round">people</span> {{ 'EMPLOYEES' | translate }}
       </button>
+      <button class="hr-tab" [class.active]="tab==='attendance'" (click)="tab='attendance';loadAttendance()">
+        <span class="material-icons-round">fact_check</span> {{ 'ATTENDANCE' | translate }}
+      </button>
       <button class="hr-tab" [class.active]="tab==='payroll'" (click)="tab='payroll';loadPayrolls()">
         <span class="material-icons-round">account_balance_wallet</span> {{ 'PAYROLL' | translate }}
       </button>
@@ -102,6 +105,51 @@ import { ToastService } from '../../core/services/language.service';
       </div>
     </div>
 
+    <!-- ATTENDANCE TAB -->
+    <div *ngIf="tab==='attendance'" class="animate-in">
+      <div class="card p-0 overflow-hidden">
+        <div class="p-4 border-bottom bg-glass flex justify-between items-center">
+          <div class="flex gap-4 items-center">
+            <input type="month" class="form-control" [(ngModel)]="attendanceMonth" (change)="loadAttendance()" style="width:200px">
+          </div>
+          <button class="btn btn-primary btn-sm px-4" (click)="showAttForm=true; attForm={date: todayStr, status:'Present'}">
+             <span class="material-icons-round mr-1">check_circle</span> {{ 'RECORD_ATTENDANCE' | translate }}
+          </button>
+        </div>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>{{ 'DATE' | translate }}</th>
+                <th>{{ 'EMPLOYEE' | translate }}</th>
+                <th>{{ 'STATUS' | translate }}</th>
+                <th>{{ 'CLOCK_IN' | translate }}</th>
+                <th>{{ 'CLOCK_OUT' | translate }}</th>
+                <th>{{ 'NOTES' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let a of attendanceRecords" class="hover-row">
+                <td class="font-bold">{{ a.date | date:'mediumDate' }}</td>
+                <td>{{ a.employeeName }}</td>
+                <td>
+                  <span class="badge" [ngClass]="{
+                    'badge-success': a.status === 'Present',
+                    'badge-danger': a.status === 'Absent',
+                    'badge-warning': a.status === 'Late' || a.status === 'Half-Day'
+                  }">{{ a.status | translate }}</span>
+                </td>
+                <td class="font-mono">{{ a.clockIn ? (a.clockIn | date:'shortTime') : '--:--' }}</td>
+                <td class="font-mono">{{ a.clockOut ? (a.clockOut | date:'shortTime') : '--:--' }}</td>
+                <td class="text-xs italic">{{ a.notes }}</td>
+              </tr>
+              <tr *ngIf="!attendanceRecords.length"><td colspan="6" class="p-20 text-center text-muted"><span class="material-icons-round text-5xl opacity-20 mb-4">fact_check</span><p>{{ 'NO_DATA' | translate }}</p></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- PAYROLL TAB -->
     <div *ngIf="tab==='payroll'" class="animate-in">
       <div class="card p-0 overflow-hidden">
@@ -142,6 +190,59 @@ import { ToastService } from '../../core/services/language.service';
               <tr *ngIf="!payrolls.length"><td colspan="8" class="p-20 text-center text-muted"><span class="material-icons-round text-5xl opacity-20 mb-4">payments</span><p>{{ 'NO_DATA' | translate }}</p></td></tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATTENDANCE MODAL -->
+    <div class="modal-overlay" *ngIf="showAttForm" (click)="showAttForm=false">
+      <div class="modal" (click)="$event.stopPropagation()" style="max-width:500px">
+        <div class="modal-header">
+           <h3 class="modal-title font-bold">{{ 'RECORD_ATTENDANCE' | translate }}</h3>
+           <button (click)="showAttForm=false" class="btn-close">×</button>
+        </div>
+        <div class="modal-body animate-in">
+          <div class="form-group mb-4">
+             <label class="form-label font-bold">{{ 'SELECT_EMPLOYEE' | translate }}*</label>
+             <select class="form-control" [(ngModel)]="attForm.employeeId">
+                <option *ngFor="let e of employees" [ngValue]="e.id">{{ e.fullName }} ({{ e.employeeCode }})</option>
+             </select>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="form-group">
+               <label class="form-label font-bold uppercase text-xs">{{ 'DATE' | translate }}*</label>
+               <input class="form-control" type="date" [(ngModel)]="attForm.date">
+            </div>
+            <div class="form-group">
+               <label class="form-label font-bold uppercase text-xs">{{ 'STATUS' | translate }}*</label>
+               <select class="form-control" [(ngModel)]="attForm.status">
+                  <option value="Present">Present</option>
+                  <option value="Absent">Absent</option>
+                  <option value="Half-Day">Half-Day</option>
+                  <option value="Late">Late</option>
+               </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="form-group">
+               <label class="form-label font-bold uppercase text-xs text-info">{{ 'CLOCK_IN' | translate }}</label>
+               <input class="form-control" type="datetime-local" [(ngModel)]="attForm.clockIn">
+            </div>
+            <div class="form-group">
+               <label class="form-label font-bold uppercase text-xs text-info">{{ 'CLOCK_OUT' | translate }}</label>
+               <input class="form-control" type="datetime-local" [(ngModel)]="attForm.clockOut">
+            </div>
+          </div>
+          <div class="form-group">
+             <label class="form-label font-bold text-xs uppercase">{{ 'NOTES' | translate }}</label>
+             <textarea class="form-control" [(ngModel)]="attForm.notes" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary w-full" (click)="showAttForm=false">{{ 'CANCEL' | translate }}</button>
+          <button class="btn btn-primary w-full shadow-primary font-bold" (click)="saveAttendance()">
+             <span class="material-icons-round mr-1">save</span> {{ 'SAVE_RECORD' | translate }}
+          </button>
         </div>
       </div>
     </div>
@@ -228,6 +329,7 @@ import { ToastService } from '../../core/services/language.service';
                 <input class="form-control font-bold text-danger" type="number" [(ngModel)]="genForm.deductions">
              </div>
           </div>
+          <p class="text-xs text-muted mt-4 italic"><span class="material-icons-round align-middle text-xs">info</span> {{ 'PAYROLL_AUTO_CALC_HINT' | translate }}</p>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary w-full" (click)="showGenPayroll=false">{{ 'CANCEL' | translate }}</button>
@@ -242,12 +344,20 @@ import { ToastService } from '../../core/services/language.service';
 export class HrComponent implements OnInit {
   tab = 'employees';
   employees: any[] = [];
+  attendanceRecords: any[] = [];
   payrolls: any[] = [];
   search = '';
+
   showEmpForm = false;
   showGenPayroll = false;
+  showAttForm = false;
+
   empForm: any = {};
   genForm: any = { month: new Date().getMonth() + 1, year: new Date().getFullYear(), bonuses: 0, deductions: 0 };
+  attForm: any = { status: 'Present' };
+
+  attendanceMonth = new Date().toISOString().substring(0, 7);
+  todayStr = new Date().toISOString().substring(0, 10);
 
   constructor(
     private svc: HRService,
@@ -261,8 +371,27 @@ export class HrComponent implements OnInit {
     this.svc.getEmployees({ search: this.search }).subscribe(r => this.employees = r.items);
   }
 
+  loadAttendance() {
+    const year = parseInt(this.attendanceMonth.split('-')[0]);
+    const month = parseInt(this.attendanceMonth.split('-')[1]);
+    const from = new Date(year, month - 1, 1).toISOString();
+    const to = new Date(year, month, 0).toISOString();
+    this.svc.getAttendance({ page: 1, pageSize: 100 }, undefined, from, to).subscribe(r => this.attendanceRecords = r.items);
+  }
+
   loadPayrolls() {
     this.svc.getPayrolls({}).subscribe(r => this.payrolls = r.items);
+  }
+
+  saveAttendance() {
+    this.svc.recordAttendance(this.attForm).subscribe({
+      next: () => {
+        this.toast.success(this.translate.instant('SUCCESS_SAVE'));
+        this.showAttForm = false;
+        this.loadAttendance();
+      },
+      error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+    });
   }
 
   editEmp(e: any) {
@@ -311,7 +440,7 @@ export class HrComponent implements OnInit {
         this.toast.success(this.translate.instant('SUCCESS_SAVE'));
         this.loadPayrolls();
       },
-      error: () => this.toast.error(this.translate.instant('ERROR_OCCURRED'))
+      error: (e: any) => this.toast.error(e.error?.message || this.translate.instant('ERROR_OCCURRED'))
     });
   }
 }

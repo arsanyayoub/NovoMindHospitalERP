@@ -9,10 +9,13 @@ public class HRService : IHRService
 {
     private readonly IUnitOfWork _uow;
     private readonly IAuditLogService _auditLog;
-    public HRService(IUnitOfWork uow, IAuditLogService auditLog) 
+    private readonly IAccountingService _accounting;
+
+    public HRService(IUnitOfWork uow, IAuditLogService auditLog, IAccountingService accounting) 
     { 
         _uow = uow; 
         _auditLog = auditLog;
+        _accounting = accounting;
     }
 
     public async Task<PagedResult<EmployeeDto>> GetEmployeesAsync(PagedRequest request)
@@ -79,28 +82,68 @@ public class HRService : IHRService
     {
         var existing = await _uow.Payrolls.Query().AnyAsync(p => p.EmployeeId == dto.EmployeeId && p.Month == dto.Month && p.Year == dto.Year);
         if (existing) throw new InvalidOperationException("Payroll already generated for this employee/period.");
+        
         var emp = await _uow.Employees.GetByIdAsync(dto.EmployeeId) ?? throw new KeyNotFoundException();
+        
+        // --- Calculate Attendance Auto-Deductions ---
+        var startDate = new DateTime(dto.Year, dto.Month, 1);
+        var endDate = startDate.AddMonths(1).AddDays(-1);
+        
+        var attendance = await _uow.AttendanceRecords.Query()
+            .Where(a => a.EmployeeId == dto.EmployeeId && a.Date >= startDate && a.Date <= endDate)
+            .ToListAsync();
+            
+        decimal dailyRate = emp.BasicSalary / 30;
+        decimal attendanceDeductions = 0;
+        
+        foreach(var record in attendance)
+        {
+            if (record.Status == "Absent") attendanceDeductions += dailyRate;
+            else if (record.Status == "Half-Day") attendanceDeductions += (dailyRate / 2);
+            // Late could have a fixed penalty, e.g., $10 or 1 hour
+            else if (record.Status == "Late") attendanceDeductions += (dailyRate / 8); 
+        }
+
         var payroll = new Payroll
         {
             EmployeeId = dto.EmployeeId, Month = dto.Month, Year = dto.Year,
             BasicSalary = emp.BasicSalary, Allowances = emp.Allowances,
-            Bonuses = dto.Bonuses, Deductions = emp.Deductions + dto.Deductions,
-            NetSalary = emp.BasicSalary + emp.Allowances + dto.Bonuses - (emp.Deductions + dto.Deductions),
-            Notes = dto.Notes, CreatedBy = createdBy
+            Bonuses = dto.Bonuses, Deductions = emp.Deductions + dto.Deductions + attendanceDeductions,
+            NetSalary = emp.BasicSalary + emp.Allowances + dto.Bonuses - (emp.Deductions + dto.Deductions + attendanceDeductions),
+            Notes = dto.Notes + (attendanceDeductions > 0 ? $" (Includes {attendanceDeductions:C} attendance penalties)" : ""),
+            CreatedBy = createdBy
         };
+        
         await _uow.Payrolls.AddAsync(payroll); 
         await _uow.SaveChangesAsync();
-        await _auditLog.LogAsync(createdBy, createdBy, "Generate Payroll", "Payroll", payroll.Id, $"Payroll generated for Employee ID {dto.EmployeeId} for {dto.Month}/{dto.Year}.");
+        await _auditLog.LogAsync(createdBy, createdBy, "Generate Payroll", "Payroll", payroll.Id, $"Payroll generated for Employee {emp.FullName}. Penalties: {attendanceDeductions:C}");
         return ToPDto(payroll);
     }
 
     public async Task ProcessPayrollPaymentAsync(int payrollId, string paidBy)
     {
-        var payroll = await _uow.Payrolls.GetByIdAsync(payrollId) ?? throw new KeyNotFoundException();
+        var payroll = await _uow.Payrolls.Query().Include(p => p.Employee).FirstOrDefaultAsync(x => x.Id == payrollId) ?? throw new KeyNotFoundException();
+        if (payroll.Status == "Paid") throw new InvalidOperationException("Payroll already paid.");
+
         payroll.Status = "Paid"; payroll.PaidDate = DateTime.UtcNow; payroll.UpdatedBy = paidBy;
         _uow.Payrolls.Update(payroll); 
+        
+        // --- Accounting Integration: Create Journal Entry ---
+        var journalDto = new CreateJournalEntryDto
+        {
+            EntryDate = DateTime.UtcNow,
+            Description = $"Payroll Payment: {payroll.Employee.FullName} - {payroll.Month}/{payroll.Year}",
+            Reference = $"PAYROLL-{payroll.Id}",
+            Lines = new List<CreateJournalEntryLineDto>
+            {
+                new() { AccountId = 11, DebitAmount = payroll.NetSalary, Description = "Salary Expense" }, // 5000: Salaries Expense
+                new() { AccountId = 1, CreditAmount = payroll.NetSalary, Description = "Cash Payment" }     // 1000: Cash
+            }
+        };
+        await _accounting.CreateJournalEntryAsync(journalDto, paidBy);
+
         await _uow.SaveChangesAsync();
-        await _auditLog.LogAsync(paidBy, paidBy, "Process Payroll", "Payroll", payrollId, $"Payroll ID {payrollId} payment processed.");
+        await _auditLog.LogAsync(paidBy, paidBy, "Process Payroll", "Payroll", payrollId, $"Payroll payment processed and ledger updated.");
     }
 
     public async Task<PagedResult<AttendanceRecordDto>> GetAttendanceRecordsAsync(PagedRequest request, int? employeeId, DateTime? fromDate, DateTime? toDate)

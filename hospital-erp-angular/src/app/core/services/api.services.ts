@@ -285,6 +285,18 @@ export class HRService {
     }
     generatePayroll(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/payrolls`, dto); }
     processPayroll(id: number): Observable<any> { return this.http.post<any>(`${this.API}/payrolls/${id}/pay`, {}); }
+
+    // Attendance
+    getAttendance(req: any, employeeId?: number, fromDate?: string, toDate?: string): Observable<PagedResult<any>> {
+        let p = new HttpParams();
+        if (req.page) p = p.set('page', req.page);
+        if (req.pageSize) p = p.set('pageSize', req.pageSize);
+        if (employeeId) p = p.set('employeeId', employeeId);
+        if (fromDate) p = p.set('fromDate', fromDate);
+        if (toDate) p = p.set('toDate', toDate);
+        return this.http.get<PagedResult<any>>(`${this.API}/attendance`, { params: p });
+    }
+    recordAttendance(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/attendance`, dto); }
 }
 
 @Injectable({ providedIn: 'root' })
