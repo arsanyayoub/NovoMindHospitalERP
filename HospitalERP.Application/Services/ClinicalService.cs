@@ -67,7 +67,8 @@ public class ClinicalService : IClinicalService
             HeightCm = dto.HeightCm,
             BMI = bmi,
             PainScale = dto.PainScale,
-            Notes = dto.Notes
+            Notes = dto.Notes,
+            EmergencyAdmissionId = dto.EmergencyAdmissionId
         };
 
         await _uow.PatientVitals.AddAsync(vital);
@@ -131,7 +132,8 @@ public class ClinicalService : IClinicalService
             Plan = dto.Plan,
             InternalNotes = dto.InternalNotes,
             IsFinalized = dto.IsFinalized,
-            CreatedBy = createdBy
+            CreatedBy = createdBy,
+            EmergencyAdmissionId = dto.EmergencyAdmissionId
         };
 
         await _uow.ClinicalEncounters.AddAsync(encounter);
@@ -232,7 +234,7 @@ public class ClinicalService : IClinicalService
     internal static PatientVitalDto ToDto(PatientVital v) => new(
         v.Id, v.PatientId, v.Patient?.FullName ?? "N/A", v.AppointmentId, v.BedAdmissionId, v.RecordedDate, v.RecordedBy,
         v.Temperature, v.BloodPressureSystolic, v.BloodPressureDiastolic, v.HeartRate, v.RespiratoryRate, v.SpO2,
-        v.WeightKg, v.HeightCm, v.BMI, v.PainScale, v.Notes
+        v.WeightKg, v.HeightCm, v.BMI, v.PainScale, v.Notes, v.EmergencyAdmissionId
     );
 
     internal static InpatientNursingAssessmentDto ToDto(InpatientNursingAssessment a) => new(
@@ -244,6 +246,6 @@ public class ClinicalService : IClinicalService
     internal static ClinicalEncounterDto ToDto(ClinicalEncounter e) => new(
         e.Id, e.PatientId, e.Patient?.FullName ?? "N/A", e.DoctorId, e.Doctor?.FullName,
         e.AppointmentId, e.EncounterDate, e.ChiefComplaint, e.Subjective, e.Objective,
-        e.Assessment, e.Plan, e.InternalNotes, e.IsFinalized, e.CreatedDate
+        e.Assessment, e.Plan, e.InternalNotes, e.IsFinalized, e.CreatedDate, e.EmergencyAdmissionId
     );
 }

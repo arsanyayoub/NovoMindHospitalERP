@@ -103,6 +103,7 @@ Controllers/
 ├── HRController.cs             # Employees, Payrolls
 ├── LabController.cs            # Tests, Requests, Results
 ├── RadiologyController.cs      # Imaging, Reports, Results
+├── EmergencyController.cs      # ER Admissions, Triage, Vitals
 ├── ClinicalController.cs       # Patient Vitals
 ├── PharmacyController.cs       # Prescriptions, Dispensing
 ├── DashboardController.cs      # Aggregated dashboard stats

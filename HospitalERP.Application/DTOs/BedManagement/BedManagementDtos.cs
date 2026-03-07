@@ -69,6 +69,7 @@ public class BedAdmissionDto
     public string? DischargeNotes { get; set; }
     public decimal? DailyRate { get; set; }
     public string? Notes { get; set; }
+    public int? EmergencyAdmissionId { get; set; }
 }
 
 public class CreateWardDto
@@ -108,6 +109,7 @@ public class AdmitPatientDto
     public string? AdmissionReason { get; set; }
     public decimal? DailyRate { get; set; }
     public string? Notes { get; set; }
+    public int? EmergencyAdmissionId { get; set; }
 }
 
 public class DischargePatientDto

@@ -59,4 +59,5 @@ public class BedAdmission : BaseEntity
     public string? DischargeNotes { get; set; }
     public decimal? DailyRate { get; set; }
     public string? Notes { get; set; }
+    public int? EmergencyAdmissionId { get; set; }
 }

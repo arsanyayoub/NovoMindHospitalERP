@@ -92,7 +92,8 @@ public class RadiologyService : IRadiologyService
         var req = new RadiologyRequest
         {
             RequestNumber = $"RR{(count + 1):D5}", PatientId = dto.PatientId, DoctorId = dto.DoctorId,
-            RequestDate = dto.RequestDate, Notes = dto.Notes, Status = "Pending", CreatedBy = createdBy
+            RequestDate = dto.RequestDate, Notes = dto.Notes, Status = "Pending", CreatedBy = createdBy,
+            EmergencyAdmissionId = dto.EmergencyAdmissionId
         };
 
         foreach (var tid in dto.TestIds)
@@ -161,7 +162,7 @@ public class RadiologyService : IRadiologyService
     }
 
     internal static RadiologyTestDto ToDto(RadiologyTest t) => new(t.Id, t.TestCode, t.Name, t.NameAr, t.Category, t.PreparationInstructions, t.Price, t.IsActive);
-    internal static RadiologyRequestDto ToRDto(RadiologyRequest r) => new(r.Id, r.RequestNumber, r.PatientId, r.Patient?.FullName ?? "N/A", r.DoctorId, r.Doctor?.FullName, r.RequestDate, r.Status, r.TotalAmount, r.Notes, r.Results.Select(ToResDto).ToList());
+    internal static RadiologyRequestDto ToRDto(RadiologyRequest r) => new(r.Id, r.RequestNumber, r.PatientId, r.Patient?.FullName ?? "N/A", r.DoctorId, r.Doctor?.FullName, r.RequestDate, r.Status, r.TotalAmount, r.Notes, r.Results.Select(ToResDto).ToList(), r.EmergencyAdmissionId);
     internal static RadiologyResultDto ToResDto(RadiologyResult res) => new(res.Id, res.RadiologyRequestId, res.RadiologyTestId, res.RadiologyTest?.Name ?? "N/A", res.Findings, res.Impression, res.ImageUrl, res.ResultDate, res.PerformedBy, res.RadiologistName, res.RadiologyTemplateId);
     internal static RadiologyTemplateDto ToTemplateDto(RadiologyTemplate t) => new(t.Id, t.Name, t.Category, t.EnglishTemplate, t.ArabicTemplate, t.IsActive);
 }

@@ -98,6 +98,14 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/messaging/messaging.component').then(m => m.MessagingComponent)
             },
             {
+                path: 'emergency',
+                loadComponent: () => import('./features/emergency/emergency.component').then(m => m.EmergencyComponent)
+            },
+            {
+                path: 'emergency-chart/:id',
+                loadComponent: () => import('./features/emergency/emergency-chart/emergency-chart.component').then(m => m.EmergencyChartComponent)
+            },
+            {
                 path: 'audit-logs',
                 loadComponent: () => import('./features/audit-logs/audit-logs.component').then(m => m.AuditLogsComponent)
             },

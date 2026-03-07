@@ -770,5 +770,30 @@ export class AssetService {
     updateTicketStatus(id: number, dto: any): Observable<any> { return this.http.patch<any>(`${this.API}/tickets/${id}/status`, dto); }
 }
 
+@Injectable({ providedIn: 'root' })
+export class EmergencyService {
+    private readonly API = `${environment.apiUrl}/emergency`;
+    constructor(private http: HttpClient) { }
 
+    getActiveAdmissions(request: PagedRequest = {}): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (request.search) params = params.set('search', request.search);
+        return this.http.get<PagedResult<any>>(`${this.API}/active`, { params });
+    }
 
+    getAdmission(id: number): Observable<any> { return this.http.get<any>(`${this.API}/${id}`); }
+    register(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/register`, dto); }
+    updateTriage(id: number, dto: any): Observable<any> { return this.http.patch<any>(`${this.API}/${id}/triage`, dto); }
+    assignDoctor(id: number, doctorId: number): Observable<any> { return this.http.patch<any>(`${this.API}/${id}/assign-doctor`, doctorId); }
+    updateStatus(id: number, status: string, disposition?: string, notes?: string): Observable<any> {
+        let params = new HttpParams().set('status', status);
+        if (disposition) params = params.set('disposition', disposition);
+        return this.http.patch<any>(`${this.API}/${id}/status`, notes, { params });
+    }
+    getVitals(id: number): Observable<any[]> { return this.http.get<any[]>(`${this.API}/${id}/vitals`); }
+    getOccupancy(): Observable<any> { return this.http.get<any>(`${this.API}/occupancy`); }
+    getTreatmentSummary(id: number): Observable<any> { return this.http.get<any>(`${this.API}/${id}/treatment`); }
+    transferToInpatient(id: number, data: any): Observable<any> { return this.http.post<any>(`${this.API}/${id}/transfer-inpatient`, data); }
+}

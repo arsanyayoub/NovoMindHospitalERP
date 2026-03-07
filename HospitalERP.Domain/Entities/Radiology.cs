@@ -31,6 +31,8 @@ public class RadiologyRequest : BaseEntity
     public int? DoctorId { get; set; }
     public Doctor? Doctor { get; set; }
     public DateTime RequestDate { get; set; }
+    public int? EmergencyAdmissionId { get; set; }
+    public EmergencyAdmission? EmergencyAdmission { get; set; }
     public string? Notes { get; set; }
     public string Status { get; set; } = "Pending"; // Pending, InProgress, Completed, Cancelled
     public decimal TotalAmount { get; set; }

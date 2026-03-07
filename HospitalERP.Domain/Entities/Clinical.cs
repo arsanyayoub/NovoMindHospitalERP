@@ -12,6 +12,8 @@ public class PatientVital : BaseEntity
     public Appointment? Appointment { get; set; }
     public int? BedAdmissionId { get; set; }
     public BedAdmission? BedAdmission { get; set; }
+    public int? EmergencyAdmissionId { get; set; }
+    public EmergencyAdmission? EmergencyAdmission { get; set; }
     
     public DateTime RecordedDate { get; set; } = DateTime.UtcNow;
     public string RecordedBy { get; set; } = string.Empty;
@@ -40,6 +42,8 @@ public class Prescription : BaseEntity
     public Appointment? Appointment { get; set; }
     public int? BedAdmissionId { get; set; }
     public BedAdmission? BedAdmission { get; set; }
+    public int? EmergencyAdmissionId { get; set; }
+    public EmergencyAdmission? EmergencyAdmission { get; set; }
 
     public DateTime PrescriptionDate { get; set; } = DateTime.UtcNow;
     public string Status { get; set; } = "Pending"; // Pending, Dispensed, Cancelled
@@ -77,6 +81,8 @@ public class ClinicalEncounter : BaseEntity
     public Appointment? Appointment { get; set; }
     public int? BedAdmissionId { get; set; }
     public BedAdmission? BedAdmission { get; set; }
+    public int? EmergencyAdmissionId { get; set; }
+    public EmergencyAdmission? EmergencyAdmission { get; set; }
 
     public DateTime EncounterDate { get; set; } = DateTime.UtcNow;
     

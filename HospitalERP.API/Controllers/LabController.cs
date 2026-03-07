@@ -53,7 +53,10 @@ public class LabController : ControllerBase
 
     [HttpPost("requests/{id}/complete")]
     public async Task<IActionResult> CompleteRequest(int id) { var u = User.FindFirstValue(ClaimTypes.Name) ?? "system"; await _service.CompleteRequestAsync(id, u); return Ok(new { message = "Request completed." }); }
-
+    [HttpGet("requests/{id}/report")]
+    public async Task<IActionResult> DownloadReport(int id, [FromServices] IPdfService pdfService)
+    {
+        var pdf = await pdfService.GenerateLabReportPdfAsync(id);
         return File(pdf, "application/pdf", $"LabReport_{id}.pdf");
     }
 

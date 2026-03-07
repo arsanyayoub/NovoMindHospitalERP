@@ -43,6 +43,8 @@ public interface IUnitOfWork : IDisposable
     IRepository<RadiologyRequest> RadiologyRequests { get; }
     IRepository<RadiologyResult> RadiologyResults { get; }
     IRepository<RadiologyTemplate> RadiologyTemplates { get; }
+    IRepository<EmergencyAdmission> EmergencyAdmissions { get; }
+    IRepository<ERTriageVital> ERTriageVitals { get; }
     
     // Clinical
     IRepository<PatientVital> PatientVitals { get; }

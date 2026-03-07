@@ -41,6 +41,8 @@ public class LabRequest : BaseEntity
     public int? DoctorId { get; set; }
     public Doctor? Doctor { get; set; }
     public DateTime RequestDate { get; set; } = DateTime.UtcNow;
+    public int? EmergencyAdmissionId { get; set; }
+    public EmergencyAdmission? EmergencyAdmission { get; set; }
     
     /// <summary>Pending, Collected, AtLab, Processing, Completed, Cancelled</summary>
     public string Status { get; set; } = "Pending"; 

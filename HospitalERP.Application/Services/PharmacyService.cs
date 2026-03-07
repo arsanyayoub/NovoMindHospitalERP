@@ -61,6 +61,7 @@ public class PharmacyService : IPharmacyService
             DoctorId = dto.DoctorId,
             AppointmentId = dto.AppointmentId,
             BedAdmissionId = dto.BedAdmissionId,
+            EmergencyAdmissionId = dto.EmergencyAdmissionId,
             Notes = dto.Notes,
             PrescriptionDate = DateTime.UtcNow,
             Status = "Pending"
@@ -430,7 +431,7 @@ public class PharmacyService : IPharmacyService
             p.Items.Select(pi => new PrescriptionItemDto(
                 pi.Id, pi.PrescriptionId, pi.ItemId, pi.Item?.ItemName ?? "Unknown Item", pi.Dosage, pi.Frequency, pi.Duration, pi.Quantity, pi.Instructions,
                 pi.IsDispensed, pi.DispensedDate, pi.DispensedBy, p.Patient?.FullName, p.PrescriptionNumber
-            )).ToList()
+            )).ToList(), p.EmergencyAdmissionId
         );
     }
 

@@ -445,8 +445,8 @@ public record CreateLabTestDto(string Name, string NameAr, string Category, stri
 public record LabTestReferenceRangeDto(int Id, int LabTestId, string Gender, int? MinAge, int? MaxAge, decimal? MinValue, decimal? MaxValue, decimal? CriticalLow, decimal? CriticalHigh, string? Description);
 public record CreateLabTestReferenceRangeDto(int LabTestId, string Gender, int? MinAge, int? MaxAge, decimal? MinValue, decimal? MaxValue, decimal? CriticalLow, decimal? CriticalHigh, string? Description);
 
-public record LabRequestDto(int Id, string RequestNumber, int PatientId, string PatientName, int? DoctorId, string? DoctorName, DateTime RequestDate, string Status, DateTime? CollectionDate, string? CollectedBy, DateTime? ReceivedAtLabDate, decimal TotalAmount, string? Notes, List<LabResultDto> Results);
-public record CreateLabRequestDto(int PatientId, int? DoctorId, DateTime RequestDate, string? Notes, List<int> TestIds);
+public record LabRequestDto(int Id, string RequestNumber, int PatientId, string PatientName, int? DoctorId, string? DoctorName, DateTime RequestDate, string Status, DateTime? CollectionDate, string? CollectedBy, DateTime? ReceivedAtLabDate, decimal TotalAmount, string? Notes, List<LabResultDto> Results, int? EmergencyAdmissionId = null);
+public record CreateLabRequestDto(int PatientId, int? DoctorId, DateTime RequestDate, string? Notes, List<int> TestIds, int? EmergencyAdmissionId = null);
 
 public record LabResultDto(int Id, int LabRequestId, int LabTestId, string TestName, string? ResultValue, string? NormalRange, string? Unit, DateTime? ResultDate, string? Remarks, string? PerformedBy, string? ResultFlag, bool IsCritical);
 public record UpdateLabResultDto(string? ResultValue, string? Remarks, string? PerformedBy, string? ResultFlag, bool IsCritical = false);
@@ -457,8 +457,8 @@ public record UpdateLabResultDto(string? ResultValue, string? Remarks, string? P
 public record RadiologyTestDto(int Id, string TestCode, string Name, string NameAr, string Category, string? PreparationInstructions, decimal Price, bool IsActive);
 public record CreateRadiologyTestDto(string Name, string NameAr, string Category, string? PreparationInstructions, decimal Price);
 
-public record RadiologyRequestDto(int Id, string RequestNumber, int PatientId, string PatientName, int? DoctorId, string? DoctorName, DateTime RequestDate, string Status, decimal TotalAmount, string? Notes, List<RadiologyResultDto> Results);
-public record CreateRadiologyRequestDto(int PatientId, int? DoctorId, DateTime RequestDate, string? Notes, List<int> TestIds);
+public record RadiologyRequestDto(int Id, string RequestNumber, int PatientId, string PatientName, int? DoctorId, string? DoctorName, DateTime RequestDate, string Status, decimal TotalAmount, string? Notes, List<RadiologyResultDto> Results, int? EmergencyAdmissionId = null);
+public record CreateRadiologyRequestDto(int PatientId, int? DoctorId, DateTime RequestDate, string? Notes, List<int> TestIds, int? EmergencyAdmissionId = null);
 
 public record RadiologyResultDto(int Id, int RadiologyRequestId, int RadiologyTestId, string TestName, string? Findings, string? Impression, string? ImageUrl, DateTime? ResultDate, string? PerformedBy, string? RadiologistName, int? RadiologyTemplateId);
 public record UpdateRadiologyResultDto(string? Findings, string? Impression, string? ImageUrl, string? PerformedBy, string? RadiologistName, int? RadiologyTemplateId = null);
@@ -471,10 +471,10 @@ public record CreateRadiologyTemplateDto(string Name, string Category, string En
 // ═══════════════════════════════════════════════════════════════
 public record PatientVitalDto(int Id, int PatientId, string PatientName, int? AppointmentId, int? BedAdmissionId, DateTime RecordedDate, string RecordedBy, 
     decimal? Temperature, int? BloodPressureSystolic, int? BloodPressureDiastolic, int? HeartRate, int? RespiratoryRate, int? SpO2, 
-    decimal? WeightKg, decimal? HeightCm, decimal? BMI, string? PainScale, string? Notes);
+    decimal? WeightKg, decimal? HeightCm, decimal? BMI, string? PainScale, string? Notes, int? EmergencyAdmissionId = null);
 
 public record CreatePatientVitalDto(int PatientId, int? AppointmentId, int? BedAdmissionId, decimal? Temperature, int? BloodPressureSystolic, int? BloodPressureDiastolic, 
-    int? HeartRate, int? RespiratoryRate, int? SpO2, decimal? WeightKg, decimal? HeightCm, string? PainScale, string? Notes);
+    int? HeartRate, int? RespiratoryRate, int? SpO2, decimal? WeightKg, decimal? HeightCm, string? PainScale, string? Notes, int? EmergencyAdmissionId = null);
 
 public record InpatientNursingAssessmentDto(int Id, int BedAdmissionId, DateTime AssessmentDate, string RecordedBy, string Shift,
     string? Neurological, string? Respiratory, string? Cardiovascular, string? Gastrointestinal, string? Genitourinary,
@@ -485,9 +485,9 @@ public record CreateInpatientNursingAssessmentDto(int BedAdmissionId, string Shi
     string? Musculoskeletal, string? SkinIntegumentary, string? Psychological, string? NursingNotes, string? PlanOfCare);
 
 public record PrescriptionDto(int Id, string PrescriptionNumber, int PatientId, string PatientName, int? DoctorId, string? DoctorName, 
-    int? AppointmentId, int? BedAdmissionId, DateTime PrescriptionDate, string Status, string? Notes, List<PrescriptionItemDto> Items);
+    int? AppointmentId, int? BedAdmissionId, DateTime PrescriptionDate, string Status, string? Notes, List<PrescriptionItemDto> Items, int? EmergencyAdmissionId = null);
 
-public record CreatePrescriptionDto(int PatientId, int? DoctorId, int? AppointmentId, int? BedAdmissionId, string? Notes, List<CreatePrescriptionItemDto> Items);
+public record CreatePrescriptionDto(int PatientId, int? DoctorId, int? AppointmentId, int? BedAdmissionId, string? Notes, List<CreatePrescriptionItemDto> Items, int? EmergencyAdmissionId = null);
 
 public record MedicationAdministrationDto(int Id, int PrescriptionItemId, string MedicineName, int BedAdmissionId, DateTime AdministeredDate, 
     string AdministeredBy, string Status, string? Dose, string? Notes, bool IsDispensed = false, DateTime? DispensedDate = null, string? DispensedBy = null);
@@ -552,7 +552,7 @@ public record ClinicalEncounterDto(int Id, int PatientId, string PatientName, in
     string? Assessment, string? Plan, string? InternalNotes, bool IsFinalized, DateTime CreatedDate);
 
 public record CreateClinicalEncounterDto(int PatientId, int? DoctorId, int? AppointmentId, string? ChiefComplaint, 
-    string? Subjective, string? Objective, string? Assessment, string? Plan, string? InternalNotes, bool IsFinalized = false);
+    string? Subjective, string? Objective, string? Assessment, string? Plan, string? InternalNotes, bool IsFinalized = false, int? EmergencyAdmissionId = null);
 
 // ═══════════════════════════════════════════════════════════════
 //  INSURANCE & TPA MANAGEMENT
@@ -596,3 +596,41 @@ public record CreateAssetDto(string AssetName, string? Manufacturer, string? Mod
 public record MaintenanceTicketDto(int Id, int AssetId, string AssetName, string TicketNumber, string Type, string Priority, string Description, string Status, DateTime ReportedDate, DateTime? CompletedDate, string? ReportedBy, string? TechnicianName, decimal? Cost, string? Resolution, string? Notes);
 public record CreateMaintenanceTicketDto(int AssetId, string Type, string Priority, string Description, string? ReportedBy, string? TechnicianName, decimal? Cost, string? Notes);
 public record UpdateMaintenanceTicketDto(string Status, DateTime? CompletedDate, string? TechnicianName, decimal? Cost, string? Resolution, string? Notes);
+
+// ═══════════════════════════════════════════════════════════════
+//  EMERGENCY & TRIAGE
+// ═══════════════════════════════════════════════════════════════
+public record EmergencyAdmissionDto(
+    int Id, int PatientId, string PatientCode, string PatientName, string PatientGender, int PatientAge,
+    DateTime ArrivalTime, string ArrivalMode, string ChiefComplaint, 
+    int? TriageLevel, string? TriageCategory, DateTime? TriageTime, string? TriageNotes,
+    int? AssignedDoctorId, string? AssignedDoctorName, 
+    string? ERBayNumber, string Status, string? Disposition, string? Diagnosis, string? Notes,
+    int? InpatientAdmissionId = null);
+
+public record CreateEmergencyAdmissionDto(
+    int? PatientId, 
+    string? PatientFullNameManual, string? PatientPhoneNumber, string? PatientGender, DateTime? PatientDOB, // For quick registration
+    string ArrivalMode, string ChiefComplaint, string? ERBayNumber);
+
+public record TriageUpdateDto(
+    int TriageLevel, string TriageCategory, string? TriageNotes, 
+    double? Temp, string? BP, int? HR, int? RR, int? SpO2, string? PainScale);
+
+public record ERTriageVitalDto(
+    int Id, int EmergencyAdmissionId, double Temperature, string BloodPressure, 
+    int HeartRate, int RespiratoryRate, int SpO2, string PainScale, DateTime RecordedAt);
+
+public record ERTreatmentSummaryDto(
+    int EmergencyAdmissionId,
+    List<LabRequestDto> LabRequests,
+    List<RadiologyRequestDto> RadiologyRequests,
+    List<PrescriptionDto> Prescriptions,
+    List<PatientVitalDto> Vitals,
+    List<ClinicalEncounterDto> Encounters);
+
+public record TransferToInpatientDto(
+    int BedId,
+    int? DoctorId,
+    string? AdmissionReason,
+    string? Notes);

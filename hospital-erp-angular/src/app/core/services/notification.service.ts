@@ -39,6 +39,9 @@ export class NotificationService {
     private radiologyUpdateSubject = new Subject<any>();
     radiologyUpdate$ = this.radiologyUpdateSubject.asObservable();
 
+    private erUpdateSubject = new Subject<any>();
+    erUpdate$ = this.erUpdateSubject.asObservable();
+
     constructor(
         private http: HttpClient,
         private auth: AuthService,
@@ -64,6 +67,7 @@ export class NotificationService {
 
             if (notification.notificationType === 'Lab') this.labUpdateSubject.next(notification);
             if (notification.notificationType === 'Radiology') this.radiologyUpdateSubject.next(notification);
+            if (notification.notificationType === 'ER') this.erUpdateSubject.next(notification);
         });
 
         this.hubConnection.on('ReceiveMessage', (message: any) => {

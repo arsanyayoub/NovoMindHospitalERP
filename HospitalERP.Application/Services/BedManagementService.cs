@@ -294,7 +294,8 @@ public class BedManagementService : IBedManagementService
                 DoctorName = a.Doctor != null ? "Dr. " + a.Doctor.Employee.FullName : null,
                 AdmissionDate = a.AdmissionDate, DischargeDate = a.DischargeDate,
                 AdmissionType = a.AdmissionType, Status = a.Status, AdmissionReason = a.AdmissionReason,
-                DischargeNotes = a.DischargeNotes, DailyRate = a.DailyRate, Notes = a.Notes
+                DischargeNotes = a.DischargeNotes, DailyRate = a.DailyRate, Notes = a.Notes,
+                EmergencyAdmissionId = a.EmergencyAdmissionId
             })
             .ToListAsync();
 
@@ -321,7 +322,8 @@ public class BedManagementService : IBedManagementService
             DoctorName = a.Doctor != null ? "Dr. " + a.Doctor.Employee.FullName : null,
             AdmissionDate = a.AdmissionDate, DischargeDate = a.DischargeDate,
             AdmissionType = a.AdmissionType, Status = a.Status, AdmissionReason = a.AdmissionReason,
-            DischargeNotes = a.DischargeNotes, DailyRate = a.DailyRate, Notes = a.Notes
+            DischargeNotes = a.DischargeNotes, DailyRate = a.DailyRate, Notes = a.Notes,
+            EmergencyAdmissionId = a.EmergencyAdmissionId
         };
     }
 
@@ -339,7 +341,8 @@ public class BedManagementService : IBedManagementService
             BedId = dto.BedId, PatientId = dto.PatientId, DoctorId = dto.DoctorId,
             AdmissionDate = DateTime.UtcNow, AdmissionType = dto.AdmissionType,
             Status = "Active", AdmissionReason = dto.AdmissionReason,
-            DailyRate = dto.DailyRate, Notes = dto.Notes, CreatedBy = userId
+            DailyRate = dto.DailyRate, Notes = dto.Notes, CreatedBy = userId,
+            EmergencyAdmissionId = dto.EmergencyAdmissionId
         };
 
         bed.Status = "Occupied";

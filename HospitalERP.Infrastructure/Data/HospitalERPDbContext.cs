@@ -93,6 +93,10 @@ public class HospitalERPDbContext : DbContext
     public DbSet<InsurancePlan> InsurancePlans => Set<InsurancePlan>();
     public DbSet<InsuranceClaim> InsuranceClaims => Set<InsuranceClaim>();
 
+    // Emergency
+    public DbSet<EmergencyAdmission> EmergencyAdmissions => Set<EmergencyAdmission>();
+    public DbSet<ERTriageVital> ERTriageVitals => Set<ERTriageVital>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -143,6 +147,8 @@ public class HospitalERPDbContext : DbContext
         modelBuilder.Entity<InsuranceProvider>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<InsurancePlan>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<InsuranceClaim>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<EmergencyAdmission>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<ERTriageVital>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<MaintenanceTicket>().HasQueryFilter(e => !e.IsDeleted);
 
         // ── Decimal precision ────────────────────────────────────────

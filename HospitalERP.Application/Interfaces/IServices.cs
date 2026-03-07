@@ -341,3 +341,18 @@ public interface IAssetService
     Task<MaintenanceTicketDto> UpdateTicketStatusAsync(int id, UpdateMaintenanceTicketDto dto, string userId);
 }
 
+public interface IEmergencyService
+{
+    Task<PagedResult<EmergencyAdmissionDto>> GetActiveAdmissionsAsync(PagedRequest request);
+    Task<EmergencyAdmissionDto?> GetAdmissionByIdAsync(int id);
+    Task<EmergencyAdmissionDto> RegisterEmergencyAsync(CreateEmergencyAdmissionDto dto, string createdBy);
+    Task<EmergencyAdmissionDto> UpdateTriageAsync(int id, TriageUpdateDto dto, string updatedBy);
+    Task<EmergencyAdmissionDto> AssignDoctorAsync(int id, int doctorId, string updatedBy);
+    Task<EmergencyAdmissionDto> UpdateStatusAsync(int id, string status, string? disposition, string? notes, string updatedBy);
+    Task<IEnumerable<ERTriageVitalDto>> GetTriageVitalsAsync(int admissionId);
+    Task<EmergencyOccupancyDto> GetEROccupancyAsync();
+    Task<ERTreatmentSummaryDto> GetTreatmentSummaryAsync(int admissionId);
+    Task<EmergencyAdmissionDto> TransferToInpatientAsync(int id, TransferToInpatientDto dto, string updatedBy);
+}
+
+public record EmergencyOccupancyDto(int TotalPatients, int Level1Count, int Level2Count, int Level3Count, int WaitingCount);

@@ -92,7 +92,8 @@ public class LabService : ILabService
         var req = new LabRequest
         {
             RequestNumber = $"LR{(count + 1):D5}", PatientId = dto.PatientId, DoctorId = dto.DoctorId,
-            RequestDate = dto.RequestDate, Notes = dto.Notes, Status = "Pending", CreatedBy = createdBy
+            RequestDate = dto.RequestDate, Notes = dto.Notes, Status = "Pending", CreatedBy = createdBy,
+            EmergencyAdmissionId = dto.EmergencyAdmissionId
         };
 
         foreach (var tid in dto.TestIds)
@@ -248,6 +249,6 @@ public class LabService : ILabService
 
     internal static LabTestDto ToDto(LabTest t) => new(t.Id, t.TestCode, t.Name, t.NameAr, t.Category, t.NormalRange, t.Unit, t.Price, t.IsActive, t.ReferenceRanges?.Select(ToRangeDto).ToList() ?? new());
     internal static LabTestReferenceRangeDto ToRangeDto(LabTestReferenceRange r) => new(r.Id, r.LabTestId, r.Gender, r.MinAge, r.MaxAge, r.MinValue, r.MaxValue, r.CriticalLow, r.CriticalHigh, r.Description);
-    internal static LabRequestDto ToRDto(LabRequest r) => new(r.Id, r.RequestNumber, r.PatientId, r.Patient?.FullName ?? "N/A", r.DoctorId, r.Doctor?.FullName, r.RequestDate, r.Status, r.CollectionDate, r.CollectedBy, r.ReceivedAtLabDate, r.TotalAmount, r.Notes, r.Results.Select(ToResDto).ToList());
+    internal static LabRequestDto ToRDto(LabRequest r) => new(r.Id, r.RequestNumber, r.PatientId, r.Patient?.FullName ?? "N/A", r.DoctorId, r.Doctor?.FullName, r.RequestDate, r.Status, r.CollectionDate, r.CollectedBy, r.ReceivedAtLabDate, r.TotalAmount, r.Notes, r.Results.Select(ToResDto).ToList(), r.EmergencyAdmissionId);
     internal static LabResultDto ToResDto(LabResult res) => new(res.Id, res.LabRequestId, res.LabTestId, res.LabTest?.Name ?? "N/A", res.ResultValue, res.NormalRange, res.Unit, res.ResultDate, res.Remarks, res.PerformedBy, res.ResultFlag, res.IsCritical);
 }
