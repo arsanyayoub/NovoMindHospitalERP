@@ -19,9 +19,9 @@ public class EmergencyController : ControllerBase
     }
 
     [HttpGet("active")]
-    public async Task<ActionResult<PagedResult<EmergencyAdmissionDto>>> GetActiveAdmissions([FromQuery] PagedRequest request)
+    public async Task<ActionResult<PagedResult<EmergencyAdmissionDto>>> GetActiveAdmissions([FromQuery] PagedRequest request, [FromQuery] int? doctorId)
     {
-        return Ok(await _emergency.GetActiveAdmissionsAsync(request));
+        return Ok(await _emergency.GetActiveAdmissionsAsync(request, doctorId));
     }
 
     [HttpGet("{id}")]

@@ -549,7 +549,7 @@ public record PharmacyDashboardDto(
 
 public record ClinicalEncounterDto(int Id, int PatientId, string PatientName, int? DoctorId, string? DoctorName, 
     int? AppointmentId, DateTime EncounterDate, string? ChiefComplaint, string? Subjective, string? Objective, 
-    string? Assessment, string? Plan, string? InternalNotes, bool IsFinalized, DateTime CreatedDate);
+    string? Assessment, string? Plan, string? InternalNotes, bool IsFinalized, DateTime CreatedDate, int? EmergencyAdmissionId = null);
 
 public record CreateClinicalEncounterDto(int PatientId, int? DoctorId, int? AppointmentId, string? ChiefComplaint, 
     string? Subjective, string? Objective, string? Assessment, string? Plan, string? InternalNotes, bool IsFinalized = false, int? EmergencyAdmissionId = null);

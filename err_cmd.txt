@@ -1,0 +1,29 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  HospitalERP.Domain -> D:\Work\Projects\ERP Hospital NEw\HospitalERP.Domain\bin\Debug\net8.0\HospitalERP.Domain.dll
+  HospitalERP.Infrastructure -> D:\Work\Projects\ERP Hospital NEw\HospitalERP.Infrastructure\bin\Debug\net8.0\HospitalERP.Infrastructure.dll
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\ClinicalService.cs(34,26): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\ClinicalService.cs(99,85): warning CS8602: Dereference of a possibly null reference. [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\ClinicalService.cs(246,72): error CS1729: 'ClinicalEncounterDto' does not contain a constructor that takes 16 arguments [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\PdfService.cs(30,31): warning CS8603: Possible null reference return. [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\BedManagementService.cs(278,54): warning CS8602: Dereference of a possibly null reference. [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\BedManagementService.cs(294,58): warning CS8602: Dereference of a possibly null reference. [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\BedManagementService.cs(310,54): warning CS8602: Dereference of a possibly null reference. [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\BedManagementService.cs(322,54): warning CS8602: Dereference of a possibly null reference. [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\BedManagementService.cs(378,28): warning CS0168: The variable 'ex' is declared but never used [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+
+Build FAILED.
+
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\ClinicalService.cs(99,85): warning CS8602: Dereference of a possibly null reference. [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\PdfService.cs(30,31): warning CS8603: Possible null reference return. [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\BedManagementService.cs(278,54): warning CS8602: Dereference of a possibly null reference. [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\BedManagementService.cs(294,58): warning CS8602: Dereference of a possibly null reference. [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\BedManagementService.cs(310,54): warning CS8602: Dereference of a possibly null reference. [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\BedManagementService.cs(322,54): warning CS8602: Dereference of a possibly null reference. [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\BedManagementService.cs(378,28): warning CS0168: The variable 'ex' is declared but never used [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\ClinicalService.cs(34,26): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\Services\ClinicalService.cs(246,72): error CS1729: 'ClinicalEncounterDto' does not contain a constructor that takes 16 arguments [D:\Work\Projects\ERP Hospital NEw\HospitalERP.Application\HospitalERP.Application.csproj]
+    7 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:01.13

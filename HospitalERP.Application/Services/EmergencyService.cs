@@ -21,12 +21,17 @@ public class EmergencyService : IEmergencyService
         _bedService = bedService;
     }
 
-    public async Task<PagedResult<EmergencyAdmissionDto>> GetActiveAdmissionsAsync(PagedRequest request)
+    public async Task<PagedResult<EmergencyAdmissionDto>> GetActiveAdmissionsAsync(PagedRequest request, int? doctorId = null)
     {
         var query = _uow.EmergencyAdmissions.Query()
             .Include(x => x.Patient)
             .Include(x => x.AssignedDoctor)
             .Where(x => x.Status != "Discharged" && x.Status != "Admitted" && x.Status != "Expired");
+
+        if (doctorId.HasValue)
+        {
+            query = query.Where(x => x.AssignedDoctorId == doctorId.Value);
+        }
 
         if (!string.IsNullOrEmpty(request.Search))
             query = query.Where(x => x.Patient.FullName.Contains(request.Search) || x.ChiefComplaint.Contains(request.Search));

@@ -102,6 +102,10 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/emergency/emergency.component').then(m => m.EmergencyComponent)
             },
             {
+                path: 'emergency-physician',
+                loadComponent: () => import('./features/emergency/physician-dashboard/physician-dashboard.component').then(m => m.EmergencyPhysicianDashboardComponent)
+            },
+            {
                 path: 'emergency-chart/:id',
                 loadComponent: () => import('./features/emergency/emergency-chart/emergency-chart.component').then(m => m.EmergencyChartComponent)
             },

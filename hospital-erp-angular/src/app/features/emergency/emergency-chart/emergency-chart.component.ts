@@ -23,7 +23,7 @@ import { ToastService } from '../../../core/services/language.service';
         
         .vital-card { background: var(--glass); border: 1px solid var(--border); border-radius: 16px; padding: 12px; text-align: center; }
         .vital-val { font-size: 1.25rem; font-weight: 900; color: var(--primary); }
-        .vital-label { font-size: 0.6rem; font-black uppercase opacity: 0.6; }
+        .vital-label { font-size: 0.6rem; font-weight: 900; text-transform: uppercase; opacity: 0.6; }
 
         .timeline-item { position: relative; padding-left: 32px; padding-bottom: 24px; }
         .timeline-item::before { content: ''; position: absolute; left: 0; top: 8px; width: 12px; height: 12px; border-radius: 50%; background: var(--primary); z-index: 1; }

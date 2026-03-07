@@ -34,7 +34,7 @@ public class ClinicalService : IClinicalService
             .Select(v => new PatientVitalDto(
                 v.Id, v.PatientId, v.Patient.FullName, v.AppointmentId, v.BedAdmissionId, v.RecordedDate, v.RecordedBy,
                 v.Temperature, v.BloodPressureSystolic, v.BloodPressureDiastolic, v.HeartRate, v.RespiratoryRate, v.SpO2,
-                v.WeightKg, v.HeightCm, v.BMI, v.PainScale, v.Notes
+                v.WeightKg, v.HeightCm, v.BMI, v.PainScale, v.Notes, v.EmergencyAdmissionId
             )).ToListAsync();
 
         return new PagedResult<PatientVitalDto>(items, total, request.Page, request.PageSize);

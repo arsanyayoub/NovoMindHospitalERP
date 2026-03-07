@@ -775,11 +775,12 @@ export class EmergencyService {
     private readonly API = `${environment.apiUrl}/emergency`;
     constructor(private http: HttpClient) { }
 
-    getActiveAdmissions(request: PagedRequest = {}): Observable<PagedResult<any>> {
+    getActiveAdmissions(request: any = {}): Observable<PagedResult<any>> {
         let params = new HttpParams();
         if (request.page) params = params.set('page', request.page);
         if (request.pageSize) params = params.set('pageSize', request.pageSize);
         if (request.search) params = params.set('search', request.search);
+        if (request.doctorId) params = params.set('doctorId', request.doctorId);
         return this.http.get<PagedResult<any>>(`${this.API}/active`, { params });
     }
 

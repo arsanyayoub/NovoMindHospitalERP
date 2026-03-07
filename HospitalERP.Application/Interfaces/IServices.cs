@@ -343,7 +343,7 @@ public interface IAssetService
 
 public interface IEmergencyService
 {
-    Task<PagedResult<EmergencyAdmissionDto>> GetActiveAdmissionsAsync(PagedRequest request);
+    Task<PagedResult<EmergencyAdmissionDto>> GetActiveAdmissionsAsync(PagedRequest request, int? doctorId = null);
     Task<EmergencyAdmissionDto?> GetAdmissionByIdAsync(int id);
     Task<EmergencyAdmissionDto> RegisterEmergencyAsync(CreateEmergencyAdmissionDto dto, string createdBy);
     Task<EmergencyAdmissionDto> UpdateTriageAsync(int id, TriageUpdateDto dto, string updatedBy);
