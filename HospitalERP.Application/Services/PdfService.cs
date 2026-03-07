@@ -370,7 +370,7 @@ public class PdfService : IPdfService
                 page.Content().PaddingVertical(1, Unit.Centimetre).Column(col =>
                 {
                     // Patient Box
-                    col.Item().Element(box => ComposePatientBox(box, r.Patient, r.Doctor?.FullName));
+                    col.Item().Element(box => ComposePatientBox(box, r.Patient, r.Doctor?.FullName, r.CollectionDate));
 
                     col.Item().PaddingTop(20).Table(table =>
                     {
@@ -409,7 +409,10 @@ public class PdfService : IPdfService
                                 "Critical" => Colors.Red.Darken4,
                                 _ => Colors.Black
                             };
-                            table.Cell().Element(RowStyle).AlignCenter().Text(res.ResultFlag ?? "-").FontColor(flagColor).Bold();
+                            
+                            var cell = table.Cell().Element(RowStyle).AlignCenter();
+                            if (res.IsCritical) cell.Background(Colors.Red.Lighten5);
+                            cell.Text(res.ResultFlag ?? "-").FontColor(flagColor).Bold();
                             
                             table.Cell().Element(RowStyle).AlignCenter().Text(res.Unit ?? "");
                             table.Cell().Element(RowStyle).AlignRight().Text(res.NormalRange ?? "");
@@ -623,7 +626,8 @@ public class PdfService : IPdfService
         });
     }
 
-    private void ComposePatientBox(IContainer container, Patient p, string? doctorName)
+
+    private void ComposePatientBox(IContainer container, Patient p, string? doctorName, DateTime? collectionDate = null)
     {
         container.Border(1).BorderColor(Colors.Blue.Medium).Row(row =>
         {
@@ -639,12 +643,12 @@ public class PdfService : IPdfService
 
             row.RelativeItem().Padding(10).Column(c =>
             {
-                c.Item().Text("REFERRAL INFO").FontSize(8).SemiBold().FontColor(Colors.Blue.Darken2);
+                c.Item().Text("REFERRAL & SPECIMEN").FontSize(8).SemiBold().FontColor(Colors.Blue.Darken2);
                 c.Item().PaddingTop(2).Text($"Dr. {doctorName ?? "General Practitioner"}").FontSize(11).Medium();
                 c.Item().Text("NovoMind Medical Center").FontSize(9);
                 c.Item().PaddingTop(5).Row(r => {
-                    r.RelativeItem().Text("Collection:").FontSize(8).SemiBold();
-                    r.RelativeItem().AlignRight().Text($"{DateTime.Now:d}").FontSize(8);
+                    r.RelativeItem().Text("Collected:").FontSize(8).SemiBold();
+                    r.RelativeItem().AlignRight().Text(collectionDate.HasValue ? $"{collectionDate:g}" : "N/A").FontSize(8);
                 });
             });
         });

@@ -54,11 +54,17 @@ public class RadiologyController : ControllerBase
     [HttpPost("requests/{id}/complete")]
     public async Task<IActionResult> CompleteRequest(int id) { var u = User.FindFirstValue(ClaimTypes.Name) ?? "system"; await _service.CompleteRequestAsync(id, u); return Ok(new { message = "Request completed." }); }
 
-    [HttpGet("requests/{id}/pdf")]
-    public async Task<IActionResult> DownloadPdf(int id)
-    {
-        var pdf = await _pdf.GenerateRadiologyReportPdfAsync(id);
-        if (pdf == null) return NotFound();
         return File(pdf, "application/pdf", $"RadiologyReport_{id}.pdf");
+    }
+
+    [HttpGet("templates")]
+    public async Task<IActionResult> GetTemplates([FromQuery] string? category) => Ok(await _service.GetTemplatesAsync(category));
+
+    [HttpPost("templates")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> CreateTemplate([FromBody] CreateRadiologyTemplateDto dto)
+    {
+        var u = User.FindFirstValue(ClaimTypes.Name) ?? "system";
+        return Ok(await _service.CreateTemplateAsync(dto, u));
     }
 }

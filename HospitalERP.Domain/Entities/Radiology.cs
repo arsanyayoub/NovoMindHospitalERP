@@ -14,6 +14,15 @@ public class RadiologyTest : BaseEntity
     public bool IsActive { get; set; } = true;
 }
 
+public class RadiologyTemplate : BaseEntity
+{
+    public string Name { get; set; } = string.Empty;
+    public string Category { get; set; } = string.Empty; // e.g., X-Ray, MRI
+    public string EnglishTemplate { get; set; } = string.Empty;
+    public string ArabicTemplate { get; set; } = string.Empty;
+    public bool IsActive { get; set; } = true;
+}
+
 public class RadiologyRequest : BaseEntity
 {
     public string RequestNumber { get; set; } = string.Empty;
@@ -41,4 +50,7 @@ public class RadiologyResult : BaseEntity
     public DateTime? ResultDate { get; set; }
     public string? PerformedBy { get; set; } // Technician name
     public string? RadiologistName { get; set; }
+    
+    public int? RadiologyTemplateId { get; set; }
+    public RadiologyTemplate? Template { get; set; }
 }

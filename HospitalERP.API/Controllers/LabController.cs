@@ -54,11 +54,25 @@ public class LabController : ControllerBase
     [HttpPost("requests/{id}/complete")]
     public async Task<IActionResult> CompleteRequest(int id) { var u = User.FindFirstValue(ClaimTypes.Name) ?? "system"; await _service.CompleteRequestAsync(id, u); return Ok(new { message = "Request completed." }); }
 
-    [HttpGet("requests/{id}/pdf")]
-    public async Task<IActionResult> DownloadPdf(int id)
-    {
-        var pdf = await _pdf.GenerateLabReportPdfAsync(id);
-        if (pdf == null) return NotFound();
         return File(pdf, "application/pdf", $"LabReport_{id}.pdf");
     }
+
+    [HttpPatch("requests/{id}/specimen-status")]
+    public async Task<IActionResult> UpdateSpecimenStatus(int id, [FromQuery] string status, [FromQuery] string? collectedBy)
+    {
+        var u = User.FindFirstValue(ClaimTypes.Name) ?? "system";
+        await _service.UpdateSpecimenStatusAsync(id, status, collectedBy, u);
+        return Ok(new { message = "Status updated" });
+    }
+
+    [HttpPost("tests/{id}/ranges")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AddTestRange(int id, [FromBody] CreateLabTestReferenceRangeDto dto)
+    {
+        var u = User.FindFirstValue(ClaimTypes.Name) ?? "system";
+        return Ok(await _service.AddTestRangeAsync(dto with { LabTestId = id }, u));
+    }
+
+    [HttpGet("tests/{id}/ranges")]
+    public async Task<IActionResult> GetTestRanges(int id) => Ok(await _service.GetTestRangesAsync(id));
 }

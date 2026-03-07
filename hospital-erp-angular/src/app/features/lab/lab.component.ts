@@ -83,7 +83,7 @@ import { NotificationService } from '../../core/services/notification.service';
              <div class="flex items-center justify-between pt-4 border-top">
                 <div class="text-[0.6rem] font-black uppercase text-muted">DR. {{ r.doctorName || 'AUTO_GEN' | translate }}</div>
                 <button class="btn btn-secondary h-11 px-6 rounded-xl font-black text-xs flex items-center gap-2" (click)="viewDetails(r)">
-                   <span class="material-icons-round text-sm">edit_note</span> {{ 'RESULT_ENTRY' | translate }}
+                   <span class="material-icons-round text-sm" [ngClass]="{'text-success': r.collectionDate}">{{ r.collectionDate ? 'check_circle' : 'pending' }}</span> {{ 'RESULT_ENTRY' | translate }}
                 </button>
              </div>
           </div>
@@ -108,6 +108,7 @@ import { NotificationService } from '../../core/services/notification.service';
                       <th class="text-center">{{ 'UNIT' | translate }}</th>
                       <th class="text-end">{{ 'NORMAL_RANGE' | translate }}</th>
                       <th class="text-end">{{ 'COST' | translate }}</th>
+                      <th class="text-center">{{ 'ACTION' | translate }}</th>
                    </tr>
                 </thead>
                 <tbody>
@@ -118,6 +119,9 @@ import { NotificationService } from '../../core/services/notification.service';
                       <td class="text-center font-bold opacity-60">{{ t.unit }}</td>
                       <td class="text-end font-black">{{ t.normalRange }}</td>
                       <td class="text-end font-black text-primary">{{ t.price | currency }}</td>
+                      <td class="text-center">
+                         <button class="btn btn-icon-secondary" (click)="manageRanges(t)"><span class="material-icons-round">rule</span></button>
+                      </td>
                    </tr>
                 </tbody>
              </table>
@@ -139,6 +143,24 @@ import { NotificationService } from '../../core/services/notification.service';
              <button (click)="showDetails=false" class="btn-close">×</button>
           </div>
           <div class="modal-body max-h-[600px] overflow-y-auto px-10 py-8 custom-scrollbar bg-glass">
+             <!-- Specimen Tracking Section -->
+             <div class="card p-6 mb-8 border-2 border-primary border-opacity-20 shadow-sm bg-glass rounded-3xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="font-black text-xs uppercase tracking-widest text-primary">{{ 'SPECIMEN_LIFECYCLE_TRACKING' | translate }}</h4>
+                    <span class="badge badge-info bg-opacity-20 text-info font-black">{{ selectedReq.specimenStatus || 'PENDING_COLLECTION' | translate }}</span>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <button class="btn btn-secondary rounded-xl text-[0.65rem] font-black h-11" (click)="updateStatus('Collected')" [disabled]="selectedReq.collectionDate">
+                        <span class="material-icons-round text-sm">colorize</span> {{ 'MARK_COLLECTED' | translate }}
+                    </button>
+                    <button class="btn btn-secondary rounded-xl text-[0.65rem] font-black h-11" (click)="updateStatus('In Lab')" [disabled]="selectedReq.receivedAtLabDate || !selectedReq.collectionDate">
+                        <span class="material-icons-round text-sm">precision_manufacturing</span> {{ 'MARK_IN_LAB' | translate }}
+                    </button>
+                    <div class="flex items-center gap-2 pl-4 border-l">
+                         <div class="text-[0.6rem] font-black text-muted uppercase leading-tight">Collected: <br/><span class="text-primary">{{ selectedReq.collectionDate | date:'short' }}</span></div>
+                    </div>
+                </div>
+             </div>
              <div *ngFor="let res of selectedReq.results" class="result-entry animate-in border-primary border-opacity-10 bg-glass mb-8 shadow-sm">
                 <div class="grid grid-cols-12 gap-6 items-start">
                    <div class="col-span-4">
@@ -195,39 +217,75 @@ import { NotificationService } from '../../core/services/notification.service';
        </div>
     </div>
 
-    <!-- NEW REQUEST MODAL -->
-    <div class="modal-overlay" *ngIf="showReqForm" (click)="showReqForm=false">
-       <div class="modal animate-in" (click)="$event.stopPropagation()" style="max-width:500px">
-          <div class="modal-header"><h3 class="modal-title font-black uppercase tracking-tighter">{{ 'GENERATE_LAB_ORDER' | translate }}</h3><button (click)="showReqForm=false" class="btn-close">×</button></div>
-          <div class="modal-body">
-             <div class="form-group mb-8">
-                <label class="form-label font-black text-xs uppercase">{{ 'TARGET_PATIENT' | translate }}*</label>
-                <select class="form-control h-14 rounded-2xl font-bold" [(ngModel)]="reqForm.patientId">
-                   <option [ngValue]="null">— SELECT IDENTITY —</option>
-                   <option *ngFor="let p of patientsList" [value]="p.id">{{ p.fullName }} ({{ p.patientCode }})</option>
-                </select>
-             </div>
-             <div class="form-group">
-                <label class="form-label font-black text-xs uppercase mb-4">{{ 'TEST_SELECTION_CATALOG' | translate }}*</label>
-                <div class="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                   <div *ngFor="let t of tests" class="test-pill" [class.selected]="isTestSelected(t.id)" (click)="toggleTest(t.id)">
-                      <span class="material-icons-round text-sm">{{ isTestSelected(t.id) ? 'check_circle' : 'circle' }}</span>
-                      <span class="font-bold flex-1">{{ t.name }}</span>
-                      <span class="font-black opacity-60 font-mono text-xs">{{ t.price | currency }}</span>
-                   </div>
+     <!-- REFERENCE RANGES MODAL -->
+     <div class="modal-overlay" *ngIf="showRangeModal" (click)="showRangeModal=false">
+        <div class="modal modal-lg animate-in" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <div>
+                   <h3 class="modal-title font-black uppercase tracking-tighter">{{ 'MANAGE_DYNAMIC_RANGES'|translate }}</h3>
+                   <div class="text-xs font-black text-muted uppercase">{{ selectedTest?.name }}</div>
                 </div>
-             </div>
-             
-             <div class="mt-8 p-6 bg-glass border-2 border-primary border-opacity-30 rounded-3xl flex justify-between items-center shadow-inner">
-                <div class="text-xs font-black uppercase text-primary tracking-widest">{{ 'TOTAL_ORDER_VAL' | translate }}</div>
-                <div class="text-3xl font-black text-primary">{{ calculateTotal() | currency }}</div>
-             </div>
-          </div>
-          <div class="modal-footer border-0">
-             <button class="btn btn-primary w-full h-16 rounded-2xl shadow-primary font-black uppercase tracking-widest" (click)="createRequest()" [disabled]="!reqForm.patientId || !reqForm.testIds.length">{{ 'INITIALIZE_ORDER' | translate }}</button>
-          </div>
-       </div>
-    </div>
+                <button (click)="showRangeModal=false" class="btn-close">×</button>
+            </div>
+            <div class="modal-body bg-glass">
+                <div class="grid grid-cols-6 gap-3 mb-6 p-4 bg-primary bg-opacity-5 rounded-2xl border-2 border-primary border-opacity-10">
+                    <div class="col-span-1">
+                        <label class="text-[0.6rem] font-black uppercase text-muted mb-1 block">Gender</label>
+                        <select class="form-control h-10 text-xs font-bold" [(ngModel)]="rangeForm.gender">
+                            <option value="Both">Both</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <div class="col-span-1">
+                        <label class="text-[0.6rem] font-black uppercase text-muted mb-1 block">Min Age</label>
+                        <input type="number" class="form-control h-10 text-xs font-black" [(ngModel)]="rangeForm.minAge">
+                    </div>
+                    <div class="col-span-1">
+                        <label class="text-[0.6rem] font-black uppercase text-muted mb-1 block">Max Age</label>
+                        <input type="number" class="form-control h-10 text-xs font-black" [(ngModel)]="rangeForm.maxAge">
+                    </div>
+                    <div class="col-span-1">
+                        <label class="text-[0.6rem] font-black uppercase text-muted mb-1 block">Min Val</label>
+                        <input type="number" class="form-control h-10 text-xs font-black" [(ngModel)]="rangeForm.minValue">
+                    </div>
+                    <div class="col-span-1">
+                        <label class="text-[0.6rem] font-black uppercase text-muted mb-1 block">Max Val</label>
+                        <input type="number" class="form-control h-10 text-xs font-black" [(ngModel)]="rangeForm.maxValue">
+                    </div>
+                    <div class="col-span-1 pt-4">
+                        <button class="btn btn-primary h-10 w-full rounded-xl shadow-primary" (click)="addRange()"><span class="material-icons-round">add</span></button>
+                    </div>
+                    <div class="col-span-6">
+                         <input class="form-control h-10 text-xs italic" [(ngModel)]="rangeForm.rangeLabel" placeholder="Range Label (e.g., Adult Male Fasting)">
+                    </div>
+                </div>
+
+                <div class="table-container max-h-[300px] overflow-y-auto">
+                    <table class="table">
+                        <thead>
+                            <tr class="text-[0.65rem] uppercase font-black">
+                                <th>Label</th>
+                                <th>Gender</th>
+                                <th>Age Range</th>
+                                <th>Value Range</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let r of ranges" class="text-xs font-bold">
+                                <td>{{ r.rangeLabel }}</td>
+                                <td><span class="badge badge-secondary">{{ r.gender }}</span></td>
+                                <td>{{ r.minAge }} - {{ r.maxAge }} yrs</td>
+                                <td class="text-primary">{{ r.minValue }} - {{ r.maxValue }}</td>
+                                <td><span class="text-success material-icons-round">check_circle</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+     </div>
   `
 })
 export class LabComponent implements OnInit {
@@ -241,6 +299,11 @@ export class LabComponent implements OnInit {
    showReqForm = false;
    reqForm: any = { testIds: [] };
    patientsList: any[] = [];
+
+   showRangeModal = false;
+   selectedTest: any = null;
+   ranges: any[] = [];
+   rangeForm: any = { gender: 'Both', minAge: 0, maxAge: 100, minValue: 0, maxValue: 100, rangeLabel: '' };
 
    constructor(
       private lab: LabService,
@@ -328,6 +391,32 @@ export class LabComponent implements OnInit {
          link.href = url;
          link.download = `LabReport_${this.selectedReq.requestNumber}.pdf`;
          link.click();
+      });
+   }
+
+   updateStatus(status: string) {
+      this.lab.updateSpecimenStatus(this.selectedReq.id, status).subscribe({
+         next: () => {
+            this.toast.success(this.translate.instant('STATUS_UPDATED'));
+            this.loadRequests();
+            this.lab.getRequest(this.selectedReq.id).subscribe(r => this.selectedReq = r);
+         }
+      });
+   }
+
+   manageRanges(t: any) {
+      this.selectedTest = t;
+      this.lab.getTestRanges(t.id).subscribe(r => this.ranges = r);
+      this.showRangeModal = true;
+   }
+
+   addRange() {
+      this.lab.addTestRange(this.selectedTest.id, this.rangeForm).subscribe({
+         next: (newRange) => {
+            this.ranges.push(newRange);
+            this.toast.success(this.translate.instant('SUCCESS_SAVE'));
+            this.rangeForm = { gender: 'Both', minAge: 0, maxAge: 100, minValue: 0, maxValue: 100, rangeLabel: '' };
+         }
       });
    }
 }

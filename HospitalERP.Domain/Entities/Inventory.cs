@@ -17,9 +17,29 @@ public class Item : BaseEntity
     public string? Description { get; set; }
     public bool IsActive { get; set; } = true;
     public bool TrackBatches { get; set; } = false;
+
+    // Advanced Pharmacy Fields
+    public string? GenericName { get; set; }
+    public string? Strength { get; set; } // e.g., 500mg
+    public string? DosageForm { get; set; } // e.g., Tablet, Syrup
+    public bool IsNarcotic { get; set; } = false;
+    public bool RequiresRefrigeration { get; set; } = false;
+
     public ICollection<StockTransaction> StockTransactions { get; set; } = new List<StockTransaction>();
     public ICollection<WarehouseStock> WarehouseStocks { get; set; } = new List<WarehouseStock>();
     public ICollection<ItemBatch> Batches { get; set; } = new List<ItemBatch>();
+}
+
+public class MedicineInteraction : BaseEntity
+{
+    public int ItemAId { get; set; }
+    public Item ItemA { get; set; } = null!;
+    public int ItemBId { get; set; }
+    public Item ItemB { get; set; } = null!;
+    
+    public string Severity { get; set; } = "Moderate"; // Minor, Moderate, Major, Contraindicated
+    public string? InteractionDescription { get; set; }
+    public string? Recommendation { get; set; }
 }
 
 /// <summary>

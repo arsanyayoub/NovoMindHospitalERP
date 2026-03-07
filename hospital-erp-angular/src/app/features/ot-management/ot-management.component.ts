@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { OTService, PatientService, DoctorService, InventoryService, SystemService } from '../../core/services/api.services';
+import { OTService, PatientService, DoctorService, InventoryService, SystemService, BedManagementService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
 @Component({
@@ -85,6 +85,9 @@ import { ToastService } from '../../core/services/language.service';
                 <button class="btn btn-xs btn-icon btn-outline-primary" (click)="openResourceModal(s)" title="Resources">
                   <span class="material-icons-round">inventory_2</span>
                 </button>
+                <button class="btn btn-xs btn-icon btn-outline-info" (click)="openChecklistModal(s)" title="Safety Checklist">
+                   <span class="material-icons-round">rule</span>
+                </button>
                 <button class="btn btn-xs btn-icon btn-outline-secondary" (click)="openAuditModal(s)" title="Audit Logs">
                   <span class="material-icons-round">history</span>
                 </button>
@@ -146,9 +149,17 @@ import { ToastService } from '../../core/services/language.service';
           <div class="grid grid-cols-2 gap-4">
             <div class="form-group col-span-2">
               <label class="form-label">{{ 'PATIENT' | translate }} *</label>
-              <select class="form-control" [(ngModel)]="surgeryForm.patientId">
+              <select class="form-control" [(ngModel)]="surgeryForm.patientId" (change)="onPatientChange()">
                 <option *ngFor="let p of patients" [value]="p.id">{{ p.fullName }} ({{ p.patientCode }})</option>
               </select>
+            </div>
+
+            <div class="form-group col-span-2" *ngIf="activePatientAdmissions.length > 0">
+               <label class="form-label font-bold text-xs uppercase tracking-widest text-primary">{{ ('LINK_TO_ADMISSION' | translate) || 'Link to Inpatient Admission' }}</label>
+               <select class="form-control" [(ngModel)]="surgeryForm.bedAdmissionId">
+                  <option [value]="null">Outpatient / Not Linked</option>
+                  <option *ngFor="let a of activePatientAdmissions" [value]="a.id">{{ a.wardName }} - {{ a.bedNumber }} ({{ a.admissionDate | date:'short' }})</option>
+               </select>
             </div>
             
             <div class="form-group col-span-2">
@@ -331,6 +342,106 @@ import { ToastService } from '../../core/services/language.service';
         </div>
       </div>
     </div>
+
+    <!-- Checklist Modal -->
+    <div *ngIf="showChecklistModal" class="modal-wrapper">
+      <div class="modal-backdrop" (click)="showChecklistModal = false"></div>
+      <div class="modal-content" style="max-width: 800px">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title">{{ 'WHO_SURGICAL_SAFETY_CHECKLIST' | translate }}</h2>
+            <p class="text-xs text-muted">{{ selectedSurgery?.procedureName }} - {{ selectedSurgery?.patientName }}</p>
+          </div>
+          <button class="btn btn-icon text-muted" (click)="showChecklistModal = false"><span class="material-icons-round">close</span></button>
+        </div>
+        <div class="modal-body">
+          <div class="flex border-b mb-6 bg-gray-50 dark:bg-gray-800 rounded-xl px-2">
+             <button class="px-6 py-4 font-black text-sm transition-all border-b-2" 
+                [class.border-primary]="checklistStage === 'Sign-In'" [class.text-primary]="checklistStage === 'Sign-In'" [class.border-transparent]="checklistStage !== 'Sign-In'"
+                (click)="onChecklistStageChange('Sign-In')">{{ 'SIGN_IN' | translate }}</button>
+             <button class="px-6 py-4 font-black text-sm transition-all border-b-2" 
+                [class.border-primary]="checklistStage === 'Time-Out'" [class.text-primary]="checklistStage === 'Time-Out'" [class.border-transparent]="checklistStage !== 'Time-Out'"
+                (click)="onChecklistStageChange('Time-Out')">{{ 'TIME_OUT' | translate }}</button>
+             <button class="px-6 py-4 font-black text-sm transition-all border-b-2" 
+                [class.border-primary]="checklistStage === 'Sign-Out'" [class.text-primary]="checklistStage === 'Sign-Out'" [class.border-transparent]="checklistStage !== 'Sign-Out'"
+                (click)="onChecklistStageChange('Sign-Out')">{{ 'SIGN_OUT' | translate }}</button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 py-4 max-h-[50vh] overflow-y-auto px-2">
+             <ng-container *ngIf="checklistStage === 'Sign-In'">
+                <div class="flex items-center gap-3 p-3 bg-glass rounded-xl cursor-all-scroll" (click)="checklistForm.patientIdentityConfirmed = !checklistForm.patientIdentityConfirmed">
+                   <input type="checkbox" [(ngModel)]="checklistForm.patientIdentityConfirmed" class="w-5 h-5 accent-primary">
+                   <span class="text-xs font-bold">{{ 'CHECKLIST_PATIENT_CONFIRMED' | translate }}</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-glass rounded-xl cursor-all-scroll" (click)="checklistForm.siteMarked = !checklistForm.siteMarked">
+                   <input type="checkbox" [(ngModel)]="checklistForm.siteMarked" class="w-5 h-5 accent-primary">
+                   <span class="text-xs font-bold">{{ 'CHECKLIST_SITE_MARKED' | translate }}</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-glass rounded-xl cursor-all-scroll" (click)="checklistForm.consentChecked = !checklistForm.consentChecked">
+                   <input type="checkbox" [(ngModel)]="checklistForm.consentChecked" class="w-5 h-5 accent-primary">
+                   <span class="text-xs font-bold">{{ 'CHECKLIST_CONSENT_CHECKED' | translate }}</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-glass rounded-xl cursor-all-scroll" (click)="checklistForm.anesthesiaSafetyCheckDone = !checklistForm.anesthesiaSafetyCheckDone">
+                   <input type="checkbox" [(ngModel)]="checklistForm.anesthesiaSafetyCheckDone" class="w-5 h-5 accent-primary">
+                   <span class="text-xs font-bold">{{ 'CHECKLIST_ANESTHESIA_SAFETY' | translate }}</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-glass rounded-xl cursor-all-scroll" (click)="checklistForm.pulseOximeterOn = !checklistForm.pulseOximeterOn">
+                   <input type="checkbox" [(ngModel)]="checklistForm.pulseOximeterOn" class="w-5 h-5 accent-primary">
+                   <span class="text-xs font-bold">{{ 'CHECKLIST_PULSE_OXIMETER' | translate }}</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-glass rounded-xl cursor-all-scroll" (click)="checklistForm.allergyChecked = !checklistForm.allergyChecked">
+                   <input type="checkbox" [(ngModel)]="checklistForm.allergyChecked" class="w-5 h-5 accent-primary">
+                   <span class="text-xs font-bold">{{ 'CHECKLIST_ALLERGY_CHECKED' | translate }}</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-glass rounded-xl cursor-all-scroll" (click)="checklistForm.airwayRiskAssessed = !checklistForm.airwayRiskAssessed">
+                   <input type="checkbox" [(ngModel)]="checklistForm.airwayRiskAssessed" class="w-5 h-5 accent-primary">
+                   <span class="text-xs font-bold">{{ 'CHECKLIST_AIRWAY_RISK' | translate }}</span>
+                </div>
+             </ng-container>
+
+             <ng-container *ngIf="checklistStage === 'Time-Out'">
+                <div class="flex items-center gap-3 p-3 bg-glass rounded-xl cursor-all-scroll" (click)="checklistForm.teamMembersIntroduced = !checklistForm.teamMembersIntroduced">
+                   <input type="checkbox" [(ngModel)]="checklistForm.teamMembersIntroduced" class="w-5 h-5 accent-primary">
+                   <span class="text-xs font-bold">{{ 'CHECKLIST_TEAM_INTRODUCED' | translate }}</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-glass rounded-xl cursor-all-scroll" (click)="checklistForm.anticipatedBloodLossChecked = !checklistForm.anticipatedBloodLossChecked">
+                   <input type="checkbox" [(ngModel)]="checklistForm.anticipatedBloodLossChecked" class="w-5 h-5 accent-primary">
+                   <span class="text-xs font-bold">{{ 'CHECKLIST_BLOOD_LOSS' | translate }}</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-glass rounded-xl cursor-all-scroll" (click)="checklistForm.antibioticProphylaxisGiven = !checklistForm.antibioticProphylaxisGiven">
+                   <input type="checkbox" [(ngModel)]="checklistForm.antibioticProphylaxisGiven" class="w-5 h-5 accent-primary">
+                   <span class="text-xs font-bold">{{ 'CHECKLIST_ANTIBIOTICS' | translate }}</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-glass rounded-xl cursor-all-scroll" (click)="checklistForm.consentChecked = !checklistForm.consentChecked">
+                   <input type="checkbox" [(ngModel)]="checklistForm.consentChecked" class="w-5 h-5 accent-primary">
+                   <span class="text-xs font-bold">{{ 'CHECKLIST_CONFIRM_PROCEDURE' | translate }}</span>
+                </div>
+             </ng-container>
+
+             <ng-container *ngIf="checklistStage === 'Sign-Out'">
+                <div class="flex items-center gap-3 p-3 bg-glass rounded-xl cursor-all-scroll" (click)="checklistForm.instrumentCountConfirmed = !checklistForm.instrumentCountConfirmed">
+                   <input type="checkbox" [(ngModel)]="checklistForm.instrumentCountConfirmed" class="w-5 h-5 accent-primary">
+                   <span class="text-xs font-bold">{{ 'CHECKLIST_COUNTS' | translate }}</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-glass rounded-xl cursor-all-scroll" (click)="checklistForm.specimenLabeled = !checklistForm.specimenLabeled">
+                   <input type="checkbox" [(ngModel)]="checklistForm.specimenLabeled" class="w-5 h-5 accent-primary">
+                   <span class="text-xs font-bold">{{ 'CHECKLIST_SPECIMEN' | translate }}</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-glass rounded-xl cursor-all-scroll" (click)="checklistForm.equipmentIssuesAddressed = !checklistForm.equipmentIssuesAddressed">
+                   <input type="checkbox" [(ngModel)]="checklistForm.equipmentIssuesAddressed" class="w-5 h-5 accent-primary">
+                   <span class="text-xs font-bold">{{ 'CHECKLIST_EQUIPMENT' | translate }}</span>
+                </div>
+             </ng-container>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="text-[0.6rem] text-muted mr-auto" *ngIf="checklistCompletedBy">
+             Last saved by: <span class="font-black text-primary">{{ checklistCompletedBy }}</span>
+          </div>
+          <button class="btn btn-primary" (click)="saveChecklist()">{{ 'SAVE_STAGE' | translate }}</button>
+        </div>
+      </div>
+    </div>
   `,
   styles: [`
     .status-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
@@ -348,6 +459,7 @@ export class OTManagementComponent implements OnInit {
   theaters: any[] = [];
   patients: any[] = [];
   doctors: any[] = [];
+  activePatientAdmissions: any[] = [];
 
   showScheduleModal = false;
   surgeryForm: any = { priority: 'Routine' };
@@ -355,23 +467,30 @@ export class OTManagementComponent implements OnInit {
   showOTModal = false;
   otForm: any = { status: 'Available' };
 
-  constructor(
-    private otSvc: OTService,
-    private patientSvc: PatientService,
-    private doctorSvc: DoctorService,
-    private inventorySvc: InventoryService,
-    private systemSvc: SystemService,
-    private toast: ToastService
-  ) { }
-
   showResourceModal = false;
   showAuditModal = false;
+  showChecklistModal = false;
+
   selectedSurgery: any = null;
   resources: any[] = [];
   auditLogs: any[] = [];
   inventoryItems: any[] = [];
   resourceForm: any = { itemId: null, quantity: 1, batchNumber: '' };
 
+  checklistStage: 'Sign-In' | 'Time-Out' | 'Sign-Out' = 'Sign-In';
+  checklistForm: any = {};
+  checklistCompletedBy = '';
+  allChecklists: any[] = [];
+
+  constructor(
+    private otSvc: OTService,
+    private patientSvc: PatientService,
+    private doctorSvc: DoctorService,
+    private inventorySvc: InventoryService,
+    private systemSvc: SystemService,
+    private bedSvc: BedManagementService,
+    private toast: ToastService
+  ) { }
 
   ngOnInit() {
     this.loadData();
@@ -389,9 +508,23 @@ export class OTManagementComponent implements OnInit {
     this.doctorSvc.getAll({ page: 1, pageSize: 100 }).subscribe((res: any) => this.doctors = res.items);
   }
 
-
   loadInventory() {
     this.inventorySvc.getItems({ page: 1, pageSize: 500 }).subscribe(res => this.inventoryItems = res.items);
+  }
+
+  onPatientChange() {
+    if (!this.surgeryForm.patientId) {
+      this.activePatientAdmissions = [];
+      return;
+    }
+    this.bedSvc.getAdmissions({ patientId: this.surgeryForm.patientId, status: 'Admitted' }).subscribe(res => {
+      this.activePatientAdmissions = res.items;
+      if (this.activePatientAdmissions.length > 0) {
+        this.surgeryForm.bedAdmissionId = this.activePatientAdmissions[0].id;
+      } else {
+        this.surgeryForm.bedAdmissionId = null;
+      }
+    });
   }
 
   getStatusClass(status: string) {
@@ -406,9 +539,13 @@ export class OTManagementComponent implements OnInit {
     }
   }
 
-
   openScheduleModal() {
-    this.surgeryForm = { priority: 'Routine', scheduledStartTime: new Date().toISOString().slice(0, 16), scheduledEndTime: new Date().toISOString().slice(0, 16) };
+    this.surgeryForm = {
+      priority: 'Routine',
+      scheduledStartTime: new Date().toISOString().slice(0, 16),
+      scheduledEndTime: new Date().toISOString().slice(0, 16)
+    };
+    this.activePatientAdmissions = [];
     this.showScheduleModal = true;
   }
 
@@ -425,10 +562,9 @@ export class OTManagementComponent implements OnInit {
 
   updateStatus(surgery: any, nextStatus: string) {
     this.otSvc.updateSurgeryStatus(surgery.id, nextStatus).subscribe(() => {
-      this.toast.success(`Surgery status updated to ${nextStatus}`);
+      this.toast.success(`Surgery status updated to ${nextStatus} `);
       this.loadData();
 
-      // Auto-update OT status logic
       if (nextStatus === 'Intra-Op') {
         this.otSvc.updateOTStatus(surgery.operatingTheaterId, 'Busy').subscribe();
       } else if (nextStatus === 'Completed' || nextStatus === 'Cancelled') {
@@ -449,6 +585,41 @@ export class OTManagementComponent implements OnInit {
     this.otSvc.updateOTStatus(ot.id, status).subscribe(() => {
       this.toast.success('OT status updated');
       this.loadData();
+    });
+  }
+
+  // Checklist
+  openChecklistModal(surgery: any) {
+    this.selectedSurgery = surgery;
+    this.checklistStage = 'Sign-In';
+    this.showChecklistModal = true;
+    this.loadChecklists();
+  }
+
+  loadChecklists() {
+    this.otSvc.getChecklist(this.selectedSurgery.id).subscribe(res => {
+      this.allChecklists = res;
+      this.onChecklistStageChange(this.checklistStage);
+    });
+  }
+
+  onChecklistStageChange(stage: any) {
+    this.checklistStage = stage;
+    const existing = this.allChecklists.find(x => x.stage === stage);
+    if (existing) {
+      this.checklistForm = { ...existing };
+      this.checklistCompletedBy = existing.completedBy;
+    } else {
+      this.checklistForm = { stage: stage };
+      this.checklistCompletedBy = '';
+    }
+  }
+
+  saveChecklist() {
+    this.checklistForm.stage = this.checklistStage;
+    this.otSvc.saveChecklist(this.selectedSurgery.id, this.checklistForm).subscribe(() => {
+      this.toast.success(`Checklist ${this.checklistStage} saved`);
+      this.loadChecklists();
     });
   }
 
@@ -498,11 +669,10 @@ export class OTManagementComponent implements OnInit {
   }
 
   finalizeBill(s: any) {
-    if (!confirm('Are you sure you want to generate the final bill for this surgery? This will create an invoice for all consumed resources and professional fees.')) return;
-
+    if (!confirm('Are you sure you want to generate the final bill?')) return;
     this.otSvc.finalizeBill(s.id).subscribe({
       next: (res) => {
-        this.toast.success(`Bill generated successfully! Invoice ID: ${res.invoiceId}`);
+        this.toast.success(`Bill generated! Invoice ID: ${res.invoiceId} `);
         this.loadData();
       },
       error: () => this.toast.error('Failed to generate bill')

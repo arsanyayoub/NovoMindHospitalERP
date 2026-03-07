@@ -71,7 +71,7 @@ public class OTService : IOTService
             query = query.Where(s => s.ProcedureName.Contains(request.Search) || s.Patient.FullName.Contains(request.Search));
 
         var total = await query.CountAsync();
-        var items = await query.OrderBy(s => s.ScheduledStartTime)
+        var items = await query.OrderByDescending(s => s.ScheduledStartTime)
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
             .Select(s => ToDto(s))
@@ -88,6 +88,7 @@ public class OTService : IOTService
             .Include(x => x.Anesthetist)
             .Include(x => x.OperatingTheater)
             .Include(x => x.Resources).ThenInclude(r => r.Item)
+            .Include(x => x.Checklists)
             .FirstOrDefaultAsync(x => x.Id == id);
 
         return s == null ? null : ToDto(s);
@@ -101,6 +102,7 @@ public class OTService : IOTService
             LeadSurgeonId = dto.LeadSurgeonId,
             AnesthetistId = dto.AnesthetistId,
             OperatingTheaterId = dto.OperatingTheaterId,
+            BedAdmissionId = dto.BedAdmissionId,
             ProcedureName = dto.ProcedureName,
             ScheduledStartTime = dto.ScheduledStartTime,
             ScheduledEndTime = dto.ScheduledEndTime,
@@ -185,6 +187,16 @@ public class OTService : IOTService
             batch.QuantityRemaining -= dto.Quantity;
             if (batch.QuantityRemaining == 0) batch.Status = "Exhausted";
             
+            // Deduct from WarehouseStock as well
+            if (batch.WarehouseId.HasValue)
+            {
+                var ws = await _uow.WarehouseStocks.Query().FirstOrDefaultAsync(x => x.WarehouseId == batch.WarehouseId && x.ItemId == dto.ItemId);
+                if (ws != null)
+                {
+                    ws.Quantity -= dto.Quantity;
+                }
+            }
+
             await _uow.StockTransactions.AddAsync(new StockTransaction
             {
                 ItemId = dto.ItemId,
@@ -228,6 +240,54 @@ public class OTService : IOTService
         await _auditLog.LogAsync(userId, userId, "Remove Resource", "ScheduledSurgery", resource.ScheduledSurgeryId, $"Removed resource ID {resourceId} from surgery {resource.ScheduledSurgeryId}");
     }
 
+    public async Task SaveChecklistAsync(int surgeryId, CreateSurgeryChecklistDto dto, string userId)
+    {
+        var cl = await _uow.SurgeryChecklists.Query().FirstOrDefaultAsync(x => x.ScheduledSurgeryId == surgeryId && x.Stage == dto.Stage);
+        if (cl == null)
+        {
+            cl = new SurgeryChecklist
+            {
+                ScheduledSurgeryId = surgeryId,
+                Stage = dto.Stage,
+                CreatedBy = userId
+            };
+            await _uow.SurgeryChecklists.AddAsync(cl);
+        }
+
+        cl.PatientIdentityConfirmed = dto.PatientIdentityConfirmed;
+        cl.SiteMarked = dto.SiteMarked;
+        cl.ConsentChecked = dto.ConsentChecked;
+        cl.AnesthesiaSafetyCheckDone = dto.AnesthesiaSafetyCheckDone;
+        cl.PulseOximeterOn = dto.PulseOximeterOn;
+        cl.AllergyChecked = dto.AllergyChecked;
+        cl.AirwayRiskAssessed = dto.AirwayRiskAssessed;
+        cl.TeamMembersIntroduced = dto.TeamMembersIntroduced;
+        cl.AnticipatedBloodLossChecked = dto.AnticipatedBloodLossChecked;
+        cl.AntibioticProphylaxisGiven = dto.AntibioticProphylaxisGiven;
+        cl.InstrumentCountConfirmed = dto.InstrumentCountConfirmed;
+        cl.SpecimenLabeled = dto.SpecimenLabeled;
+        cl.EquipmentIssuesAddressed = dto.EquipmentIssuesAddressed;
+        cl.CompletedBy = userId;
+        cl.UpdatedBy = userId;
+        cl.UpdatedDate = DateTime.UtcNow;
+
+        await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(userId, userId, "Save Checklist", "SurgeryChecklist", cl.Id, $"Saved surgery checklist stage {dto.Stage} for surgery {surgeryId}");
+    }
+
+    public async Task<IEnumerable<SurgeryChecklistDto>> GetSurgeryChecklistsAsync(int surgeryId)
+    {
+        var items = await _uow.SurgeryChecklists.Query().Where(x => x.ScheduledSurgeryId == surgeryId).ToListAsync();
+        return items.Select(c => new SurgeryChecklistDto(
+            c.Id, c.ScheduledSurgeryId, c.Stage,
+            c.PatientIdentityConfirmed, c.SiteMarked, c.ConsentChecked,
+            c.AnesthesiaSafetyCheckDone, c.PulseOximeterOn, c.AllergyChecked, c.AirwayRiskAssessed,
+            c.TeamMembersIntroduced, c.AnticipatedBloodLossChecked, c.AntibioticProphylaxisGiven,
+            c.InstrumentCountConfirmed, c.SpecimenLabeled, c.EquipmentIssuesAddressed,
+            c.CompletedBy, c.CreatedDate
+        ));
+    }
+
     private static ScheduledSurgeryDto ToDto(ScheduledSurgery s)
     {
         return new ScheduledSurgeryDto(
@@ -235,12 +295,21 @@ public class OTService : IOTService
             s.LeadSurgeonId, s.LeadSurgeon?.FullName ?? "Unknown",
             s.AnesthetistId, s.Anesthetist?.FullName, 
             s.OperatingTheaterId, s.OperatingTheater?.Name ?? "Unknown OT",
+            s.BedAdmissionId,
             s.ProcedureName, s.ScheduledStartTime, s.ScheduledEndTime, 
             s.Priority, s.Status, s.PreOpDiagnosis, s.PostOpDiagnosis, s.Notes,
             s.InvoiceId, s.TotalCost,
             s.Resources?.Select(r => new SurgeryResourceDto(
                 r.Id, r.ScheduledSurgeryId, r.ItemId, r.Item?.ItemName ?? "Unknown",
                 r.Quantity, r.BatchNumber, r.Notes, r.ConsumedDate
+            )).ToList(),
+            s.Checklists?.Select(c => new SurgeryChecklistDto(
+                c.Id, c.ScheduledSurgeryId, c.Stage,
+                c.PatientIdentityConfirmed, c.SiteMarked, c.ConsentChecked,
+                c.AnesthesiaSafetyCheckDone, c.PulseOximeterOn, c.AllergyChecked, c.AirwayRiskAssessed,
+                c.TeamMembersIntroduced, c.AnticipatedBloodLossChecked, c.AntibioticProphylaxisGiven,
+                c.InstrumentCountConfirmed, c.SpecimenLabeled, c.EquipmentIssuesAddressed,
+                c.CompletedBy, c.CreatedDate
             )).ToList()
         );
     }

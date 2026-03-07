@@ -129,3 +129,18 @@ public class MedicationAdministration : BaseEntity
     public string? Dose { get; set; }
     public string? Notes { get; set; }
 }
+
+public class MedicineReturn : BaseEntity
+{
+    public int PrescriptionItemId { get; set; }
+    public PrescriptionItem PrescriptionItem { get; set; } = null!;
+    
+    public decimal QuantityReturned { get; set; }
+    public string Reason { get; set; } = string.Empty;
+    public string HandledBy { get; set; } = string.Empty;
+    public DateTime ReturnDate { get; set; } = DateTime.UtcNow;
+    
+    /// <summary>Accepted | Rejected | Quarantined</summary>
+    public string Status { get; set; } = "Accepted";
+    public string? Notes { get; set; }
+}

@@ -6,10 +6,10 @@ import { PharmacyService, PatientService, InventoryService } from '../../core/se
 import { ToastService } from '../../core/services/language.service';
 
 @Component({
-  selector: 'app-pharmacy',
-  standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
-  styles: [`
+   selector: 'app-pharmacy',
+   standalone: true,
+   imports: [CommonModule, FormsModule, TranslateModule],
+   styles: [`
     .rx-card { background: rgba(var(--card-bg-rgb), 0.3); border: 1px solid var(--border); border-radius: 20px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
     .rx-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: var(--shadow-lg); }
     
@@ -36,7 +36,7 @@ import { ToastService } from '../../core/services/language.service';
     .stat-label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; }
     .stat-icon { font-size: 40px; opacity: 0.15; position: absolute; right: 20px; bottom: 20px; }
   `],
-  template: `
+   template: `
     <div class="page-header">
       <div>
         <h1 class="page-title">{{ 'PHARMACY' | translate }}</h1>
@@ -65,6 +65,9 @@ import { ToastService } from '../../core/services/language.service';
       <button class="tab-trigger" [class.active]="tab==='expiry'" (click)="tab='expiry';loadExpiring()">
         <span class="material-icons-round">history_toggle_off</span> {{ 'INVENTORY_EXPIRY' | translate }}
       </button>
+      <button class="tab-trigger" [class.active]="tab==='returns'" (click)="tab='returns';loadReturns()">
+        <span class="material-icons-round">assignment_return</span> {{ 'RETURNS' | translate }}
+      </button>
     </div>
 
     <!-- OVERVIEW DASHBOARD -->
@@ -87,41 +90,51 @@ import { ToastService } from '../../core/services/language.service';
           </div>
        </div>
 
-       <div class="grid grid-cols-2 gap-8">
-          <div class="card p-6">
-             <h3 class="font-black text-lg mb-4 flex items-center gap-2"><span class="material-icons-round text-warning">report_problem</span> {{ 'CRITICAL_EXPIRY_ALERTS' | translate }}</h3>
-             <div class="flex flex-col gap-3">
-                <div *ngFor="let b of dashboard?.expiringBatches" class="flex items-center justify-between p-3 bg-glass border rounded-xl">
-                   <div>
-                      <div class="font-bold text-sm">{{ b.itemName }}</div>
-                      <div class="text-[0.65rem] font-black uppercase text-danger">{{ 'EXPIRES' | translate }}: {{ b.expiryDate | date:'mediumDate' }}</div>
-                   </div>
-                   <div class="text-right">
-                      <div class="badge badge-error">{{ b.daysRemaining }} {{ 'DAYS' | translate }}</div>
-                      <div class="text-[0.6rem] font-bold text-muted mt-1">{{ b.batchNumber }}</div>
-                   </div>
-                </div>
-                <div *ngIf="!dashboard?.expiringBatches?.length" class="p-8 text-center text-muted border-dashed border border-muted opacity-30 rounded-2xl">
-                   {{ 'NO_ALERTS' | translate }}
-                </div>
-             </div>
-          </div>
-          <div class="card p-6">
-             <h3 class="font-black text-lg mb-4 flex items-center gap-2"><span class="material-icons-round text-primary">analytics</span> {{ 'RECENT_PRESCRIPTIONS' | translate }}</h3>
-             <div class="flex flex-col gap-3">
-                <div *ngFor="let rx of dashboard?.recentPrescriptions" class="flex items-center justify-between p-3 bg-glass border rounded-xl">
-                   <div>
-                      <div class="font-bold text-sm">{{ rx.patientName }}</div>
-                      <div class="text-[0.65rem] font-bold text-primary">{{ rx.prescriptionNumber }}</div>
-                   </div>
-                   <div class="text-right">
-                      <div class="badge" [ngClass]="rx.status === 'Pending' ? 'badge-warning' : 'badge-success'">{{ rx.status | translate }}</div>
-                      <div class="text-[0.6rem] font-bold text-muted mt-1">{{ rx.prescriptionDate | date:'shortTime' }}</div>
-                   </div>
-                </div>
-             </div>
-          </div>
-       </div>
+        <div class="grid grid-cols-2 gap-8">
+           <div class="card p-6">
+              <div class="flex justify-between items-center mb-4">
+                 <h3 class="font-black text-lg flex items-center gap-2"><span class="material-icons-round text-primary">analytics</span> {{ 'NARCOTICS_REPORT' | translate }}</h3>
+                 <div class="flex gap-2">
+                    <input type="date" class="form-control form-control-sm" [(ngModel)]="reportStart">
+                    <input type="date" class="form-control form-control-sm" [(ngModel)]="reportEnd">
+                    <button class="btn btn-primary btn-sm" (click)="loadNarcoticsReport()">{{ 'GENERATE' | translate }}</button>
+                 </div>
+              </div>
+              <div class="flex flex-col gap-3 max-h-[400px] overflow-y-auto pr-2">
+                 <div *ngFor="let n of narcotics" class="flex items-center justify-between p-3 bg-glass border rounded-xl border-danger border-opacity-20">
+                    <div>
+                       <div class="font-bold text-sm text-danger">{{ n.itemName }}</div>
+                       <div class="text-[0.65rem] font-black uppercase text-secondary">{{ n.patientName }} | {{ n.prescriptionNumber }}</div>
+                    </div>
+                    <div class="text-right">
+                       <div class="badge badge-error">{{ n.quantity }}</div>
+                       <div class="text-[0.6rem] font-bold text-muted mt-1">{{ n.dispensedDate | date:'shortTime' }}</div>
+                    </div>
+                 </div>
+                 <div *ngIf="!narcotics.length" class="p-8 text-center text-muted border-dashed border border-muted opacity-30 rounded-2xl">
+                    {{ 'NO_RECORDS' | translate }}
+                 </div>
+              </div>
+           </div>
+           <div class="card p-6">
+              <h3 class="font-black text-lg mb-4 flex items-center gap-2"><span class="material-icons-round text-warning">report_problem</span> {{ 'CRITICAL_EXPIRY_ALERTS' | translate }}</h3>
+              <div class="flex flex-col gap-3">
+                 <div *ngFor="let b of dashboard?.expiringBatches" class="flex items-center justify-between p-3 bg-glass border rounded-xl">
+                    <div>
+                       <div class="font-bold text-sm">{{ b.itemName }}</div>
+                       <div class="text-[0.65rem] font-black uppercase text-danger">{{ 'EXPIRES' | translate }}: {{ b.expiryDate | date:'mediumDate' }}</div>
+                    </div>
+                    <div class="text-right">
+                       <div class="badge badge-error">{{ b.daysRemaining }} {{ 'DAYS' | translate }}</div>
+                       <div class="text-[0.6rem] font-bold text-muted mt-1">{{ b.batchNumber }}</div>
+                    </div>
+                 </div>
+                 <div *ngIf="!dashboard?.expiringBatches?.length" class="p-8 text-center text-muted border-dashed border border-muted opacity-30 rounded-2xl">
+                    {{ 'NO_ALERTS' | translate }}
+                 </div>
+              </div>
+           </div>
+        </div>
     </div>
 
     <!-- EXPIRY MANAGEMENT -->
@@ -215,7 +228,7 @@ import { ToastService } from '../../core/services/language.service';
        </div>
     </div>
 
-    <!-- DISPENSING COUNTER -->
+     <!-- DISPENSING COUNTER -->
     <div *ngIf="tab==='dispensing'" class="animate-in">
        <div class="mb-6 flex justify-between items-center">
          <div class="search-bar" style="max-width:350px">
@@ -244,14 +257,49 @@ import { ToastService } from '../../core/services/language.service';
              </div>
              <div class="text-right">
                 <div class="text-2xl font-black text-primary mb-1">{{ pi.quantity }} <span class="text-xs text-muted">QTY</span></div>
-                <button class="btn btn-primary px-4 shadow-primary" (click)="openDispenseForm(pi)">
-                   <span class="material-icons-round mr-1" style="font-size:18px">check_circle</span> {{ 'DISPENSE' | translate }}
-                </button>
+                <div class="flex gap-2 justify-end">
+                   <button class="btn btn-secondary btn-xs" (click)="openReturnForm(pi)">
+                      <span class="material-icons-round mr-1" style="font-size:16px">keyboard_return</span> {{ 'RETURN' | translate }}
+                   </button>
+                   <button class="btn btn-primary px-4 shadow-primary" (click)="openDispenseForm(pi)">
+                      <span class="material-icons-round mr-1" style="font-size:18px">check_circle</span> {{ 'DISPENSE' | translate }}
+                   </button>
+                </div>
              </div>
           </div>
           <div *ngIf="!pendingItems.length" class="p-20 text-center text-muted border border-dashed rounded-3xl">
              <span class="material-icons-round text-6xl opacity-20 mb-4">medication</span>
              <p class="font-bold text-lg text-muted">{{ 'CLEAR_WAITING_LIST' | translate }}</p>
+          </div>
+       </div>
+    </div>
+
+    <!-- RETURNS LIST -->
+    <div *ngIf="tab==='returns'" class="animate-in">
+       <div class="card p-0">
+          <div class="table-container">
+             <table class="table">
+                <thead>
+                   <tr>
+                      <th>{{ 'DATE' | translate }}</th>
+                      <th>{{ 'MEDICINE' | translate }}</th>
+                      <th>{{ 'QTY' | translate }}</th>
+                      <th>{{ 'REASON' | translate }}</th>
+                      <th>{{ 'HANDLED_BY' | translate }}</th>
+                      <th>{{ 'STATUS' | translate }}</th>
+                   </tr>
+                </thead>
+                <tbody>
+                   <tr *ngFor="let r of returnedItems" class="hover-row">
+                      <td class="text-sm">{{ r.returnDate | date:'medium' }}</td>
+                      <td class="font-bold">{{ r.medicineName }}</td>
+                      <td class="font-black">{{ r.quantityReturned }}</td>
+                      <td class="text-muted text-xs">{{ r.reason }}</td>
+                      <td class="font-semibold">{{ r.handledBy }}</td>
+                      <td><span class="badge badge-success">{{ r.status | translate }}</span></td>
+                   </tr>
+                </tbody>
+             </table>
           </div>
        </div>
     </div>
@@ -282,35 +330,43 @@ import { ToastService } from '../../core/services/language.service';
               <button class="btn btn-icon btn-sm btn-primary" (click)="addRxItem()"><span class="material-icons-round">add</span></button>
            </div>
            
-           <div class="flex flex-col gap-3">
-              <div *ngFor="let item of rxForm.items; let i = index" class="grid grid-cols-[2fr,1fr,1fr,1fr,1fr,auto] gap-3 items-end p-3 bg-glass border rounded-xl animate-in">
-                 <div class="form-group">
-                    <label class="form-label text-xs font-bold">{{ 'MEDICINE' | translate }}</label>
-                    <select class="form-control" [(ngModel)]="item.itemId">
-                       <option *ngFor="let m of medicines" [value]="m.id">{{ m.itemName }}</option>
-                    </select>
-                 </div>
-                 <div class="form-group">
-                    <label class="form-label text-xs font-bold">{{ 'DOSAGE' | translate }}</label>
-                    <input class="form-control" [(ngModel)]="item.dosage" placeholder="500mg">
-                 </div>
-                 <div class="form-group">
-                    <label class="form-label text-xs font-bold">{{ 'FREQ' | translate }}</label>
-                    <input class="form-control" [(ngModel)]="item.frequency" placeholder="TID">
-                 </div>
-                 <div class="form-group">
-                    <label class="form-label text-xs font-bold">{{ 'DURATION' | translate }}</label>
-                    <input class="form-control" [(ngModel)]="item.duration" placeholder="5d">
-                 </div>
-                 <div class="form-group">
-                    <label class="form-label text-xs font-bold">{{ 'QTY' | translate }}</label>
-                    <input class="form-control font-bold" type="number" [(ngModel)]="item.quantity">
-                 </div>
-                 <button class="btn btn-icon btn-xs text-danger mb-1" (click)="rxForm.items.splice(i, 1)"><span class="material-icons-round">delete_outline</span></button>
-              </div>
-           </div>
-        </div>
-        <div class="modal-footer">
+            <div class="flex flex-col gap-3">
+               <div *ngFor="let item of rxForm.items; let i = index" class="grid grid-cols-[2fr,1fr,1fr,1fr,1fr,auto] gap-3 items-end p-3 bg-glass border rounded-xl animate-in">
+                  <div class="form-group">
+                     <label class="form-label text-xs font-bold">{{ 'MEDICINE' | translate }}</label>
+                     <select class="form-control" [(ngModel)]="item.itemId" (change)="checkInteractions()">
+                        <option *ngFor="let m of medicines" [value]="m.id">{{ m.itemName }}</option>
+                     </select>
+                  </div>
+                  <div class="form-group">
+                     <label class="form-label text-xs font-bold">{{ 'DOSAGE' | translate }}</label>
+                     <input class="form-control" [(ngModel)]="item.dosage" placeholder="500mg">
+                  </div>
+                  <div class="form-group">
+                     <label class="form-label text-xs font-bold">{{ 'FREQ' | translate }}</label>
+                     <input class="form-control" [(ngModel)]="item.frequency" placeholder="TID">
+                  </div>
+                  <div class="form-group">
+                     <label class="form-label text-xs font-bold">{{ 'DURATION' | translate }}</label>
+                     <input class="form-control" [(ngModel)]="item.duration" placeholder="5d">
+                  </div>
+                  <div class="form-group">
+                     <label class="form-label text-xs font-bold">{{ 'QTY' | translate }}</label>
+                     <input class="form-control font-bold" type="number" [(ngModel)]="item.quantity">
+                  </div>
+                  <button class="btn btn-icon btn-xs text-danger mb-1" (click)="rxForm.items.splice(i, 1);checkInteractions()"><span class="material-icons-round">delete_outline</span></button>
+               </div>
+            </div>
+
+            <div *ngIf="interactionAlerts.length" class="mt-4 p-4 bg-danger bg-opacity-10 border border-danger border-opacity-20 rounded-2xl animate-in mx-1">
+               <h5 class="text-danger font-black flex items-center gap-2 mb-2"><span class="material-icons-round">warning</span> {{ 'DRUG_INTERACTIONS_FOUND' | translate }}</h5>
+               <div *ngFor="let alert of interactionAlerts" class="text-xs font-bold text-danger mb-1">
+                  • {{ alert.itemAName }} + {{ alert.itemBName }}: {{ alert.severity }} - {{ alert.interactionDescription }}
+                  <div class="ml-4 opacity-70 italic">{{ alert.recommendation }}</div>
+               </div>
+            </div>
+         </div>
+         <div class="modal-footer">
           <button class="btn btn-secondary" (click)="showRxForm=false">{{ 'CANCEL' | translate }}</button>
           <button class="btn btn-primary shadow-primary" (click)="savePrescription()" [disabled]="!rxForm.patientId || !rxForm.items.length">
             <span class="material-icons-round mr-1">send</span> {{ 'SAVE_AND_RELEASE' | translate }}
@@ -376,118 +432,200 @@ import { ToastService } from '../../core/services/language.service';
           </div>
        </div>
     </div>
+
+    <!-- RETURN MODAL -->
+    <div class="modal-overlay" *ngIf="showReturn" (click)="showReturn=false">
+       <div class="modal" (click)="$event.stopPropagation()" style="max-width:500px">
+          <div class="modal-header">
+             <h3 class="modal-title font-bold">{{ 'HANDLE_MEDICINE_RETURN' | translate }}</h3>
+             <button (click)="showReturn=false" class="btn-close">×</button>
+          </div>
+          <div class="modal-body">
+             <div class="p-4 bg-glass border rounded-2xl mb-6">
+                <div class="font-black text-primary">{{ returnItem.medicineName }}</div>
+                <div class="text-xs text-muted font-bold">{{ returnItem.patientName }} | Qty: {{ returnItem.quantity }}</div>
+             </div>
+             <div class="form-group mb-4">
+                <label class="form-label font-bold">{{ 'QTY_RETURNED' | translate }}</label>
+                <input class="form-control" type="number" [(ngModel)]="returnForm.quantityReturned">
+             </div>
+             <div class="form-group mb-4">
+                <label class="form-label font-bold">{{ 'REASON' | translate }}</label>
+                <textarea class="form-control" [(ngModel)]="returnForm.reason" rows="2"></textarea>
+             </div>
+             <div class="form-group">
+                <label class="form-label font-bold">{{ 'NOTES' | translate }}</label>
+                <input class="form-control" [(ngModel)]="returnForm.notes">
+             </div>
+          </div>
+         <div class="modal-footer">
+             <button class="btn btn-secondary" (click)="showReturn=false">{{ 'CANCEL' | translate }}</button>
+             <button class="btn btn-primary shadow-primary" (click)="confirmReturn()">{{ 'CONFIRM_RETURN' | translate }}</button>
+          </div>
+       </div>
+    </div>
   `
 })
 export class PharmacyComponent implements OnInit {
-  tab = 'overview';
-  prescriptions: any[] = [];
-  pendingItems: any[] = [];
-  expiringBatches: any[] = [];
-  dashboard: any = null;
-  runningJob = false;
-  patients: any[] = [];
-  medicines: any[] = [];
-  search = '';
-  pSearch = '';
-  showRxForm = false;
-  rxForm: any = { patientId: null, items: [], notes: '' };
+   tab = 'overview';
+   prescriptions: any[] = [];
+   pendingItems: any[] = [];
+   expiringBatches: any[] = [];
+   dashboard: any = null;
+   runningJob = false;
+   patients: any[] = [];
+   medicines: any[] = [];
+   search = '';
+   pSearch = '';
+   showRxForm = false;
+   rxForm: any = { patientId: null, items: [], notes: '' };
+   interactionAlerts: any[] = [];
 
-  showDispense = false;
-  selectedDispense: any = null;
-  itemBatches: any[] = [];
-  dispenseForm: any = { itemBatchId: null, quantity: 1 };
+   showDispense = false;
+   selectedDispense: any = null;
+   itemBatches: any[] = [];
+   dispenseForm: any = { itemBatchId: null, quantity: 1 };
 
-  constructor(
-    private pharmacy: PharmacyService,
-    private patientSvc: PatientService,
-    private invSvc: InventoryService,
-    private toast: ToastService,
-    private translate: TranslateService
-  ) { }
+   showReturn = false;
+   returnItem: any = null;
+   returnForm: any = { quantityReturned: 0, reason: '', notes: '' };
+   returnedItems: any[] = [];
+   narcotics: any[] = [];
+   reportStart: string = new Date().toISOString().split('T')[0];
+   reportEnd: string = new Date().toISOString().split('T')[0];
 
-  ngOnInit() {
-    this.loadDashboard();
-    this.patientSvc.getAll({ pageSize: 1000 }).subscribe((r: any) => this.patients = r.items);
-    this.invSvc.getItems({ pageSize: 1000 } as any, 'Medicine').subscribe((r: any) => this.medicines = r.items);
-  }
+   constructor(
+      private pharmacy: PharmacyService,
+      private patientSvc: PatientService,
+      private invSvc: InventoryService,
+      private toast: ToastService,
+      private translate: TranslateService
+   ) { }
 
-  loadDashboard() {
-    this.pharmacy.getDashboard().subscribe(d => this.dashboard = d);
-  }
+   ngOnInit() {
+      this.loadDashboard();
+      this.patientSvc.getAll({ pageSize: 1000 }).subscribe((r: any) => this.patients = r.items);
+      this.invSvc.getItems({ pageSize: 1000 } as any, 'Medicine').subscribe((r: any) => this.medicines = r.items);
+   }
 
-  runExpiryJob() {
-    this.runningJob = true;
-    this.pharmacy.runExpiryCheck().subscribe({
-      next: (r) => {
-        this.toast.success(r.message);
-        this.loadDashboard();
-        this.runningJob = false;
-      },
-      error: () => this.runningJob = false
-    });
-  }
+   loadDashboard() {
+      this.pharmacy.getDashboard().subscribe(d => this.dashboard = d);
+   }
 
-  loadExpiring() {
-    this.invSvc.getBatches({ page: 1, pageSize: 100 }, { excludeExhausted: true }).subscribe(r => this.expiringBatches = r.items);
-  }
+   runExpiryJob() {
+      this.runningJob = true;
+      this.pharmacy.runExpiryCheck().subscribe({
+         next: (r) => {
+            this.toast.success(r.message);
+            this.loadDashboard();
+            this.runningJob = false;
+         },
+         error: () => this.runningJob = false
+      });
+   }
 
-  loadPrescriptions() {
-    this.pharmacy.getPrescriptions({ search: this.search, page: 1, pageSize: 50 }).subscribe(r => this.prescriptions = r.items);
-  }
+   loadExpiring() {
+      this.invSvc.getBatches({ page: 1, pageSize: 100 }, { excludeExhausted: true }).subscribe(r => this.expiringBatches = r.items);
+   }
 
-  loadPending() {
-    this.pharmacy.getPendingDispensing().subscribe(data => {
-      this.pendingItems = this.pSearch ? data.filter((i: any) => i.patientName.toLowerCase().includes(this.pSearch.toLowerCase())) : data;
-    });
-  }
+   loadPrescriptions() {
+      this.pharmacy.getPrescriptions({ search: this.search, page: 1, pageSize: 50 }).subscribe(r => this.prescriptions = r.items);
+   }
 
-  openRxForm() {
-    this.rxForm = { patientId: null, notes: '', items: [] };
-    this.addRxItem();
-    this.showRxForm = true;
-  }
+   loadPending() {
+      this.pharmacy.getPendingDispensing().subscribe(data => {
+         this.pendingItems = this.pSearch ? data.filter((i: any) => i.patientName.toLowerCase().includes(this.pSearch.toLowerCase())) : data;
+      });
+   }
 
-  addRxItem() {
-    this.rxForm.items.push({ itemId: null, dosage: '', frequency: 'TID', duration: '5 Days', quantity: 10 });
-  }
+   openRxForm() {
+      this.rxForm = { patientId: null, notes: '', items: [] };
+      this.addRxItem();
+      this.showRxForm = true;
+   }
 
-  savePrescription() {
-    this.pharmacy.createPrescription(this.rxForm).subscribe({
-      next: () => {
-        this.toast.success(this.translate.instant('SUCCESS_SAVE'));
-        this.showRxForm = false;
-        this.loadPrescriptions();
-      },
-      error: (err) => this.toast.error(err.error?.message || this.translate.instant('ERROR_OCCURRED'))
-    });
-  }
+   addRxItem() {
+      this.rxForm.items.push({ itemId: null, dosage: '', frequency: 'TID', duration: '5 Days', quantity: 10 });
+   }
 
-  viewPrescription(p: any) {
-    this.toast.info(`${this.translate.instant('RX')} ${p.prescriptionNumber}: ${p.items.length} ${this.translate.instant('MEDS')}`);
-  }
+   savePrescription() {
+      this.pharmacy.createPrescription(this.rxForm).subscribe({
+         next: () => {
+            this.toast.success(this.translate.instant('SUCCESS_SAVE'));
+            this.showRxForm = false;
+            this.loadPrescriptions();
+         },
+         error: (err) => this.toast.error(err.error?.message || this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
 
-  openDispenseForm(pi: any) {
-    this.selectedDispense = pi;
-    this.dispenseForm = { itemBatchId: null, quantity: pi.quantity };
-    this.pharmacy.getAvailableBatches(pi.itemId).subscribe(batches => {
-      this.itemBatches = batches;
-      if (this.itemBatches.length > 0) {
-        // Auto-select the first batch (which is best per FEFO) unless it's expired
-        const bestBatch = this.itemBatches.find(b => !b.isExpired);
-        if (bestBatch) this.dispenseForm.itemBatchId = bestBatch.id;
+   viewPrescription(p: any) {
+      this.toast.info(`${this.translate.instant('RX')} ${p.prescriptionNumber}: ${p.items.length} ${this.translate.instant('MEDS')}`);
+   }
+
+   openDispenseForm(pi: any) {
+      this.selectedDispense = pi;
+      this.dispenseForm = { itemBatchId: null, quantity: pi.quantity };
+      this.pharmacy.getAvailableBatches(pi.itemId).subscribe(batches => {
+         this.itemBatches = batches;
+         if (this.itemBatches.length > 0) {
+            // Auto-select the first batch (which is best per FEFO) unless it's expired
+            const bestBatch = this.itemBatches.find(b => !b.isExpired);
+            if (bestBatch) this.dispenseForm.itemBatchId = bestBatch.id;
+         }
+         this.showDispense = true;
+      });
+   }
+
+   confirmDispense() {
+      this.pharmacy.dispenseItem(this.selectedDispense.id, this.dispenseForm).subscribe({
+         next: () => {
+            this.toast.success(this.translate.instant('SUCCESS_DISPENSE') || 'Dispensed successfully');
+            this.showDispense = false;
+            this.loadPending();
+         },
+         error: (err) => this.toast.error(err.error?.message || this.translate.instant('ERROR_OCCURRED'))
+      });
+   }
+
+   checkInteractions() {
+      if (!this.rxForm.patientId) return;
+      const itemIds = this.rxForm.items.map((i: any) => i.itemId).filter((id: any) => !!id);
+      if (!itemIds.length) {
+         this.interactionAlerts = [];
+         return;
       }
-      this.showDispense = true;
-    });
-  }
+      this.pharmacy.checkInteractions(this.rxForm.patientId, itemIds).subscribe(alerts => {
+         this.interactionAlerts = alerts;
+      });
+   }
 
-  confirmDispense() {
-    this.pharmacy.dispenseItem(this.selectedDispense.id, this.dispenseForm).subscribe({
-      next: () => {
-        this.toast.success(this.translate.instant('SUCCESS_DISPENSE') || 'Dispensed successfully');
-        this.showDispense = false;
-        this.loadPending();
-      },
-      error: (err) => this.toast.error(err.error?.message || this.translate.instant('ERROR_OCCURRED'))
-    });
-  }
+   openReturnForm(pi: any) {
+      this.returnItem = pi;
+      this.returnForm = { prescriptionItemId: pi.id, quantityReturned: pi.quantity, reason: 'Patient Refusal', notes: '' };
+      this.showReturn = true;
+   }
+
+   confirmReturn() {
+      this.pharmacy.processReturn(this.returnForm).subscribe({
+         next: () => {
+            this.toast.success(this.translate.instant('RETURN_PROCESSED'));
+            this.showReturn = false;
+            this.loadPending();
+            this.loadReturns();
+         }
+      });
+   }
+
+   loadReturns() {
+      this.pharmacy.getReturns({ page: 1, pageSize: 50 }).subscribe(res => {
+         this.returnedItems = res.items;
+      });
+   }
+
+   loadNarcoticsReport() {
+      this.pharmacy.getNarcoticsReport(this.reportStart, this.reportEnd).subscribe(data => {
+         this.narcotics = data;
+      });
+   }
 }

@@ -113,10 +113,11 @@ public class RadiologyService : IRadiologyService
         var res = await _uow.RadiologyResults.GetByIdAsync(resultId) ?? throw new KeyNotFoundException();
         res.Findings = dto.Findings; res.Impression = dto.Impression; res.ImageUrl = dto.ImageUrl;
         res.PerformedBy = dto.PerformedBy; res.RadiologistName = dto.RadiologistName;
+        res.RadiologyTemplateId = dto.RadiologyTemplateId;
         res.ResultDate = DateTime.UtcNow; res.UpdatedBy = updatedBy;
         _uow.RadiologyResults.Update(res);
         await _uow.SaveChangesAsync();
-        await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "RadiologyResult", resultId, $"Radiology Result updated for Radiology Request ID {res.RadiologyRequestId}.");
+        await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "RadiologyResult", resultId, $"Radiology Result updated for Radiology Request ID {res.RadiologyRequestId}. Template used: {dto.RadiologyTemplateId}");
 
         var req = await _uow.RadiologyRequests.Query().Include(r => r.Patient).Include(r => r.Doctor).Include(r => r.Results).ThenInclude(res => res.RadiologyTest).FirstOrDefaultAsync(x => x.Id == res.RadiologyRequestId);
         return ToRDto(req!);
@@ -140,7 +141,27 @@ public class RadiologyService : IRadiologyService
             req.Id);
     }
 
+    public async Task<RadiologyTemplateDto> CreateTemplateAsync(CreateRadiologyTemplateDto dto, string userId)
+    {
+        var template = new RadiologyTemplate
+        {
+            Name = dto.Name, Category = dto.Category, EnglishTemplate = dto.EnglishTemplate, ArabicTemplate = dto.ArabicTemplate, CreatedBy = userId
+        };
+        await _uow.RadiologyTemplates.AddAsync(template);
+        await _uow.SaveChangesAsync();
+        return ToTemplateDto(template);
+    }
+
+    public async Task<IEnumerable<RadiologyTemplateDto>> GetTemplatesAsync(string? category)
+    {
+        var query = _uow.RadiologyTemplates.Query().Where(x => x.IsActive);
+        if (!string.IsNullOrEmpty(category)) query = query.Where(x => x.Category == category);
+        var items = await query.ToListAsync();
+        return items.Select(ToTemplateDto);
+    }
+
     internal static RadiologyTestDto ToDto(RadiologyTest t) => new(t.Id, t.TestCode, t.Name, t.NameAr, t.Category, t.PreparationInstructions, t.Price, t.IsActive);
     internal static RadiologyRequestDto ToRDto(RadiologyRequest r) => new(r.Id, r.RequestNumber, r.PatientId, r.Patient?.FullName ?? "N/A", r.DoctorId, r.Doctor?.FullName, r.RequestDate, r.Status, r.TotalAmount, r.Notes, r.Results.Select(ToResDto).ToList());
-    internal static RadiologyResultDto ToResDto(RadiologyResult res) => new(res.Id, res.RadiologyRequestId, res.RadiologyTestId, res.RadiologyTest?.Name ?? "N/A", res.Findings, res.Impression, res.ImageUrl, res.ResultDate, res.PerformedBy, res.RadiologistName);
+    internal static RadiologyResultDto ToResDto(RadiologyResult res) => new(res.Id, res.RadiologyRequestId, res.RadiologyTestId, res.RadiologyTest?.Name ?? "N/A", res.Findings, res.Impression, res.ImageUrl, res.ResultDate, res.PerformedBy, res.RadiologistName, res.RadiologyTemplateId);
+    internal static RadiologyTemplateDto ToTemplateDto(RadiologyTemplate t) => new(t.Id, t.Name, t.Category, t.EnglishTemplate, t.ArabicTemplate, t.IsActive);
 }

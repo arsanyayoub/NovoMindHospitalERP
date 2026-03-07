@@ -30,6 +30,7 @@ public class HospitalERPDbContext : DbContext
     public DbSet<Warehouse> Warehouses => Set<Warehouse>();
     public DbSet<WarehouseStock> WarehouseStocks => Set<WarehouseStock>();
     public DbSet<StockTransaction> StockTransactions => Set<StockTransaction>();
+    public DbSet<MedicineInteraction> MedicineInteractions => Set<MedicineInteraction>();
 
     // Purchasing
     public DbSet<Supplier> Suppliers => Set<Supplier>();
@@ -56,11 +57,13 @@ public class HospitalERPDbContext : DbContext
     public DbSet<LabTest> LabTests => Set<LabTest>();
     public DbSet<LabRequest> LabRequests => Set<LabRequest>();
     public DbSet<LabResult> LabResults => Set<LabResult>();
+    public DbSet<LabTestReferenceRange> LabTestReferenceRanges => Set<LabTestReferenceRange>();
     
     // Radiology
     public DbSet<RadiologyTest> RadiologyTests => Set<RadiologyTest>();
     public DbSet<RadiologyRequest> RadiologyRequests => Set<RadiologyRequest>();
     public DbSet<RadiologyResult> RadiologyResults => Set<RadiologyResult>();
+    public DbSet<RadiologyTemplate> RadiologyTemplates => Set<RadiologyTemplate>();
 
     // Clinical & Pharmacy
     public DbSet<PatientVital> PatientVitals => Set<PatientVital>();
@@ -69,6 +72,7 @@ public class HospitalERPDbContext : DbContext
     public DbSet<ClinicalEncounter> ClinicalEncounters => Set<ClinicalEncounter>();
     public DbSet<InpatientNursingAssessment> InpatientNursingAssessments => Set<InpatientNursingAssessment>();
     public DbSet<MedicationAdministration> MedicationAdministrations => Set<MedicationAdministration>();
+    public DbSet<MedicineReturn> MedicineReturns => Set<MedicineReturn>();
 
     // Bed Management
     public DbSet<Ward> Wards => Set<Ward>();
@@ -119,6 +123,8 @@ public class HospitalERPDbContext : DbContext
         modelBuilder.Entity<RadiologyTest>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<RadiologyRequest>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<RadiologyResult>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<LabTestReferenceRange>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<RadiologyTemplate>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<PatientVital>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Prescription>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<PrescriptionItem>().HasQueryFilter(e => !e.IsDeleted);
@@ -262,6 +268,10 @@ public class HospitalERPDbContext : DbContext
         {
             e.HasIndex(t => t.TestCode).IsUnique();
         });
+        modelBuilder.Entity<LabTestReferenceRange>(e =>
+        {
+            e.HasOne(r => r.LabTest).WithMany(t => t.ReferenceRanges).HasForeignKey(r => r.LabTestId).OnDelete(DeleteBehavior.Cascade);
+        });
 
         // ── Radiology ────────────────────────────────────────────────
         modelBuilder.Entity<RadiologyRequest>(e =>
@@ -299,6 +309,15 @@ public class HospitalERPDbContext : DbContext
         {
             e.HasOne(ma => ma.PrescriptionItem).WithMany().HasForeignKey(ma => ma.PrescriptionItemId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(ma => ma.BedAdmission).WithMany().HasForeignKey(ma => ma.BedAdmissionId).OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<MedicineReturn>(e =>
+        {
+            e.HasOne(mr => mr.PrescriptionItem).WithMany().HasForeignKey(mr => mr.PrescriptionItemId).OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<MedicineInteraction>(e =>
+        {
+            e.HasOne(i => i.ItemA).WithMany().HasForeignKey(i => i.ItemAId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(i => i.ItemB).WithMany().HasForeignKey(i => i.ItemBId).OnDelete(DeleteBehavior.Restrict);
         });
         modelBuilder.Entity<PrescriptionItem>(e =>
         {

@@ -175,6 +175,11 @@ public interface ILabService
     Task<LabRequestDto> CreateRequestAsync(CreateLabRequestDto dto, string createdBy);
     Task<LabRequestDto> UpdateResultAsync(int resultId, UpdateLabResultDto dto, string updatedBy);
     Task CompleteRequestAsync(int requestId, string updatedBy);
+    
+    // Advanced LIS
+    Task UpdateSpecimenStatusAsync(int requestId, string status, string? collectedBy, string userId);
+    Task<LabTestReferenceRangeDto> AddTestRangeAsync(CreateLabTestReferenceRangeDto dto, string userId);
+    Task<IEnumerable<LabTestReferenceRangeDto>> GetTestRangesAsync(int testId);
 }
 
 public interface IRadiologyService
@@ -190,6 +195,10 @@ public interface IRadiologyService
     Task<RadiologyRequestDto> CreateRequestAsync(CreateRadiologyRequestDto dto, string createdBy);
     Task<RadiologyRequestDto> UpdateResultAsync(int resultId, UpdateRadiologyResultDto dto, string updatedBy);
     Task CompleteRequestAsync(int requestId, string updatedBy);
+
+    // Advanced Radiology
+    Task<RadiologyTemplateDto> CreateTemplateAsync(CreateRadiologyTemplateDto dto, string userId);
+    Task<IEnumerable<RadiologyTemplateDto>> GetTemplatesAsync(string? category);
 }
 
 public interface IClinicalService
@@ -228,6 +237,14 @@ public interface IPharmacyService
     
     Task<PharmacyDashboardDto> GetPharmacyDashboardAsync();
     Task CheckExpiringBatchesAsync();
+
+    // Advanced Clinical Pharmacy
+    Task<List<MedicineInteractionDto>> CheckInteractionsAsync(int patientId, List<int> itemIds);
+    Task<MedicineReturnDto> HandleMedicineReturnAsync(CreateMedicineReturnDto dto, string userId);
+    Task<List<MedicineInteractionDto>> GetInteractionsForItemAsync(int itemId);
+    Task AddInteractionAsync(CreateMedicineInteractionDto dto);
+    Task<PagedResult<MedicineReturnDto>> GetReturnsAsync(PagedRequest request);
+    Task<List<PrescriptionItemDto>> GetNarcoticsReportAsync(DateTime startDate, DateTime endDate);
 }
 
 public interface INotificationService
@@ -284,6 +301,10 @@ public interface IOTService
     Task AddSurgeryResourceAsync(int surgeryId, CreateSurgeryResourceDto dto, string userId);
     Task<IEnumerable<SurgeryResourceDto>> GetSurgeryResourcesAsync(int surgeryId);
     Task RemoveSurgeryResourceAsync(int resourceId, string userId);
+
+    // Surgical Checklist
+    Task SaveChecklistAsync(int surgeryId, CreateSurgeryChecklistDto dto, string userId);
+    Task<IEnumerable<SurgeryChecklistDto>> GetSurgeryChecklistsAsync(int surgeryId);
 }
 
 public interface IInsuranceService

@@ -51,6 +51,9 @@ import { NotificationService } from '../../core/services/notification.service';
        <button class="rad-tab-btn" [class.active]="tab==='tests'" (click)="tab='tests';loadTests()">
           <span class="material-icons-round">camera_alt</span> {{ 'MODALITY_CATALOG' | translate }}
        </button>
+       <button class="rad-tab-btn" [class.active]="tab==='templates'" (click)="tab='templates';loadTemplates()">
+          <span class="material-icons-round">description</span> {{ 'REPORT_TEMPLATES' | translate }}
+       </button>
     </div>
 
     <!-- IMAGING QUEUE -->
@@ -132,7 +135,15 @@ import { NotificationService } from '../../core/services/notification.service';
           </div>
           <div class="modal-body custom-scrollbar p-10 bg-glass" style="min-height:500px">
              <div *ngFor="let res of selectedReq?.results" class="findings-card animate-in border-primary border-opacity-20">
-                <h4 class="font-black text-xl mb-6 uppercase tracking-tight text-primary border-b pb-2">{{ res.testName }}</h4>
+                <div class="flex justify-between items-center mb-6 border-b pb-2">
+                   <h4 class="font-black text-xl uppercase tracking-tight text-primary">{{ res.testName }}</h4>
+                   <div class="flex items-center gap-3">
+                       <select class="form-control h-10 text-xs font-black min-w-[200px]" (change)="applyTemplate(res, $any($event.target).value)">
+                            <option value="">-- Apply Template --</option>
+                            <option *ngFor="let t of templates" [value]="t.id">{{ t.name }}</option>
+                       </select>
+                   </div>
+                </div>
                 <div class="grid grid-cols-2 gap-8">
                    <div class="form-group">
                       <label class="form-label font-black text-[0.65rem] uppercase tracking-widest mb-3">{{ 'RADIOLOGICAL_FINDINGS'|translate }}</label>
@@ -225,6 +236,10 @@ export class RadiologyComponent implements OnInit {
    reqForm: any = { patientId: null, testIds: [], notes: '' };
    patientsList: any[] = [];
 
+   templates: any[] = [];
+   showTemplateForm = false;
+   templateForm: any = { name: '', category: '', findingsTemplate: '', impressionTemplate: '' };
+
    constructor(
       private radiology: RadiologyService,
       private patientSvc: PatientService,
@@ -315,5 +330,39 @@ export class RadiologyComponent implements OnInit {
          link.download = `RadiologyReport_${this.selectedReq.requestNumber}.pdf`;
          link.click();
       });
+   }
+
+   loadTemplates() {
+      this.radiology.getTemplates().subscribe(r => this.templates = r);
+   }
+
+   openTemplateForm() {
+      this.templateForm = { name: '', category: '', findingsTemplate: '', impressionTemplate: '' };
+      this.showTemplateForm = true;
+   }
+
+   createTemplate() {
+      this.radiology.createTemplate(this.templateForm).subscribe({
+         next: () => {
+            this.toast.success(this.translate.instant('SUCCESS_SAVE'));
+            this.showTemplateForm = false;
+            this.loadTemplates();
+         }
+      });
+   }
+
+   applyTemplate(res: any, templateId: string) {
+      if (!templateId) return;
+      const t = this.templates.find(x => x.id === +templateId);
+      if (t) {
+         res.findings = t.findingsTemplate;
+         res.impression = t.impressionTemplate;
+         res.radiologyTemplateId = t.id;
+      }
+   }
+
+   viewTemplate(t: any) {
+      this.templateForm = { ...t };
+      this.showTemplateForm = true;
    }
 }

@@ -42,7 +42,9 @@ public class InventoryService : IInventoryService
             Category = dto.Category, Unit = dto.Unit,
             SalePrice = dto.SalePrice, PurchasePrice = dto.PurchasePrice,
             TaxRate = dto.TaxRate, Barcode = dto.Barcode,
-            Description = dto.Description, TrackBatches = dto.TrackBatches, CreatedBy = createdBy
+            Description = dto.Description, TrackBatches = dto.TrackBatches, CreatedBy = createdBy,
+            GenericName = dto.GenericName, Strength = dto.Strength, DosageForm = dto.DosageForm,
+            IsNarcotic = dto.IsNarcotic, RequiresRefrigeration = dto.RequiresRefrigeration
         };
         await _uow.Items.AddAsync(item);
         await _uow.SaveChangesAsync();
@@ -58,6 +60,8 @@ public class InventoryService : IInventoryService
         item.SalePrice = dto.SalePrice; item.PurchasePrice = dto.PurchasePrice;
         item.TaxRate = dto.TaxRate; item.Barcode = dto.Barcode;
         item.Description = dto.Description; item.TrackBatches = dto.TrackBatches; item.UpdatedBy = updatedBy;
+        item.GenericName = dto.GenericName; item.Strength = dto.Strength; item.DosageForm = dto.DosageForm;
+        item.IsNarcotic = dto.IsNarcotic; item.RequiresRefrigeration = dto.RequiresRefrigeration;
         _uow.Items.Update(item);
         await _uow.SaveChangesAsync();
         await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "Item", item.Id, $"Item {item.ItemName} updated.");
@@ -352,5 +356,9 @@ public class InventoryService : IInventoryService
             days, isExpired, isExpiringSoon);
     }
 
-    private static ItemDto ToDto(Item i) => new(i.Id, i.ItemCode, i.ItemName, i.ItemNameAr, i.Category, i.Unit, i.SalePrice, i.PurchasePrice, i.TaxRate, i.Barcode, i.Description, i.IsActive, i.TrackBatches, i.CreatedDate);
+    private static ItemDto ToDto(Item i) => new(
+        i.Id, i.ItemCode, i.ItemName, i.ItemNameAr, i.Category, i.Unit, 
+        i.SalePrice, i.PurchasePrice, i.TaxRate, i.Barcode, i.Description, i.IsActive, i.TrackBatches, 
+        i.GenericName, i.Strength, i.DosageForm, i.IsNarcotic, i.RequiresRefrigeration,
+        i.CreatedDate);
 }

@@ -75,4 +75,38 @@ public class PharmacyController : ControllerBase
         await _service.CheckExpiringBatchesAsync();
         return Ok(new { message = "Expiry check completed and notifications sent." });
     }
+
+    [HttpPost("check-interactions")]
+    public async Task<IActionResult> CheckInteractions([FromBody] InteractionCheckRequest request)
+    {
+        return Ok(await _service.CheckInteractionsAsync(request.PatientId, request.ItemIds));
+    }
+
+    [HttpPost("returns")]
+    public async Task<IActionResult> ProcessReturn([FromBody] CreateMedicineReturnDto dto)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.Name) ?? "System";
+        return Ok(await _service.HandleMedicineReturnAsync(dto, userId));
+    }
+
+    [HttpGet("returns")]
+    public async Task<IActionResult> GetReturns([FromQuery] PagedRequest request) =>
+        Ok(await _service.GetReturnsAsync(request));
+
+    [HttpGet("narcotics-report")]
+    public async Task<IActionResult> GetNarcoticsReport([FromQuery] DateTime start, [FromQuery] DateTime end) =>
+        Ok(await _service.GetNarcoticsReportAsync(start, end));
+
+    [HttpGet("interactions/{itemId}")]
+    public async Task<IActionResult> GetInteractionsForItem(int itemId) =>
+        Ok(await _service.GetInteractionsForItemAsync(itemId));
+
+    [HttpPost("interactions")]
+    public async Task<IActionResult> AddInteraction([FromBody] CreateMedicineInteractionDto dto)
+    {
+        await _service.AddInteractionAsync(dto);
+        return CreatedAtAction(nameof(GetInteractionsForItem), new { itemId = dto.ItemAId }, dto);
+    }
 }
+
+public record InteractionCheckRequest(int PatientId, List<int> ItemIds);

@@ -369,6 +369,20 @@ export class LabService {
     updateResult(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/results/${id}`, dto); }
     completeRequest(id: number): Observable<any> { return this.http.post<any>(`${this.API}/requests/${id}/complete`, {}); }
     downloadPdf(id: number): Observable<Blob> { return this.http.get(`${this.API}/requests/${id}/pdf`, { responseType: 'blob' }); }
+
+    updateSpecimenStatus(id: number, status: string, collectedBy?: string): Observable<any> {
+        let p = new HttpParams().set('status', status);
+        if (collectedBy) p = p.set('collectedBy', collectedBy);
+        return this.http.patch<any>(`${this.API}/requests/${id}/specimen-status`, {}, { params: p });
+    }
+
+    addTestRange(testId: number, dto: any): Observable<any> {
+        return this.http.post<any>(`${this.API}/tests/${testId}/ranges`, dto);
+    }
+
+    getTestRanges(testId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API}/tests/${testId}/ranges`);
+    }
 }
 
 @Injectable({ providedIn: 'root' })
@@ -390,6 +404,16 @@ export class RadiologyService {
     updateResult(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/results/${id}`, dto); }
     completeRequest(id: number): Observable<any> { return this.http.post<any>(`${this.API}/requests/${id}/complete`, {}); }
     downloadPdf(id: number): Observable<Blob> { return this.http.get(`${this.API}/requests/${id}/pdf`, { responseType: 'blob' }); }
+
+    getTemplates(category?: string): Observable<any[]> {
+        let p = new HttpParams();
+        if (category) p = p.set('category', category);
+        return this.http.get<any[]>(`${this.API}/templates`, { params: p });
+    }
+
+    createTemplate(dto: any): Observable<any> {
+        return this.http.post<any>(`${this.API}/templates`, dto);
+    }
 }
 
 @Injectable({ providedIn: 'root' })
@@ -466,6 +490,29 @@ export class PharmacyService {
 
     getDashboard(): Observable<any> { return this.http.get<any>(`${this.API}/dashboard`); }
     runExpiryCheck(): Observable<any> { return this.http.post<any>(`${this.API}/check-expiry`, {}); }
+
+    checkInteractions(patientId: number, itemIds: number[]): Observable<any[]> {
+        return this.http.post<any[]>(`${this.API}/check-interactions`, { patientId, itemIds });
+    }
+    processReturn(dto: any): Observable<any> {
+        return this.http.post<any>(`${this.API}/returns`, dto);
+    }
+    getReturns(req: PagedRequest = {}): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (req.page) params = params.set('page', req.page);
+        if (req.pageSize) params = params.set('pageSize', req.pageSize);
+        return this.http.get<PagedResult<any>>(`${this.API}/returns`, { params });
+    }
+    getNarcoticsReport(start: string, end: string): Observable<any[]> {
+        let p = new HttpParams().set('start', start).set('end', end);
+        return this.http.get<any[]>(`${this.API}/narcotics-report`, { params: p });
+    }
+    getInteractions(itemId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API}/interactions/${itemId}`);
+    }
+    addInteraction(dto: any): Observable<any> {
+        return this.http.post<any>(`${this.API}/interactions`, dto);
+    }
 }
 
 @Injectable({ providedIn: 'root' })
@@ -633,6 +680,14 @@ export class OTService {
     }
     finalizeBill(surgeryId: number): Observable<{ invoiceId: number }> {
         return this.http.post<{ invoiceId: number }>(`${this.API}/surgeries/${surgeryId}/finalize-bill`, {});
+    }
+
+    getChecklist(surgeryId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API}/surgeries/${surgeryId}/checklist`);
+    }
+
+    saveChecklist(surgeryId: number, dto: any): Observable<void> {
+        return this.http.post<void>(`${this.API}/surgeries/${surgeryId}/checklist`, dto);
     }
 }
 

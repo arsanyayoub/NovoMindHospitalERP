@@ -87,5 +87,18 @@ public class OTController : ControllerBase
         await _service.RemoveSurgeryResourceAsync(id, User.Identity?.Name ?? "system");
         return NoContent();
     }
+
+    [HttpGet("surgeries/{id}/checklist")]
+    public async Task<ActionResult<IEnumerable<SurgeryChecklistDto>>> GetChecklists(int id)
+    {
+        return Ok(await _service.GetSurgeryChecklistsAsync(id));
+    }
+
+    [HttpPost("surgeries/{id}/checklist")]
+    public async Task<IActionResult> SaveChecklist(int id, CreateSurgeryChecklistDto dto)
+    {
+        await _service.SaveChecklistAsync(id, dto, User.Identity?.Name ?? "system");
+        return Ok();
+    }
 }
 

@@ -188,7 +188,7 @@ public class PharmacyService : IPharmacyService
         return await query.OrderByDescending(pi => pi.Prescription.PrescriptionDate)
             .Select(pi => new PrescriptionItemDto(
                 pi.Id, pi.PrescriptionId, pi.ItemId, pi.Item.ItemName, pi.Dosage, pi.Frequency, pi.Duration, pi.Quantity, pi.Instructions, 
-                pi.IsDispensed, pi.DispensedDate, pi.DispensedBy
+                pi.IsDispensed, pi.DispensedDate, pi.DispensedBy, pi.Prescription.Patient.FullName, pi.Prescription.PrescriptionNumber
             )).ToListAsync();
     }
 
@@ -306,6 +306,122 @@ public class PharmacyService : IPharmacyService
         await _uow.SaveChangesAsync();
     }
 
+    // Advanced Clinical Pharmacy Implementation
+    public async Task<List<MedicineInteractionDto>> CheckInteractionsAsync(int patientId, List<int> itemIds)
+    {
+        // Get currently active prescriptions for the patient
+        var activePrescrItemIds = await _uow.PrescriptionItems.Query()
+            .Where(pi => pi.Prescription.PatientId == patientId && pi.Prescription.Status == "Pending" || pi.Prescription.Status == "Partially Dispensed")
+            .Select(pi => pi.ItemId)
+            .Distinct()
+            .ToListAsync();
+
+        var allItemIdsToCheck = activePrescrItemIds.Concat(itemIds).Distinct().ToList();
+        
+        var interactions = await _uow.MedicineInteractions.Query()
+            .Include(i => i.ItemA)
+            .Include(i => i.ItemB)
+            .Where(i => allItemIdsToCheck.Contains(i.ItemAId) && allItemIdsToCheck.Contains(i.ItemBId))
+            .ToListAsync();
+
+        return interactions.Select(i => new MedicineInteractionDto(
+            i.Id, i.ItemAId, i.ItemA.ItemName, i.ItemBId, i.ItemB.ItemName,
+            i.Severity, i.InteractionDescription, i.Recommendation
+        )).ToList();
+    }
+
+    public async Task<MedicineReturnDto> HandleMedicineReturnAsync(CreateMedicineReturnDto dto, string userId)
+    {
+        var pi = await _uow.PrescriptionItems.Query()
+            .Include(x => x.Prescription)
+            .Include(x => x.Item)
+            .FirstOrDefaultAsync(x => x.Id == dto.PrescriptionItemId) ?? throw new Exception("Prescription item not found");
+
+        if (dto.QuantityReturned > pi.Quantity) throw new Exception("Quantity returned exceeds original prescribed quantity");
+
+        var mr = new MedicineReturn
+        {
+            PrescriptionItemId = dto.PrescriptionItemId,
+            QuantityReturned = dto.QuantityReturned,
+            Reason = dto.Reason,
+            HandledBy = userId,
+            ReturnDate = DateTime.UtcNow,
+            Status = "Accepted",
+            Notes = dto.Notes
+        };
+
+        // If it's accepted, we might want to return it to stock? 
+        // For simplicity and safety, we mark as IN transaction but maybe to a separate 'Quarantine' or 'Returned' warehouse if we had one.
+        // Returning to the warehouse from which it was dispensed (if we can find it)
+        
+        await _uow.MedicineReturns.AddAsync(mr);
+        await _uow.SaveChangesAsync();
+
+        return new MedicineReturnDto(mr.Id, mr.PrescriptionItemId, pi.Item.ItemName, mr.QuantityReturned, mr.Reason, mr.HandledBy, mr.ReturnDate, mr.Status, mr.Notes);
+    }
+
+    public async Task<List<MedicineInteractionDto>> GetInteractionsForItemAsync(int itemId)
+    {
+        var interactions = await _uow.MedicineInteractions.Query()
+            .Include(i => i.ItemA)
+            .Include(i => i.ItemB)
+            .Where(i => i.ItemAId == itemId || i.ItemBId == itemId)
+            .ToListAsync();
+
+        return interactions.Select(i => new MedicineInteractionDto(
+            i.Id, i.ItemAId, i.ItemA.ItemName, i.ItemBId, i.ItemB.ItemName,
+            i.Severity, i.InteractionDescription, i.Recommendation
+        )).ToList();
+    }
+
+    public async Task AddInteractionAsync(CreateMedicineInteractionDto dto)
+    {
+        var interaction = new MedicineInteraction
+        {
+            ItemAId = dto.ItemAId,
+            ItemBId = dto.ItemBId,
+            Severity = dto.Severity,
+            InteractionDescription = dto.InteractionDescription,
+            Recommendation = dto.Recommendation
+        };
+
+        await _uow.MedicineInteractions.AddAsync(interaction);
+        await _uow.SaveChangesAsync();
+    }
+
+    public async Task<PagedResult<MedicineReturnDto>> GetReturnsAsync(PagedRequest request)
+    {
+        var query = _uow.MedicineReturns.Query()
+            .Include(r => r.PrescriptionItem).ThenInclude(pi => pi.Item)
+            .AsQueryable();
+
+        var total = await query.CountAsync();
+        var items = await query.OrderByDescending(r => r.ReturnDate)
+            .Skip((request.Page - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .Select(r => new MedicineReturnDto(
+                r.Id, r.PrescriptionItemId, r.PrescriptionItem.Item.ItemName, r.QuantityReturned,
+                r.Reason, r.HandledBy, r.ReturnDate, r.Status, r.Notes
+            )).ToListAsync();
+
+        return new PagedResult<MedicineReturnDto>(items, total, request.Page, request.PageSize);
+    }
+
+    public async Task<List<PrescriptionItemDto>> GetNarcoticsReportAsync(DateTime startDate, DateTime endDate)
+    {
+        var report = await _uow.PrescriptionItems.Query()
+            .Include(pi => pi.Item)
+            .Include(pi => pi.Prescription).ThenInclude(p => p.Patient)
+            .Where(pi => pi.Item.IsNarcotic && pi.DispensedDate >= startDate && pi.DispensedDate <= endDate && pi.IsDispensed)
+            .OrderByDescending(pi => pi.DispensedDate)
+            .Select(pi => new PrescriptionItemDto(
+                pi.Id, pi.PrescriptionId, pi.ItemId, pi.Item.ItemName, pi.Dosage, pi.Frequency, pi.Duration, pi.Quantity, pi.Instructions,
+                pi.IsDispensed, pi.DispensedDate, pi.DispensedBy, pi.Prescription.Patient.FullName, pi.Prescription.PrescriptionNumber
+            )).ToListAsync();
+
+        return report;
+    }
+
     internal static PrescriptionDto ToDto(Prescription p)
     {
         return new PrescriptionDto(
@@ -313,7 +429,7 @@ public class PharmacyService : IPharmacyService
             p.AppointmentId, p.BedAdmissionId, p.PrescriptionDate, p.Status, p.Notes,
             p.Items.Select(pi => new PrescriptionItemDto(
                 pi.Id, pi.PrescriptionId, pi.ItemId, pi.Item?.ItemName ?? "Unknown Item", pi.Dosage, pi.Frequency, pi.Duration, pi.Quantity, pi.Instructions,
-                pi.IsDispensed, pi.DispensedDate, pi.DispensedBy
+                pi.IsDispensed, pi.DispensedDate, pi.DispensedBy, p.Patient?.FullName, p.PrescriptionNumber
             )).ToList()
         );
     }

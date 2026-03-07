@@ -26,11 +26,11 @@ public class LabService : ILabService
             query = query.Where(t => t.Name.Contains(request.Search) || t.TestCode.Contains(request.Search) || t.Category.Contains(request.Search));
         
         var total = await query.CountAsync();
-        var items = await query.OrderBy(t => t.Name).Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToListAsync();
+        var items = await query.Include(t => t.ReferenceRanges).OrderBy(t => t.Name).Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToListAsync();
         return new PagedResult<LabTestDto>(items.Select(ToDto), total, request.Page, request.PageSize);
     }
 
-    public async Task<LabTestDto?> GetTestByIdAsync(int id) { var t = await _uow.LabTests.GetByIdAsync(id); return t is null ? null : ToDto(t); }
+    public async Task<LabTestDto?> GetTestByIdAsync(int id) { var t = await _uow.LabTests.Query().Include(x => x.ReferenceRanges).FirstOrDefaultAsync(x => x.Id == id); return t is null ? null : ToDto(t); }
 
     public async Task<LabTestDto> CreateTestAsync(CreateLabTestDto dto, string createdBy)
     {
@@ -110,16 +110,80 @@ public class LabService : ILabService
 
     public async Task<LabRequestDto> UpdateResultAsync(int resultId, UpdateLabResultDto dto, string updatedBy)
     {
-        var res = await _uow.LabResults.GetByIdAsync(resultId) ?? throw new KeyNotFoundException();
-        res.ResultValue = dto.ResultValue; 
-        res.Remarks = dto.Remarks; 
+        var res = await _uow.LabResults.Query()
+            .Include(x => x.LabRequest).ThenInclude(x => x.Patient)
+            .Include(x => x.LabTest).ThenInclude(x => x.ReferenceRanges)
+            .FirstOrDefaultAsync(x => x.Id == resultId) ?? throw new KeyNotFoundException();
+
+        res.ResultValue = dto.ResultValue;
+        res.Remarks = dto.Remarks;
         res.PerformedBy = dto.PerformedBy;
-        res.ResultFlag = dto.ResultFlag;
-        res.ResultDate = DateTime.UtcNow; 
+        res.ResultDate = DateTime.UtcNow;
         res.UpdatedBy = updatedBy;
-        _uow.LabResults.Update(res); 
-        await _uow.SaveChangesAsync(); 
-        await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "LabResult", resultId, $"Lab Result updated for Lab Request ID {res.LabRequestId}.");
+
+        // Auto-evaluate against reference ranges
+        if (decimal.TryParse(dto.ResultValue, out decimal val))
+        {
+            var patient = res.LabRequest.Patient;
+            var age = DateTime.UtcNow.Year - patient.DateOfBirth.Year;
+            var ranges = res.LabTest.ReferenceRanges;
+
+            var range = ranges.FirstOrDefault(r => 
+                (r.Gender == "All" || r.Gender == patient.Gender) && 
+                (!r.MinAge.HasValue || age >= r.MinAge.Value) && 
+                (!r.MaxAge.HasValue || age <= r.MaxAge.Value));
+
+            if (range != null)
+            {
+                if ((range.CriticalLow.HasValue && val <= range.CriticalLow.Value) || 
+                    (range.CriticalHigh.HasValue && val >= range.CriticalHigh.Value))
+                {
+                    res.ResultFlag = "Critical";
+                    res.IsCritical = true;
+                }
+                else if (range.MinValue.HasValue && val < range.MinValue.Value)
+                {
+                    res.ResultFlag = "Low";
+                    res.IsCritical = false;
+                }
+                else if (range.MaxValue.HasValue && val > range.MaxValue.Value)
+                {
+                    res.ResultFlag = "High";
+                    res.IsCritical = false;
+                }
+                else
+                {
+                    res.ResultFlag = "Normal";
+                    res.IsCritical = false;
+                }
+            }
+            else
+            {
+                 res.ResultFlag = dto.ResultFlag;
+                 res.IsCritical = dto.IsCritical;
+            }
+        }
+        else
+        {
+            res.ResultFlag = dto.ResultFlag;
+            res.IsCritical = dto.IsCritical;
+        }
+
+        _uow.LabResults.Update(res);
+        await _uow.SaveChangesAsync();
+
+        if (res.IsCritical)
+        {
+             await _notif.CreateNotificationAsync(
+                "CRITICAL LAB RESULT",
+                $"Critical value detected: {res.LabTest.Name} = {res.ResultValue} {res.Unit} for patient {res.LabRequest.Patient.FullName}.",
+                "Critical",
+                int.TryParse(res.LabRequest.CreatedBy, out var drId) ? drId : null,
+                "LabRequest",
+                res.LabRequestId);
+        }
+
+        await _auditLog.LogAsync(updatedBy, updatedBy, "Update", "LabResult", resultId, $"Lab Result updated for Lab Request ID {res.LabRequestId}. Flag: {res.ResultFlag}");
 
         var req = await _uow.LabRequests.Query().Include(r => r.Patient).Include(r => r.Doctor).Include(r => r.Results).ThenInclude(res => res.LabTest).FirstOrDefaultAsync(x => x.Id == res.LabRequestId);
         return ToRDto(req!);
@@ -143,7 +207,47 @@ public class LabService : ILabService
             req.Id);
     }
 
-    internal static LabTestDto ToDto(LabTest t) => new(t.Id, t.TestCode, t.Name, t.NameAr, t.Category, t.NormalRange, t.Unit, t.Price, t.IsActive);
-    internal static LabRequestDto ToRDto(LabRequest r) => new(r.Id, r.RequestNumber, r.PatientId, r.Patient?.FullName ?? "N/A", r.DoctorId, r.Doctor?.FullName, r.RequestDate, r.Status, r.TotalAmount, r.Notes, r.Results.Select(ToResDto).ToList());
-    internal static LabResultDto ToResDto(LabResult res) => new(res.Id, res.LabRequestId, res.LabTestId, res.LabTest?.Name ?? "N/A", res.ResultValue, res.NormalRange, res.Unit, res.ResultDate, res.Remarks, res.PerformedBy, res.ResultFlag);
+    public async Task UpdateSpecimenStatusAsync(int requestId, string status, string? collectedBy, string userId)
+    {
+        var req = await _uow.LabRequests.GetByIdAsync(requestId) ?? throw new KeyNotFoundException();
+        req.Status = status;
+        req.UpdatedBy = userId;
+        if (status == "Collected")
+        {
+            req.CollectionDate = DateTime.UtcNow;
+            req.CollectedBy = collectedBy;
+        }
+        else if (status == "AtLab")
+        {
+            req.ReceivedAtLabDate = DateTime.UtcNow;
+        }
+        
+        _uow.LabRequests.Update(req);
+        await _uow.SaveChangesAsync();
+        await _auditLog.LogAsync(userId, userId, "UpdateStatus", "LabRequest", requestId, $"Specimen status for {req.RequestNumber} updated to {status}.");
+    }
+
+    public async Task<LabTestReferenceRangeDto> AddTestRangeAsync(CreateLabTestReferenceRangeDto dto, string userId)
+    {
+        var range = new LabTestReferenceRange
+        {
+            LabTestId = dto.LabTestId, Gender = dto.Gender, MinAge = dto.MinAge, MaxAge = dto.MaxAge,
+            MinValue = dto.MinValue, MaxValue = dto.MaxValue, CriticalLow = dto.CriticalLow, CriticalHigh = dto.CriticalHigh,
+            Description = dto.Description, CreatedBy = userId
+        };
+        await _uow.LabTestReferenceRanges.AddAsync(range);
+        await _uow.SaveChangesAsync();
+        return ToRangeDto(range);
+    }
+
+    public async Task<IEnumerable<LabTestReferenceRangeDto>> GetTestRangesAsync(int testId)
+    {
+        var ranges = await _uow.LabTestReferenceRanges.Query().Where(r => r.LabTestId == testId).ToListAsync();
+        return ranges.Select(ToRangeDto);
+    }
+
+    internal static LabTestDto ToDto(LabTest t) => new(t.Id, t.TestCode, t.Name, t.NameAr, t.Category, t.NormalRange, t.Unit, t.Price, t.IsActive, t.ReferenceRanges?.Select(ToRangeDto).ToList() ?? new());
+    internal static LabTestReferenceRangeDto ToRangeDto(LabTestReferenceRange r) => new(r.Id, r.LabTestId, r.Gender, r.MinAge, r.MaxAge, r.MinValue, r.MaxValue, r.CriticalLow, r.CriticalHigh, r.Description);
+    internal static LabRequestDto ToRDto(LabRequest r) => new(r.Id, r.RequestNumber, r.PatientId, r.Patient?.FullName ?? "N/A", r.DoctorId, r.Doctor?.FullName, r.RequestDate, r.Status, r.CollectionDate, r.CollectedBy, r.ReceivedAtLabDate, r.TotalAmount, r.Notes, r.Results.Select(ToResDto).ToList());
+    internal static LabResultDto ToResDto(LabResult res) => new(res.Id, res.LabRequestId, res.LabTestId, res.LabTest?.Name ?? "N/A", res.ResultValue, res.NormalRange, res.Unit, res.ResultDate, res.Remarks, res.PerformedBy, res.ResultFlag, res.IsCritical);
 }

@@ -38,9 +38,11 @@ public interface IUnitOfWork : IDisposable
     IRepository<LabTest> LabTests { get; }
     IRepository<LabRequest> LabRequests { get; }
     IRepository<LabResult> LabResults { get; }
+    IRepository<LabTestReferenceRange> LabTestReferenceRanges { get; }
     IRepository<RadiologyTest> RadiologyTests { get; }
     IRepository<RadiologyRequest> RadiologyRequests { get; }
     IRepository<RadiologyResult> RadiologyResults { get; }
+    IRepository<RadiologyTemplate> RadiologyTemplates { get; }
     
     // Clinical
     IRepository<PatientVital> PatientVitals { get; }
@@ -64,6 +66,9 @@ public interface IUnitOfWork : IDisposable
     IRepository<OperatingTheater> OperatingTheaters { get; }
     IRepository<ScheduledSurgery> ScheduledSurgeries { get; }
     IRepository<SurgeryResource> SurgeryResources { get; }
+    IRepository<SurgeryChecklist> SurgeryChecklists { get; }
+    IRepository<MedicineInteraction> MedicineInteractions { get; }
+    IRepository<MedicineReturn> MedicineReturns { get; }
 
     // Insurance & TPA
     IRepository<InsuranceProvider> InsuranceProviders { get; }

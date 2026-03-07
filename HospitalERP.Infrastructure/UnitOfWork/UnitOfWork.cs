@@ -43,9 +43,11 @@ public class UnitOfWork : IUnitOfWork
         LabTests = new Repository<LabTest>(context);
         LabRequests = new Repository<LabRequest>(context);
         LabResults = new Repository<LabResult>(context);
+        LabTestReferenceRanges = new Repository<LabTestReferenceRange>(context);
         RadiologyTests = new Repository<RadiologyTest>(context);
         RadiologyRequests = new Repository<RadiologyRequest>(context);
         RadiologyResults = new Repository<RadiologyResult>(context);
+        RadiologyTemplates = new Repository<RadiologyTemplate>(context);
         PatientVitals = new Repository<PatientVital>(context);
         Prescriptions = new Repository<Prescription>(context);
         PrescriptionItems = new Repository<PrescriptionItem>(context);
@@ -61,6 +63,9 @@ public class UnitOfWork : IUnitOfWork
         OperatingTheaters = new Repository<OperatingTheater>(context);
         ScheduledSurgeries = new Repository<ScheduledSurgery>(context);
         SurgeryResources = new Repository<SurgeryResource>(context);
+        SurgeryChecklists = new Repository<SurgeryChecklist>(context);
+        MedicineInteractions = new Repository<MedicineInteraction>(context);
+        MedicineReturns = new Repository<MedicineReturn>(context);
         InsuranceProviders = new Repository<InsuranceProvider>(context);
         InsurancePlans = new Repository<InsurancePlan>(context);
         InsuranceClaims = new Repository<InsuranceClaim>(context);
@@ -99,9 +104,11 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<LabTest> LabTests { get; }
     public IRepository<LabRequest> LabRequests { get; }
     public IRepository<LabResult> LabResults { get; }
+    public IRepository<LabTestReferenceRange> LabTestReferenceRanges { get; }
     public IRepository<RadiologyTest> RadiologyTests { get; }
     public IRepository<RadiologyRequest> RadiologyRequests { get; }
     public IRepository<RadiologyResult> RadiologyResults { get; }
+    public IRepository<RadiologyTemplate> RadiologyTemplates { get; }
     public IRepository<PatientVital> PatientVitals { get; }
     public IRepository<Prescription> Prescriptions { get; }
     public IRepository<PrescriptionItem> PrescriptionItems { get; }
@@ -117,6 +124,9 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<OperatingTheater> OperatingTheaters { get; }
     public IRepository<ScheduledSurgery> ScheduledSurgeries { get; }
     public IRepository<SurgeryResource> SurgeryResources { get; }
+    public IRepository<SurgeryChecklist> SurgeryChecklists { get; }
+    public IRepository<MedicineInteraction> MedicineInteractions { get; }
+    public IRepository<MedicineReturn> MedicineReturns { get; }
     public IRepository<InsuranceProvider> InsuranceProviders { get; }
     public IRepository<InsurancePlan> InsurancePlans { get; }
     public IRepository<InsuranceClaim> InsuranceClaims { get; }
