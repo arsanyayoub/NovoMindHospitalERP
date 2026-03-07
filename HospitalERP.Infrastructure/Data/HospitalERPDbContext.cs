@@ -93,6 +93,17 @@ public class HospitalERPDbContext : DbContext
     public DbSet<InsurancePlan> InsurancePlans => Set<InsurancePlan>();
     public DbSet<InsuranceClaim> InsuranceClaims => Set<InsuranceClaim>();
 
+    // Blood Bank
+    public DbSet<BloodDonor> BloodDonors => Set<BloodDonor>();
+    public DbSet<BloodDonation> BloodDonations => Set<BloodDonation>();
+    public DbSet<BloodStock> BloodStocks => Set<BloodStock>();
+    public DbSet<BloodRequest> BloodRequests => Set<BloodRequest>();
+
+    // Maternity & NICU
+    public DbSet<PregnancyRecord> PregnancyRecords => Set<PregnancyRecord>();
+    public DbSet<DeliveryRecord> DeliveryRecords => Set<DeliveryRecord>();
+    public DbSet<NeonatalRecord> NeonatalRecords => Set<NeonatalRecord>();
+
     // Emergency
     public DbSet<EmergencyAdmission> EmergencyAdmissions => Set<EmergencyAdmission>();
     public DbSet<ERTriageVital> ERTriageVitals => Set<ERTriageVital>();
@@ -178,8 +189,8 @@ public class HospitalERPDbContext : DbContext
         modelBuilder.Entity<Patient>(e =>
         {
             e.HasIndex(p => p.PatientCode).IsUnique();
-            e.HasOne(p => p.InsuranceProviderLink).WithMany().HasForeignKey(p => p.InsuranceProviderId).OnDelete(DeleteBehavior.SetNull);
-            e.HasOne(p => p.InsurancePlan).WithMany().HasForeignKey(p => p.InsurancePlanId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(p => p.InsuranceProviderLink).WithMany().HasForeignKey(p => p.InsuranceProviderId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(p => p.InsurancePlan).WithMany().HasForeignKey(p => p.InsurancePlanId).OnDelete(DeleteBehavior.Restrict);
         });
 
         // ── Doctor ────────────────────────────────────────────────────
@@ -377,13 +388,42 @@ public class HospitalERPDbContext : DbContext
         {
             e.HasMany(p => p.Plans).WithOne(pl => pl.InsuranceProvider).HasForeignKey(pl => pl.InsuranceProviderId).OnDelete(DeleteBehavior.Cascade);
         });
-
         modelBuilder.Entity<InsuranceClaim>(e =>
         {
             e.HasIndex(c => c.ClaimNumber).IsUnique();
             e.HasOne(c => c.Invoice).WithMany().HasForeignKey(c => c.InvoiceId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(c => c.Patient).WithMany().HasForeignKey(c => c.PatientId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(c => c.InsuranceProvider).WithMany().HasForeignKey(c => c.InsuranceProviderId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ── Blood Bank ──────────────────────────────────────────────
+        modelBuilder.Entity<BloodDonation>(e =>
+        {
+            e.HasOne(d => d.BloodDonor).WithMany(dn => dn.Donations).HasForeignKey(d => d.BloodDonorId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(d => d.BloodStock).WithMany().HasForeignKey(d => d.BloodStockId).OnDelete(DeleteBehavior.SetNull);
+        });
+        modelBuilder.Entity<BloodStock>(e =>
+        {
+            e.HasOne(s => s.ReservedForPatient).WithMany().HasForeignKey(s => s.ReservedForPatientId).OnDelete(DeleteBehavior.SetNull);
+        });
+        modelBuilder.Entity<BloodRequest>(e =>
+        {
+            e.HasOne(r => r.Patient).WithMany().HasForeignKey(r => r.PatientId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ── Maternity ────────────────────────────────────────────────
+        modelBuilder.Entity<PregnancyRecord>(e =>
+        {
+            e.HasOne(p => p.Patient).WithMany().HasForeignKey(p => p.PatientId).OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<DeliveryRecord>(e =>
+        {
+            e.HasOne(d => d.PregnancyRecord).WithMany(p => p.Deliveries).HasForeignKey(d => d.PregnancyRecordId).OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<NeonatalRecord>(e =>
+        {
+            e.HasOne(n => n.DeliveryRecord).WithMany(d => d.NeonatalRecords).HasForeignKey(n => n.DeliveryRecordId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(n => n.BabyPatient).WithMany().HasForeignKey(n => n.BabyPatientId).OnDelete(DeleteBehavior.NoAction);
         });
 
         // ── Seed Data ─────────────────────────────────────────────────

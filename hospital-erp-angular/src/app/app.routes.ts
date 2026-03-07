@@ -132,6 +132,14 @@ export const routes: Routes = [
             {
                 path: 'assets',
                 loadComponent: () => import('./features/assets/assets.component').then(m => m.AssetsComponent)
+            },
+            {
+                path: 'blood-bank',
+                loadComponent: () => import('./features/blood-bank/blood-bank.component').then(m => m.BloodBankComponent)
+            },
+            {
+                path: 'maternity',
+                loadComponent: () => import('./features/maternity/maternity.component').then(m => m.MaternityComponent)
             }
         ]
     },

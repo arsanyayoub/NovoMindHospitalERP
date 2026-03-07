@@ -634,3 +634,50 @@ public record TransferToInpatientDto(
     int? DoctorId,
     string? AdmissionReason,
     string? Notes);
+
+// ═══════════════════════════════════════════════════════════════
+//  BLOOD BANK
+// ═══════════════════════════════════════════════════════════════
+public record BloodDonorDto(int Id, string FullName, string DonorCode, string BloodGroup, string RhFactor, 
+    DateTime DateOfBirth, string Gender, string PhoneNumber, string? Email, string? Address, 
+    DateTime? LastDonationDate, bool IsEligible, string? EligibilityNotes);
+
+public record CreateBloodDonorDto(string FullName, string BloodGroup, string RhFactor, DateTime DateOfBirth, 
+    string Gender, string PhoneNumber, string? Email, string? Address, bool IsEligible = true, string? EligibilityNotes = null);
+
+public record BloodDonationDto(int Id, int BloodDonorId, string DonorName, string DonorCode, DateTime DonationDate, 
+    decimal VolumeMl, string ComponentType, string BagNumber, DateTime ExpiryDate, string CollectedBy);
+
+public record CreateBloodDonationDto(int BloodDonorId, decimal VolumeMl, string ComponentType, string BagNumber, 
+    DateTime ExpiryDate, string CollectedBy, string? StorageLocation = null);
+
+public record BloodStockDto(int Id, string BagNumber, string BloodGroup, string RhFactor, string ComponentType, 
+    DateTime ExpiryDate, decimal VolumeMl, string Status, string? StorageLocation, int? ReservedForPatientId, string? PatientName);
+
+public record BloodRequestDto(int Id, string RequestNumber, int PatientId, string PatientName, string BloodGroupRequired, 
+    string RhFactorRequired, string ComponentType, int UnitsRequested, string Urgency, string Status, 
+    string? ClinicalIndication, string RequestedBy, DateTime RequiredDate, DateTime CreatedDate);
+
+public record CreateBloodRequestDto(int PatientId, string BloodGroupRequired, string RhFactorRequired, 
+    string ComponentType, int UnitsRequested, string Urgency, string? ClinicalIndication, DateTime RequiredDate);
+
+// ═══════════════════════════════════════════════════════════════
+//  MATERNITY & NICU
+// ═══════════════════════════════════════════════════════════════
+public record PregnancyRecordDto(int Id, int PatientId, string PatientName, DateTime? LMP, DateTime EDD, 
+    int Gravidity, int Parity, string BloodGroup, string? RiskFactors, string? Status);
+
+public record CreatePregnancyRecordDto(int PatientId, DateTime? LMP, DateTime EDD, int Gravidity, int Parity, 
+    string BloodGroup, string? RiskFactors);
+
+public record DeliveryRecordDto(int Id, int PregnancyRecordId, DateTime DeliveryDateTime, string ModeOfDelivery, 
+    string? Complications, string? AttendingDoctor, List<NeonatalRecordDto> Babies);
+
+public record CreateDeliveryRecordDto(int PregnancyRecordId, DateTime DeliveryDateTime, string ModeOfDelivery, 
+    string? Complications, string? AttendingDoctor);
+
+public record NeonatalRecordDto(int Id, int DeliveryRecordId, int BabyPatientId, string BabyName, decimal BirthWeight, 
+    int Apgar1Min, int Apgar5Min, string Gender, string? HealthStatus);
+
+public record CreateNeonatalRecordDto(int DeliveryRecordId, string FullName, decimal BirthWeight, 
+    int Apgar1Min, int Apgar5Min, string Gender, string? HealthStatus);

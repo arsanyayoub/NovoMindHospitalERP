@@ -78,6 +78,17 @@ public interface IUnitOfWork : IDisposable
     IRepository<InsuranceClaim> InsuranceClaims { get; }
     IRepository<MaintenanceTicket> MaintenanceTickets { get; }
 
+    // Blood Bank
+    IRepository<BloodDonor> BloodDonors { get; }
+    IRepository<BloodDonation> BloodDonations { get; }
+    IRepository<BloodStock> BloodStocks { get; }
+    IRepository<BloodRequest> BloodRequests { get; }
+
+    // Maternity & NICU
+    IRepository<PregnancyRecord> PregnancyRecords { get; }
+    IRepository<DeliveryRecord> DeliveryRecords { get; }
+    IRepository<NeonatalRecord> NeonatalRecords { get; }
+
     Task<int> SaveChangesAsync();
 
 }

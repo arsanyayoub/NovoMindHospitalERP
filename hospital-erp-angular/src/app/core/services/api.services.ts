@@ -798,3 +798,86 @@ export class EmergencyService {
     getTreatmentSummary(id: number): Observable<any> { return this.http.get<any>(`${this.API}/${id}/treatment`); }
     transferToInpatient(id: number, data: any): Observable<any> { return this.http.post<any>(`${this.API}/${id}/transfer-inpatient`, data); }
 }
+
+@Injectable({ providedIn: 'root' })
+export class BloodBankService {
+    private readonly API = `${environment.apiUrl}/bloodbank`;
+    constructor(private http: HttpClient) { }
+
+    // Donors
+    getDonors(request: PagedRequest = {}, bloodGroup?: string): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (request.search) params = params.set('search', request.search);
+        if (bloodGroup) params = params.set('bloodGroup', bloodGroup);
+        return this.http.get<PagedResult<any>>(`${this.API}/donors`, { params });
+    }
+    getDonorById(id: number): Observable<any> { return this.http.get<any>(`${this.API}/donors/${id}`); }
+    createDonor(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/donors`, dto); }
+    updateDonor(id: number, dto: any): Observable<any> { return this.http.put<any>(`${this.API}/donors/${id}`, dto); }
+
+    // Donations
+    getDonations(request: PagedRequest = {}, donorId?: number): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (donorId) params = params.set('donorId', donorId);
+        return this.http.get<PagedResult<any>>(`${this.API}/donations`, { params });
+    }
+    recordDonation(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/donations`, dto); }
+
+    // Stock
+    getStock(request: PagedRequest = {}, filters: any = {}): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (filters.bloodGroup) params = params.set('bloodGroup', filters.bloodGroup);
+        if (filters.component) params = params.set('component', filters.component);
+        if (filters.status) params = params.set('status', filters.status);
+        return this.http.get<PagedResult<any>>(`${this.API}/stock`, { params });
+    }
+    updateStockStatus(id: number, payload: any): Observable<any> { return this.http.patch<any>(`${this.API}/stock/${id}/status`, payload); }
+
+    // Requests
+    getRequests(request: PagedRequest = {}, status?: string): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (status) params = params.set('status', status);
+        return this.http.get<PagedResult<any>>(`${this.API}/requests`, { params });
+    }
+    createRequest(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/requests`, dto); }
+    updateRequestStatus(id: number, status: string): Observable<any> { return this.http.patch<any>(`${this.API}/requests/${id}/status`, `"${status}"`, { headers: { 'Content-Type': 'application/json' } }); }
+}
+
+@Injectable({ providedIn: 'root' })
+export class MaternityService {
+    private readonly API = `${environment.apiUrl}/maternity`;
+    constructor(private http: HttpClient) { }
+
+    // Pregnancy
+    getPregnancies(request: PagedRequest = {}, status?: string): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (status) params = params.set('status', status);
+        return this.http.get<PagedResult<any>>(`${this.API}/pregnancies`, { params });
+    }
+    createPregnancy(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/pregnancies`, dto); }
+
+    // Delivery
+    recordDelivery(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/deliveries`, dto); }
+    getDeliveries(pregnancyId: number): Observable<any[]> { return this.http.get<any[]>(`${this.API}/pregnancies/${pregnancyId}/deliveries`); }
+
+    // Neonatal
+    recordBirth(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/births`, dto); }
+    getNeonatalRecords(request: PagedRequest = {}, gender?: string): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (gender) params = params.set('gender', gender);
+        return this.http.get<PagedResult<any>>(`${this.API}/neonatal`, { params });
+    }
+}
+

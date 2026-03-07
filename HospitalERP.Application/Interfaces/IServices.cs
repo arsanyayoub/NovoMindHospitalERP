@@ -356,3 +356,40 @@ public interface IEmergencyService
 }
 
 public record EmergencyOccupancyDto(int TotalPatients, int Level1Count, int Level2Count, int Level3Count, int WaitingCount);
+
+public interface IBloodBankService
+{
+    // Donors
+    Task<PagedResult<BloodDonorDto>> GetDonorsAsync(PagedRequest request, string? bloodGroup = null);
+    Task<BloodDonorDto?> GetDonorByIdAsync(int id);
+    Task<BloodDonorDto> CreateDonorAsync(CreateBloodDonorDto dto, string userId);
+    Task<BloodDonorDto> UpdateDonorAsync(int id, CreateBloodDonorDto dto, string userId);
+
+    // Donations
+    Task<PagedResult<BloodDonationDto>> GetDonationsAsync(PagedRequest request, int? donorId = null);
+    Task<BloodDonationDto> RecordDonationAsync(CreateBloodDonationDto dto, string userId);
+
+    // Stock
+    Task<PagedResult<BloodStockDto>> GetStockAsync(PagedRequest request, string? bloodGroup = null, string? component = null, string? status = null);
+    Task<BloodStockDto> UpdateStockStatusAsync(int id, string status, string? storageLocation, string userId);
+
+    // Requests
+    Task<PagedResult<BloodRequestDto>> GetRequestsAsync(PagedRequest request, string? status = null);
+    Task<BloodRequestDto> CreateRequestAsync(CreateBloodRequestDto dto, string userId);
+    Task<BloodRequestDto> UpdateRequestAsync(int id, string status, string userId);
+}
+
+public interface IMaternityService
+{
+    // Pregnancy
+    Task<PagedResult<PregnancyRecordDto>> GetPregnanciesAsync(PagedRequest request, string? status = null);
+    Task<PregnancyRecordDto> CreatePregnancyAsync(CreatePregnancyRecordDto dto, string userId);
+    
+    // Delivery
+    Task<DeliveryRecordDto> RecordDeliveryAsync(CreateDeliveryRecordDto dto, string userId);
+    Task<IEnumerable<DeliveryRecordDto>> GetDeliveriesByPregnancyAsync(int pregnancyId);
+    
+    // Neonatal
+    Task<NeonatalRecordDto> RecordBirthAsync(CreateNeonatalRecordDto dto, string userId);
+    Task<PagedResult<NeonatalRecordDto>> GetNeonatalRecordsAsync(PagedRequest request, string? gender = null);
+}

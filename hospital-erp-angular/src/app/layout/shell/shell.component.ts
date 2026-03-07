@@ -291,6 +291,8 @@ export class ShellComponent implements OnInit {
     { label: 'SALES', icon: 'point_of_sale', route: '/sales', roles: ['Admin', 'Accountant'] },
     { label: 'LAB', icon: 'biotech', route: '/lab', roles: ['Admin', 'Doctor', 'Nurse'] },
     { label: 'RADIOLOGY', icon: 'settings_overscan', route: '/radiology', roles: ['Admin', 'Doctor', 'Nurse'] },
+    { label: 'BLOOD_BANK', icon: 'water_drop', route: '/blood-bank', roles: ['Admin', 'Doctor', 'Nurse', 'Lab'] },
+    { label: 'MATERNITY_NICU', icon: 'child_care', route: '/maternity', roles: ['Admin', 'Doctor', 'Nurse'] },
     { label: 'CLINICAL', icon: 'monitor_heart', route: '/clinical', roles: ['Admin', 'Doctor', 'Nurse'] },
     { label: 'PHARMACY', icon: 'medication', route: '/pharmacy', roles: ['Admin', 'Doctor', 'Nurse'] },
     { label: 'EMERGENCY', icon: 'emergency', route: '/emergency', roles: ['Admin', 'Doctor', 'Nurse', 'Receptionist'] },

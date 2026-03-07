@@ -72,6 +72,13 @@ public class UnitOfWork : IUnitOfWork
         MaintenanceTickets = new Repository<MaintenanceTicket>(context);
         EmergencyAdmissions = new Repository<EmergencyAdmission>(context);
         ERTriageVitals = new Repository<ERTriageVital>(context);
+        BloodDonors = new Repository<BloodDonor>(context);
+        BloodDonations = new Repository<BloodDonation>(context);
+        BloodStocks = new Repository<BloodStock>(context);
+        BloodRequests = new Repository<BloodRequest>(context);
+        PregnancyRecords = new Repository<PregnancyRecord>(context);
+        DeliveryRecords = new Repository<DeliveryRecord>(context);
+        NeonatalRecords = new Repository<NeonatalRecord>(context);
     }
 
     public IRepository<User> Users { get; }
@@ -135,6 +142,13 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<MaintenanceTicket> MaintenanceTickets { get; }
     public IRepository<EmergencyAdmission> EmergencyAdmissions { get; }
     public IRepository<ERTriageVital> ERTriageVitals { get; }
+    public IRepository<BloodDonor> BloodDonors { get; }
+    public IRepository<BloodDonation> BloodDonations { get; }
+    public IRepository<BloodStock> BloodStocks { get; }
+    public IRepository<BloodRequest> BloodRequests { get; }
+    public IRepository<PregnancyRecord> PregnancyRecords { get; }
+    public IRepository<DeliveryRecord> DeliveryRecords { get; }
+    public IRepository<NeonatalRecord> NeonatalRecords { get; }
 
     public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
 
