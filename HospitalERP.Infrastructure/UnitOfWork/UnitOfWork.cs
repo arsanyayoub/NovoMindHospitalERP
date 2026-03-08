@@ -79,6 +79,47 @@ public class UnitOfWork : IUnitOfWork
         PregnancyRecords = new Repository<PregnancyRecord>(context);
         DeliveryRecords = new Repository<DeliveryRecord>(context);
         NeonatalRecords = new Repository<NeonatalRecord>(context);
+
+        // Phase 12
+        RehabPlans = new Repository<RehabPlan>(context);
+        PhysiotherapySessions = new Repository<PhysiotherapySession>(context);
+        RehabEquipments = new Repository<RehabEquipment>(context);
+        DentalCharts = new Repository<DentalChart>(context);
+        DentalProcedures = new Repository<DentalProcedure>(context);
+        OrthodonticCases = new Repository<OrthodonticCase>(context);
+        Ambulances = new Repository<Ambulance>(context);
+        AmbulanceDispatches = new Repository<AmbulanceDispatch>(context);
+        FleetMaintenances = new Repository<FleetMaintenance>(context);
+        DietPlans = new Repository<DietPlan>(context);
+        MealOrders = new Repository<MealOrder>(context);
+        KitchenStocks = new Repository<KitchenStock>(context);
+
+        // Phase 13
+        HousekeepingTasks = new Repository<HousekeepingTask>(context);
+        LaundryRecords = new Repository<LaundryRecord>(context);
+        ClinicalIncidents = new Repository<ClinicalIncident>(context);
+        PatientFeedbacks = new Repository<PatientFeedback>(context);
+
+        // Phase 14
+        SterilizationBatches = new Repository<SterilizationBatch>(context);
+        SterilizedItems = new Repository<SterilizedItem>(context);
+        DeceasedRecords = new Repository<DeceasedRecord>(context);
+
+        // Phase 15
+        WorkShifts = new Repository<WorkShift>(context);
+        EmployeeRosters = new Repository<EmployeeRoster>(context);
+        LeaveRequests = new Repository<LeaveRequest>(context);
+        EmployeeLeaveBalances = new Repository<EmployeeLeaveBalance>(context);
+
+        // Phase 16
+        ReferralFacilities = new Repository<ReferralFacility>(context);
+        ExternalReferrals = new Repository<ExternalReferral>(context);
+        HieTransactions = new Repository<HieTransaction>(context);
+
+        // Phase 18
+        PurchaseOrders = new Repository<PurchaseOrder>(context);
+        PurchaseOrderItems = new Repository<PurchaseOrderItem>(context);
+        WardStockDispensations = new Repository<WardStockDispensation>(context);
     }
 
     public IRepository<User> Users { get; }
@@ -149,6 +190,47 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<PregnancyRecord> PregnancyRecords { get; }
     public IRepository<DeliveryRecord> DeliveryRecords { get; }
     public IRepository<NeonatalRecord> NeonatalRecords { get; }
+
+    // Phase 12
+    public IRepository<RehabPlan> RehabPlans { get; }
+    public IRepository<PhysiotherapySession> PhysiotherapySessions { get; }
+    public IRepository<RehabEquipment> RehabEquipments { get; }
+    public IRepository<DentalChart> DentalCharts { get; }
+    public IRepository<DentalProcedure> DentalProcedures { get; }
+    public IRepository<OrthodonticCase> OrthodonticCases { get; }
+    public IRepository<Ambulance> Ambulances { get; }
+    public IRepository<AmbulanceDispatch> AmbulanceDispatches { get; }
+    public IRepository<FleetMaintenance> FleetMaintenances { get; }
+    public IRepository<DietPlan> DietPlans { get; }
+    public IRepository<MealOrder> MealOrders { get; }
+    public IRepository<KitchenStock> KitchenStocks { get; }
+
+    // Phase 13
+    public IRepository<HousekeepingTask> HousekeepingTasks { get; }
+    public IRepository<LaundryRecord> LaundryRecords { get; }
+    public IRepository<ClinicalIncident> ClinicalIncidents { get; }
+    public IRepository<PatientFeedback> PatientFeedbacks { get; }
+
+    // Phase 14
+    public IRepository<SterilizationBatch> SterilizationBatches { get; }
+    public IRepository<SterilizedItem> SterilizedItems { get; }
+    public IRepository<DeceasedRecord> DeceasedRecords { get; }
+
+    // Phase 15
+    public IRepository<WorkShift> WorkShifts { get; }
+    public IRepository<EmployeeRoster> EmployeeRosters { get; }
+    public IRepository<LeaveRequest> LeaveRequests { get; }
+    public IRepository<EmployeeLeaveBalance> EmployeeLeaveBalances { get; }
+
+    // Phase 16
+    public IRepository<ReferralFacility> ReferralFacilities { get; }
+    public IRepository<ExternalReferral> ExternalReferrals { get; }
+    public IRepository<HieTransaction> HieTransactions { get; }
+
+    // Phase 18
+    public IRepository<PurchaseOrder> PurchaseOrders { get; }
+    public IRepository<PurchaseOrderItem> PurchaseOrderItems { get; }
+    public IRepository<WardStockDispensation> WardStockDispensations { get; }
 
     public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
 

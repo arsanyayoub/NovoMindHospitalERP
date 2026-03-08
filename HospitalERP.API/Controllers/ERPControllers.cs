@@ -264,7 +264,12 @@ public class SalesController : ControllerBase
 public class HRController : ControllerBase
 {
     private readonly IHRService _service;
-    public HRController(IHRService service) => _service = service;
+    private readonly IHRExtendedService _hrExtended;
+    public HRController(IHRService service, IHRExtendedService hrExtended)
+    {
+        _service = service;
+        _hrExtended = hrExtended;
+    }
 
     [HttpGet("employees")]
     public async Task<IActionResult> GetEmployees([FromQuery] PagedRequest request) => Ok(await _service.GetEmployeesAsync(request));
@@ -322,6 +327,55 @@ public class HRController : ControllerBase
     {
         var u = User.FindFirstValue(ClaimTypes.Name) ?? "system";
         return Ok(await _service.RecordAttendanceAsync(dto, u));
+    }
+
+    // ===== SHIFTS & ROSTER (Phase 15) =====
+    [HttpGet("shifts")]
+    public async Task<IActionResult> GetShifts() => Ok(await _hrExtended.GetShiftsAsync());
+
+    [HttpPost("shifts")]
+    [Authorize(Roles = "Admin,HR")]
+    public async Task<IActionResult> CreateShift(CreateWorkShiftDto dto) => Ok(await _hrExtended.CreateShiftAsync(dto));
+
+    [HttpGet("roster")]
+    public async Task<IActionResult> GetRoster([FromQuery] DateTime start, [FromQuery] DateTime end, [FromQuery] int? deptId)
+    {
+        return Ok(await _hrExtended.GetRosterAsync(start, end, deptId));
+    }
+
+    [HttpPost("roster")]
+    [Authorize(Roles = "Admin,HR")]
+    public async Task<IActionResult> CreateRoster(IEnumerable<CreateEmployeeRosterDto> dtos)
+    {
+        await _hrExtended.CreateRosterAsync(dtos);
+        return Ok();
+    }
+
+    // ===== LEAVE MANAGEMENT (Phase 15) =====
+    [HttpGet("leave-requests")]
+    public async Task<IActionResult> GetLeaveRequests([FromQuery] PagedRequest request)
+    {
+        return Ok(await _hrExtended.GetLeaveRequestsAsync(request));
+    }
+
+    [HttpPost("leave-requests/{employeeId}")]
+    public async Task<IActionResult> SubmitLeave(int employeeId, CreateLeaveRequestDto dto)
+    {
+        return Ok(await _hrExtended.SubmitLeaveRequestAsync(employeeId, dto));
+    }
+
+    [HttpPatch("leave-requests/{id}/status")]
+    public async Task<IActionResult> UpdateLeaveStatus(int id, UpdateLeaveStatusDto dto)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "system";
+        await _hrExtended.UpdateLeaveStatusAsync(id, dto, userId);
+        return NoContent();
+    }
+
+    [HttpGet("employees/{id}/leave-balance")]
+    public async Task<IActionResult> GetLeaveBalance(int id)
+    {
+        return Ok(await _hrExtended.GetLeaveBalancesAsync(id));
     }
 }
 

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Api\\HospitalERP.API.csproj": {}
+    "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.API\\HospitalERP.API.csproj": {}
   },
   "projects": {
-    "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Api\\HospitalERP.API.csproj": {
+    "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.API\\HospitalERP.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Api\\HospitalERP.API.csproj",
+        "projectUniqueName": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.API\\HospitalERP.API.csproj",
         "projectName": "HospitalERP.API",
-        "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Api\\HospitalERP.API.csproj",
+        "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.API\\HospitalERP.API.csproj",
         "packagesPath": "C:\\Users\\arsany.awadallah\\.nuget\\packages\\",
-        "outputPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Api\\obj\\",
+        "outputPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.API\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

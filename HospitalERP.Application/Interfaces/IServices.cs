@@ -393,3 +393,127 @@ public interface IMaternityService
     Task<NeonatalRecordDto> RecordBirthAsync(CreateNeonatalRecordDto dto, string userId);
     Task<PagedResult<NeonatalRecordDto>> GetNeonatalRecordsAsync(PagedRequest request, string? gender = null);
 }
+
+public interface IPhysiotherapyService
+{
+    Task<PagedResult<RehabPlanDto>> GetRehabPlansAsync(PagedRequest request, string? status = null);
+    Task<RehabPlanDto> CreateRehabPlanAsync(CreateRehabPlanDto dto, string userId);
+    Task<IEnumerable<PhysiotherapySessionDto>> GetSessionsByPlanAsync(int planId);
+    Task<PhysiotherapySessionDto> RecordSessionAsync(CreatePhysiotherapySessionDto dto, string userId);
+}
+
+public interface IDentalService
+{
+    Task<DentalChartDto?> GetChartByPatientAsync(int patientId);
+    Task<DentalChartDto> CreateChartAsync(CreateDentalChartDto dto, string userId);
+    Task<IEnumerable<DentalProcedureDto>> GetProceduresByChartAsync(int chartId);
+    Task<DentalProcedureDto> RecordProcedureAsync(CreateDentalProcedureDto dto, string userId);
+    Task<PagedResult<OrthodonticCaseDto>> GetOrthodonticCasesAsync(PagedRequest request);
+}
+public record OrthodonticCaseDto(int Id, string PatientName, string CaseType, DateTime StartDate, string Status);
+
+public interface IFleetService
+{
+    Task<IEnumerable<AmbulanceDto>> GetAmbulancesAsync();
+    Task<AmbulanceDto> CreateAmbulanceAsync(CreateAmbulanceDto dto, string userId);
+    Task UpdateAmbulanceStatusAsync(int id, string status, string userId);
+    Task<AmbulanceDispatchDto> DispatchAmbulanceAsync(CreateAmbulanceDispatchDto dto, string userId);
+    Task<PagedResult<AmbulanceDispatchDto>> GetDispatchesAsync(PagedRequest request);
+}
+
+public interface IDietaryService
+{
+    Task<DietPlanDto?> GetPlanByPatientAsync(int patientId);
+    Task<DietPlanDto> CreateDietPlanAsync(CreateDietPlanDto dto, string userId);
+    Task<PagedResult<MealOrderDto>> GetMealOrdersAsync(PagedRequest request, string? status = null);
+    Task<MealOrderDto> CreateMealOrderAsync(CreateMealOrderDto dto, string userId);
+    Task UpdateMealOrderStatusAsync(int id, string status, string userId);
+}
+
+public interface IHousekeepingService
+{
+    Task<PagedResult<HousekeepingTaskDto>> GetTasksAsync(PagedRequest request, string? status = null);
+    Task<HousekeepingTaskDto> CreateTaskAsync(CreateHousekeepingTaskDto dto, string userId);
+    Task UpdateTaskStatusAsync(int id, string status, string userId);
+}
+
+public interface IQualityService
+{
+    Task<PagedResult<ClinicalIncidentDto>> GetIncidentsAsync(PagedRequest request, string? severity = null);
+    Task<ClinicalIncidentDto> ReportIncidentAsync(CreateClinicalIncidentDto dto, string userId);
+    Task<PagedResult<PatientFeedbackDto>> GetFeedbackAsync(PagedRequest request);
+    Task<PatientFeedbackDto> RecordFeedbackAsync(CreatePatientFeedbackDto dto, string userId);
+}
+
+public interface IAnalyticsService
+{
+    Task<DashboardStatsDto> GetExecutiveDashboardAsync();
+    Task<IEnumerable<WardOccupancyDto>> GetWardOccupancyAsync();
+}
+
+public interface IPatientPortalService
+{
+    Task<PatientProfileDto> GetProfileAsync(int patientId);
+    Task<IEnumerable<AppointmentDto>> GetAppointmentHistoryAsync(int patientId);
+    Task<byte[]> ExportClinicalSummaryAsync(int patientId);
+}
+
+public interface ISupportService
+{
+    // CSSD
+    Task<PagedResult<SterilizationBatchDto>> GetSterilizationBatchesAsync(PagedRequest request);
+    Task<SterilizationBatchDto> CreateSterilizationBatchAsync(CreateSterilizationBatchDto dto, string userId);
+    
+    // Mortuary
+    Task<PagedResult<DeceasedRecordDto>> GetDeceasedRecordsAsync(PagedRequest request);
+    Task<DeceasedRecordDto> RecordDeathAsync(CreateDeceasedRecordDto dto, string userId);
+}
+
+public interface ITelehealthService
+{
+    Task<string> GenerateMeetingLinkAsync(int appointmentId);
+    Task UpdateWaitingRoomStatusAsync(int appointmentId, string status);
+}
+
+public interface IHRExtendedService
+{
+    // Shifts
+    Task<IEnumerable<WorkShiftDto>> GetShiftsAsync();
+    Task<WorkShiftDto> CreateShiftAsync(CreateWorkShiftDto dto);
+
+    // Roster
+    Task<IEnumerable<EmployeeRosterDto>> GetRosterAsync(DateTime start, DateTime end, int? departmentId = null);
+    Task CreateRosterAsync(IEnumerable<CreateEmployeeRosterDto> dtos);
+
+    // Leave
+    Task<PagedResult<LeaveRequestDto>> GetLeaveRequestsAsync(PagedRequest request);
+    Task<LeaveRequestDto> SubmitLeaveRequestAsync(int employeeId, CreateLeaveRequestDto dto);
+    Task UpdateLeaveStatusAsync(int requestId, UpdateLeaveStatusDto dto, string reviewerId);
+    Task<IEnumerable<LeaveBalanceDto>> GetLeaveBalancesAsync(int employeeId);
+}
+
+public interface IAdvancedSupplyService
+{
+    Task<PagedResult<PurchaseOrderDto>> GetPurchaseOrdersAsync(PagedRequest request);
+    Task<PurchaseOrderDto> CreatePurchaseOrderAsync(CreatePurchaseOrderDto dto, string userId);
+    Task UpdatePurchaseOrderStatusAsync(int id, string status, string userId);
+
+    Task<IEnumerable<WardStockDispensationDto>> GetWardStockDispensationsAsync(int wardId);
+    Task<WardStockDispensationDto> DispenseWardStockAsync(CreateWardStockDispensationDto dto, string userId);
+}
+
+public interface IReferralService
+{
+    // Facilities
+    Task<IEnumerable<ReferralFacilityDto>> GetFacilitiesAsync();
+    Task<ReferralFacilityDto> CreateFacilityAsync(CreateReferralFacilityDto dto);
+
+    // Referrals
+    Task<PagedResult<ExternalReferralDto>> GetReferralsAsync(PagedRequest request);
+    Task<ExternalReferralDto> CreateReferralAsync(CreateExternalReferralDto dto, string userId);
+    Task UpdateReferralStatusAsync(int referralId, string status);
+
+    // HIE
+    Task<string> ExportReferralDataAsync(HieExportDto dto);
+    Task<IEnumerable<HieTransactionDto>> GetExchangeHistoryAsync(int referralId);
+}

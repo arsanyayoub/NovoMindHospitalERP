@@ -108,6 +108,47 @@ public class HospitalERPDbContext : DbContext
     public DbSet<EmergencyAdmission> EmergencyAdmissions => Set<EmergencyAdmission>();
     public DbSet<ERTriageVital> ERTriageVitals => Set<ERTriageVital>();
 
+    // Phase 12: Specialized Units & Support
+    public DbSet<RehabPlan> RehabPlans => Set<RehabPlan>();
+    public DbSet<PhysiotherapySession> PhysiotherapySessions => Set<PhysiotherapySession>();
+    public DbSet<RehabEquipment> RehabEquipments => Set<RehabEquipment>();
+    public DbSet<DentalChart> DentalCharts => Set<DentalChart>();
+    public DbSet<DentalProcedure> DentalProcedures => Set<DentalProcedure>();
+    public DbSet<OrthodonticCase> OrthodonticCases => Set<OrthodonticCase>();
+    public DbSet<Ambulance> Ambulances => Set<Ambulance>();
+    public DbSet<AmbulanceDispatch> AmbulanceDispatches => Set<AmbulanceDispatch>();
+    public DbSet<FleetMaintenance> FleetMaintenances => Set<FleetMaintenance>();
+    public DbSet<DietPlan> DietPlans => Set<DietPlan>();
+    public DbSet<MealOrder> MealOrders => Set<MealOrder>();
+    public DbSet<KitchenStock> KitchenStocks => Set<KitchenStock>();
+
+    // Phase 13: BI, Housekeeping & Quality
+    public DbSet<HousekeepingTask> HousekeepingTasks => Set<HousekeepingTask>();
+    public DbSet<LaundryRecord> LaundryRecords => Set<LaundryRecord>();
+    public DbSet<ClinicalIncident> ClinicalIncidents => Set<ClinicalIncident>();
+    public DbSet<PatientFeedback> PatientFeedbacks => Set<PatientFeedback>();
+
+    // Phase 14: Support Services
+    public DbSet<SterilizationBatch> SterilizationBatches => Set<SterilizationBatch>();
+    public DbSet<SterilizedItem> SterilizedItems => Set<SterilizedItem>();
+    public DbSet<DeceasedRecord> DeceasedRecords => Set<DeceasedRecord>();
+
+    // Phase 15: HR Extended
+    public DbSet<WorkShift> WorkShifts => Set<WorkShift>();
+    public DbSet<EmployeeRoster> EmployeeRosters => Set<EmployeeRoster>();
+    public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
+    public DbSet<EmployeeLeaveBalance> EmployeeLeaveBalances => Set<EmployeeLeaveBalance>();
+
+    // Phase 16: HIE & Referrals
+    public DbSet<ReferralFacility> ReferralFacilities => Set<ReferralFacility>();
+    public DbSet<ExternalReferral> ExternalReferrals => Set<ExternalReferral>();
+    public DbSet<HieTransaction> HieTransactions => Set<HieTransaction>();
+
+    // Phase 18: Advanced Supply Chain & eMAR
+    public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
+    public DbSet<PurchaseOrderItem> PurchaseOrderItems => Set<PurchaseOrderItem>();
+    public DbSet<WardStockDispensation> WardStockDispensations => Set<WardStockDispensation>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -161,6 +202,26 @@ public class HospitalERPDbContext : DbContext
         modelBuilder.Entity<EmergencyAdmission>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<ERTriageVital>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<MaintenanceTicket>().HasQueryFilter(e => !e.IsDeleted);
+
+        // Phase 12 Global Filters
+        modelBuilder.Entity<RehabPlan>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<PhysiotherapySession>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<RehabEquipment>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<DentalChart>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<DentalProcedure>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<OrthodonticCase>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Ambulance>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<AmbulanceDispatch>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<FleetMaintenance>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<DietPlan>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<MealOrder>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<KitchenStock>().HasQueryFilter(e => !e.IsDeleted);
+
+        // Phase 13 Global Filters
+        modelBuilder.Entity<HousekeepingTask>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<LaundryRecord>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<ClinicalIncident>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<PatientFeedback>().HasQueryFilter(e => !e.IsDeleted);
 
         // ── Decimal precision ────────────────────────────────────────
         foreach (var property in modelBuilder.Model.GetEntityTypes()

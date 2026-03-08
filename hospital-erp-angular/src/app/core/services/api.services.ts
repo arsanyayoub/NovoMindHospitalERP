@@ -881,3 +881,259 @@ export class MaternityService {
     }
 }
 
+@Injectable({ providedIn: 'root' })
+export class PhysiotherapyService {
+    private readonly API = `${environment.apiUrl}/physiotherapy`;
+    constructor(private http: HttpClient) { }
+
+    getRehabPlans(request: PagedRequest = {}, status?: string): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (status) params = params.set('status', status);
+        return this.http.get<PagedResult<any>>(`${this.API}/rehab-plans`, { params });
+    }
+    createRehabPlan(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/rehab-plans`, dto); }
+    getSessions(planId: number): Observable<any[]> { return this.http.get<any[]>(`${this.API}/rehab-plans/${planId}/sessions`); }
+    recordSession(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/sessions`, dto); }
+}
+
+@Injectable({ providedIn: 'root' })
+export class DentalService {
+    private readonly API = `${environment.apiUrl}/dental`;
+    constructor(private http: HttpClient) { }
+
+    getChart(patientId: number): Observable<any> { return this.http.get<any>(`${this.API}/chart/${patientId}`); }
+    createChart(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/chart`, dto); }
+    getProcedures(chartId: number): Observable<any[]> { return this.http.get<any[]>(`${this.API}/chart/${chartId}/procedures`); }
+    recordProcedure(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/procedures`, dto); }
+    getOrthodonticCases(request: PagedRequest = {}): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        return this.http.get<PagedResult<any>>(`${this.API}/orthodontic-cases`, { params });
+    }
+}
+
+@Injectable({ providedIn: 'root' })
+export class FleetService {
+    private readonly API = `${environment.apiUrl}/fleet`;
+    constructor(private http: HttpClient) { }
+
+    getAmbulances(): Observable<any[]> { return this.http.get<any[]>(`${this.API}/ambulances`); }
+    createAmbulance(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/ambulances`, dto); }
+    updateStatus(id: number, status: string): Observable<any> { return this.http.put<any>(`${this.API}/ambulances/${id}/status`, `"${status}"`, { headers: { 'Content-Type': 'application/json' } }); }
+    dispatch(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/dispatch`, dto); }
+    getDispatches(request: PagedRequest = {}): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        return this.http.get<PagedResult<any>>(`${this.API}/dispatches`, { params });
+    }
+}
+
+@Injectable({ providedIn: 'root' })
+export class DietaryService {
+    private readonly API = `${environment.apiUrl}/dietary`;
+    constructor(private http: HttpClient) { }
+
+    getPlan(patientId: number): Observable<any> { return this.http.get<any>(`${this.API}/plan/${patientId}`); }
+    createPlan(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/plan`, dto); }
+    getMealOrders(request: PagedRequest = {}, status?: string): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (status) params = params.set('status', status);
+        return this.http.get<PagedResult<any>>(`${this.API}/meal-orders`, { params });
+    }
+    createMealOrder(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/meal-orders`, dto); }
+    updateOrderStatus(id: number, status: string): Observable<any> { return this.http.put<any>(`${this.API}/meal-orders/${id}/status`, `"${status}"`, { headers: { 'Content-Type': 'application/json' } }); }
+}
+
+@Injectable({ providedIn: 'root' })
+export class HousekeepingService {
+    private readonly API = `${environment.apiUrl}/housekeeping`;
+    constructor(private http: HttpClient) { }
+
+    getTasks(request: PagedRequest = {}, status?: string): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (status) params = params.set('status', status);
+        return this.http.get<PagedResult<any>>(`${this.API}/tasks`, { params });
+    }
+    createTask(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/tasks`, dto); }
+    updateStatus(id: number, status: string): Observable<any> { return this.http.put<any>(`${this.API}/tasks/${id}/status`, `"${status}"`, { headers: { 'Content-Type': 'application/json' } }); }
+}
+
+@Injectable({ providedIn: 'root' })
+export class QualityService {
+    private readonly API = `${environment.apiUrl}/quality`;
+    constructor(private http: HttpClient) { }
+
+    getIncidents(request: PagedRequest = {}, severity?: string): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        if (severity) params = params.set('severity', severity);
+        return this.http.get<PagedResult<any>>(`${this.API}/incidents`, { params });
+    }
+    reportIncident(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/incidents`, dto); }
+    getFeedback(request: PagedRequest = {}): Observable<PagedResult<any>> {
+        let params = new HttpParams();
+        if (request.page) params = params.set('page', request.page);
+        if (request.pageSize) params = params.set('pageSize', request.pageSize);
+        return this.http.get<PagedResult<any>>(`${this.API}/feedback`, { params });
+    }
+    recordFeedback(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/feedback`, dto); }
+}
+
+@Injectable({ providedIn: 'root' })
+export class AnalyticsService {
+    private readonly API = `${environment.apiUrl}/analytics`;
+    constructor(private http: HttpClient) { }
+
+    getExecutiveDashboard(): Observable<any> {
+        return this.http.get<any>(`${this.API}/executive-dashboard`);
+    }
+    getWardOccupancy(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API}/ward-occupancy`);
+    }
+}
+
+@Injectable({ providedIn: 'root' })
+export class PatientPortalService {
+    private readonly API = `${environment.apiUrl}/patientportal`;
+    constructor(private http: HttpClient) { }
+
+    getProfile(): Observable<any> { return this.http.get<any>(`${this.API}/profile`); }
+    getAppointments(): Observable<any[]> { return this.http.get<any[]>(`${this.API}/appointments`); }
+    exportClinicalSummary(): Observable<Blob> {
+        return this.http.get(`${this.API}/export-clinical-summary`, { responseType: 'blob' });
+    }
+}
+
+@Injectable({ providedIn: 'root' })
+export class SupportService {
+    private readonly API = `${environment.apiUrl}/support`;
+    constructor(private http: HttpClient) { }
+
+    getCSSDBatches(page = 1, pageSize = 10): Observable<any> {
+        return this.http.get<any>(`${this.API}/cssd/batches?page=${page}&pageSize=${pageSize}`);
+    }
+
+    createCSSDBatch(dto: any): Observable<any> {
+        return this.http.post<any>(`${this.API}/cssd/batches`, dto);
+    }
+
+    getMortuaryRecords(page = 1, pageSize = 10): Observable<any> {
+        return this.http.get<any>(`${this.API}/mortuary/records?page=${page}&pageSize=${pageSize}`);
+    }
+
+    recordDeath(dto: any): Observable<any> {
+        return this.http.post<any>(`${this.API}/mortuary/records`, dto);
+    }
+}
+
+@Injectable({ providedIn: 'root' })
+export class TelehealthService {
+    private readonly API = `${environment.apiUrl}/telehealth`;
+    constructor(private http: HttpClient) { }
+
+    generateLink(appointmentId: number): Observable<{ link: string }> {
+        return this.http.post<{ link: string }>(`${this.API}/generate-link/${appointmentId}`, {});
+    }
+
+    updateWaitingRoomStatus(appointmentId: number, status: string): Observable<void> {
+        return this.http.patch<void>(`${this.API}/waiting-room/${appointmentId}`, JSON.stringify(status), {
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+}
+
+@Injectable({ providedIn: 'root' })
+export class HRExtendedService {
+    private readonly API = `${environment.apiUrl}/hr`;
+    constructor(private http: HttpClient) { }
+
+    getShifts(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API}/shifts`);
+    }
+
+    getRoster(start: string, end: string): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API}/roster?start=${start}&end=${end}`);
+    }
+
+    createRoster(dtos: any[]): Observable<void> {
+        return this.http.post<void>(`${this.API}/roster`, dtos);
+    }
+
+    getLeaveRequests(page = 1, pageSize = 10): Observable<any> {
+        return this.http.get<any>(`${this.API}/leave-requests?page=${page}&pageSize=${pageSize}`);
+    }
+
+    submitLeave(employeeId: number, dto: any): Observable<any> {
+        return this.http.post<any>(`${this.API}/leave-requests/${employeeId}`, dto);
+    }
+
+    updateLeaveStatus(id: number, status: string, comments: string): Observable<void> {
+        return this.http.patch<void>(`${this.API}/leave-requests/${id}/status`, { status, comments });
+    }
+
+    getLeaveBalance(employeeId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API}/employees/${employeeId}/leave-balance`);
+    }
+}
+
+@Injectable({ providedIn: 'root' })
+export class ReferralService {
+    private readonly API = `${environment.apiUrl}/referral`;
+    constructor(private http: HttpClient) { }
+
+    getFacilities(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API}/facilities`);
+    }
+
+    createFacility(dto: any): Observable<any> {
+        return this.http.post<any>(`${this.API}/facilities`, dto);
+    }
+
+    getReferrals(page = 1, pageSize = 10): Observable<any> {
+        return this.http.get<any>(`${this.API}?page=${page}&pageSize=${pageSize}`);
+    }
+
+    createReferral(dto: any): Observable<any> {
+        return this.http.post<any>(this.API, dto);
+    }
+
+    updateStatus(id: number, status: string): Observable<void> {
+        return this.http.patch<void>(`${this.API}/${id}/status`, JSON.stringify(status), {
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+
+    exportHie(referralId: number, standard: string = 'HL7-FHIR'): Observable<string> {
+        return this.http.post<string>(`${this.API}/hie/export`, { referralId, standard }, { responseType: 'text' as 'json' });
+    }
+
+    getExchangeHistory(id: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.API}/${id}/exchange-history`);
+    }
+}
+
+
+@Injectable({ providedIn: 'root' })
+export class SupplyAndPharmacyService {
+    private API = `${environment.apiUrl}/SupplyAndPharmacy`;
+
+    constructor(private http: HttpClient) { }
+
+    getPurchaseOrders(page = 1, pageSize = 10): Observable<any> { return this.http.get<any>(`${this.API}/purchase-orders?page=${page}&pageSize=${pageSize}`); }
+    createPurchaseOrder(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/purchase-orders`, dto); }
+    updatePurchaseOrderStatus(id: number, status: string): Observable<any> {
+        return this.http.put<any>(`${this.API}/purchase-orders/${id}/status`, JSON.stringify(status), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    getWardStockDispensations(wardId: number): Observable<any[]> { return this.http.get<any[]>(`${this.API}/ward-stock/${wardId}`); }
+    dispenseWardStock(dto: any): Observable<any> { return this.http.post<any>(`${this.API}/ward-stock`, dto); }
+}

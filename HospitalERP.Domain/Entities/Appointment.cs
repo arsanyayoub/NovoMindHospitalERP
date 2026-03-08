@@ -19,4 +19,9 @@ public class Appointment : BaseEntity
     public string? Prescription { get; set; }
     public decimal Fee { get; set; }
     public bool IsPaid { get; set; } = false;
+
+    // Telehealth
+    public bool IsTelehealth { get; set; } = false;
+    public string? MeetingLink { get; set; }
+    public string? VirtualWaitingRoomStatus { get; set; } // Waiting, Directing, Finished
 }

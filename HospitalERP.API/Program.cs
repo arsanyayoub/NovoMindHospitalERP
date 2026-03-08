@@ -53,6 +53,20 @@ builder.Services.AddScoped<IAssetService, AssetService>();
 builder.Services.AddScoped<IEmergencyService, EmergencyService>();
 builder.Services.AddScoped<IBloodBankService, BloodBankService>();
 builder.Services.AddScoped<IMaternityService, MaternityService>();
+builder.Services.AddScoped<IPhysiotherapyService, PhysiotherapyService>();
+builder.Services.AddScoped<IDentalService, DentalService>();
+builder.Services.AddScoped<IFleetService, FleetService>();
+builder.Services.AddScoped<IDietaryService, DietaryService>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IHousekeepingService, HousekeepingService>();
+builder.Services.AddScoped<IQualityService, QualityService>();
+builder.Services.AddScoped<IPatientPortalService, PatientPortalService>();
+builder.Services.AddScoped<ISupportService, SupportService>();
+builder.Services.AddScoped<ITelehealthService, TelehealthService>();
+builder.Services.AddScoped<IHRExtendedService, HRExtendedService>();
+builder.Services.AddScoped<IReferralService, ReferralService>();
+builder.Services.AddScoped<IAccountingService, AccountingService>();
+builder.Services.AddScoped<IAdvancedSupplyService, AdvancedSupplyService>();
 
 
 

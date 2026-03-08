@@ -681,3 +681,109 @@ public record NeonatalRecordDto(int Id, int DeliveryRecordId, int BabyPatientId,
 
 public record CreateNeonatalRecordDto(int DeliveryRecordId, string FullName, decimal BirthWeight, 
     int Apgar1Min, int Apgar5Min, string Gender, string? HealthStatus);
+
+// ═══════════════════════════════════════════════════════════════
+//  PHASE 12: SPECIALIZED UNITS & SUPPORT
+// ═══════════════════════════════════════════════════════════════
+
+// Physiotherapy
+public record RehabPlanDto(int Id, int PatientId, string PatientName, string Diagnosis, DateTime StartDate, string Status);
+public record CreateRehabPlanDto(int PatientId, int AssignedPhysicianId, string Diagnosis, string ImprovementGoals, DateTime StartDate, DateTime? EstimatedEndDate);
+public record PhysiotherapySessionDto(int Id, int RehabPlanId, DateTime SessionDate, string TherapistName, string ProcedurePerformed, int PainLevelAfter);
+public record CreatePhysiotherapySessionDto(int RehabPlanId, DateTime SessionDate, int TherapistId, string ProcedurePerformed, string ProgressNotes, int PainLevelBefore, int PainLevelAfter, decimal DurationMinutes);
+
+// Dental
+public record DentalChartDto(int Id, int PatientId, string PatientName, string TeethStatusJson);
+public record CreateDentalChartDto(int PatientId, string TeethStatusJson, string? OverallNotes);
+public record DentalProcedureDto(int Id, int ToothNumber, string ProcedureType, decimal Cost, DateTime ProcedureDate, string DentistName);
+public record CreateDentalProcedureDto(int DentalChartId, int ToothNumber, string ProcedureType, string Surfaces, decimal Cost, DateTime ProcedureDate, int DentistId, string? ClinicNotes);
+
+// Fleet
+public record AmbulanceDto(int Id, string VehicleNumber, string Model, string Type, string Status, string? CurrentLocation);
+public record CreateAmbulanceDto(string VehicleNumber, string Model, string Type, int? PrimaryDriverId);
+public record AmbulanceDispatchDto(int Id, string VehicleNumber, string PickupLocation, DateTime DispatchTime, string Status);
+public record CreateAmbulanceDispatchDto(int AmbulanceId, int? EmergencyAdmissionId, string CallSource, string PickupLocation, string DestinationLocation, DateTime DispatchTime);
+
+// Dietary
+public record DietPlanDto(int Id, int PatientId, string PatientName, string DietType, bool IsActive);
+public record CreateDietPlanDto(int PatientId, string DietType, string Allergies, string RestrictedItems, string? SpecialInstructions, int? PrescribedById);
+public record MealOrderDto(int Id, int PatientId, string PatientName, string MealType, string Status, DateTime OrderDate);
+public record CreateMealOrderDto(int PatientId, string MealType, string ItemsOrdered);
+
+// ═══════════════════════════════════════════════════════════════
+//  PHASE 13: ADVANCED ANALYTICS, HOUSEKEEPING & QUALITY
+// ═══════════════════════════════════════════════════════════════
+
+// Housekeeping
+public record HousekeepingTaskDto(int Id, int? BedId, string? RoomNumber, string TaskType, string Status, string? StaffName, DateTime? CompletionTime);
+public record CreateHousekeepingTaskDto(int? BedId, int? RoomId, string TaskType, string? AssignedStaffId, string? Remarks);
+
+// Quality & Incidents
+public record ClinicalIncidentDto(int Id, string? PatientName, string IncidentType, string Severity, string Status, DateTime CreatedDate);
+public record CreateClinicalIncidentDto(int? PatientId, string IncidentType, string Severity, string Description, string ActionTaken);
+public record PatientFeedbackDto(int Id, string PatientName, int Rating, string Comments, string Department, DateTime CreatedDate);
+public record CreatePatientFeedbackDto(int PatientId, int Rating, string? Comments, string Department, bool IsAnonymized);
+
+// Analytics
+public record DashboardStatsDto(
+    int TotalPatients,
+    int TodayAppointments,
+    decimal MonthlyRevenue,
+    decimal TotalRevenue,
+    int TotalDoctors,
+    int TotalEmployees,
+    int PendingInvoices,
+    int LowStockItems,
+    IEnumerable<MonthlyRevenueDto> MonthlyPerformance,
+    IEnumerable<RecentActivityDto> RecentActivities,
+    IEnumerable<AppointmentDto> TodayAppointmentsList,
+    IEnumerable<DoctorKpiDto> TopDoctors,
+    IEnumerable<WardOccupancyDto> WardOccupancy,
+    ClinicalKpisDto ClinicalKpis
+);
+
+public record ClinicalKpisDto(double AvgLengthOfStay, double ReadmissionRate, double MortalityRate);
+
+public record DoctorKpiDto(string DoctorName, string Specialization, int AppointmentCount, decimal SatisfactionRating);
+public record WardOccupancyDto(string WardName, int TotalBeds, int OccupiedBeds, double OccupancyPercentage);
+public record PatientProfileDto(int Id, string PatientCode, string FullName, string Email, string Phone, DateTime DateOfBirth, string Gender);
+
+// CSSD
+public record SterilizationBatchDto(int Id, string BatchNumber, string EquipmentName, DateTime CycleStartTime, DateTime? CycleEndTime, string Status, string OperatorName, IEnumerable<SterilizedItemDto> Items);
+public record SterilizedItemDto(string ItemName, string ContainerId, DateTime ExpiryDate, bool IsPassed);
+public record CreateSterilizationBatchDto(string BatchNumber, string EquipmentName, string OperatorName, IEnumerable<string> ItemNames);
+
+// Mortuary
+public record DeceasedRecordDto(int Id, string Name, DateTime DateOfDeath, string CauseOfDeath, string BodyStatus, string ChamberNumber, DateTime ReceivedDate, DateTime? ReleasedDate);
+public record CreateDeceasedRecordDto(int? PatientId, string Name, DateTime DateOfDeath, string CauseOfDeath, string ChamberNumber);
+
+// Phase 15: HR Extended
+public record WorkShiftDto(int Id, string ShiftName, TimeSpan StartTime, TimeSpan EndTime, string ColorCode, bool IsActive);
+public record CreateWorkShiftDto(string ShiftName, TimeSpan StartTime, TimeSpan EndTime, string ColorCode);
+
+public record EmployeeRosterDto(int Id, int EmployeeId, string EmployeeName, int WorkShiftId, string ShiftName, DateTime Date, string Status, string ColorCode);
+public record CreateEmployeeRosterDto(int EmployeeId, int WorkShiftId, DateTime Date, string? Notes);
+
+public record LeaveRequestDto(int Id, int EmployeeId, string EmployeeName, string LeaveType, DateTime StartDate, DateTime EndDate, int TotalDays, string Reason, string Status, string? Comments);
+public record CreateLeaveRequestDto(string LeaveType, DateTime StartDate, DateTime EndDate, string Reason);
+public record UpdateLeaveStatusDto(string Status, string? Comments);
+
+public record LeaveBalanceDto(string LeaveType, int TotalEntitled, int Used, int Remaining);
+
+// Phase 16: HIE & Referrals
+public record ReferralFacilityDto(int Id, string Name, string? Type, string? ContactPerson, string? Email, string? Phone, string? Address);
+public record CreateReferralFacilityDto(string Name, string? Type, string? ContactPerson, string? Email, string? Phone, string? Address);
+
+public record ExternalReferralDto(int Id, int PatientId, string PatientName, string PatientCode, int FacilityId, string FacilityName, string ReferralType, string Reason, string Status, DateTime ReferralDate, string? ClinicalSummary, string? ExternalDoctorName);
+public record CreateExternalReferralDto(int PatientId, int FacilityId, string ReferralType, string Reason, string? ClinicalSummary, string? ExternalDoctorName, string? Notes);
+
+public record HieTransactionDto(int Id, string TransactionType, string DataStandard, DateTime CreatedDate, string Status);
+public record HieExportDto(int ReferralId, string Standard); // FHIR, CDA
+
+// Phase 18: Advanced Supply Chain & eMAR
+public record PurchaseOrderDto(int Id, string PoNumber, int SupplierId, string SupplierName, DateTime OrderDate, string Status, decimal TotalAmount);
+public record CreatePurchaseOrderDto(int SupplierId, DateTime? ExpectedDeliveryDate, string? Notes, IEnumerable<CreatePurchaseOrderItemDto> Items);
+public record CreatePurchaseOrderItemDto(int ItemId, decimal OrderedQuantity, decimal UnitPrice);
+
+public record WardStockDispensationDto(int Id, int WardId, string WardName, int ItemId, string ItemName, decimal QuantityDispensed, DateTime DispensedDate, string Status);
+public record CreateWardStockDispensationDto(int WardId, int ItemId, decimal QuantityDispensed, string? RequestedBy);

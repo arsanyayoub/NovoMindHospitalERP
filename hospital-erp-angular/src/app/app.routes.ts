@@ -140,6 +140,62 @@ export const routes: Routes = [
             {
                 path: 'maternity',
                 loadComponent: () => import('./features/maternity/maternity.component').then(m => m.MaternityComponent)
+            },
+            {
+                path: 'physiotherapy',
+                loadComponent: () => import('./features/physiotherapy/physiotherapy.component').then(m => m.PhysiotherapyComponent)
+            },
+            {
+                path: 'dental',
+                loadComponent: () => import('./features/dental/dental.component').then(m => m.DentalComponent)
+            },
+            {
+                path: 'fleet',
+                loadComponent: () => import('./features/fleet/fleet.component').then(m => m.FleetComponent)
+            },
+            {
+                path: 'dietary',
+                loadComponent: () => import('./features/dietary/dietary.component').then(m => m.DietaryComponent)
+            },
+            {
+                path: 'insights',
+                loadComponent: () => import('./features/insights/insights.component').then(m => m.InsightsComponent)
+            },
+            {
+                path: 'housekeeping',
+                loadComponent: () => import('./features/housekeeping/housekeeping.component').then(m => m.HousekeepingComponent)
+            },
+            {
+                path: 'quality',
+                loadComponent: () => import('./features/quality/quality.component').then(m => m.QualityComponent)
+            },
+            {
+                path: 'patient-portal',
+                loadComponent: () => import('./features/patient-portal/patient-portal.component').then(m => m.PatientPortalComponent)
+            },
+            {
+                path: 'cssd',
+                loadComponent: () => import('./features/cssd/cssd.component').then(m => m.CssdComponent)
+            },
+            {
+                path: 'mortuary',
+                loadComponent: () => import('./features/mortuary/mortuary.component').then(m => m.MortuaryComponent)
+            },
+            {
+                path: 'telehealth',
+                loadComponent: () => import('./features/telehealth/telehealth.component').then(m => m.TelehealthComponent)
+            },
+            {
+                path: 'hr-roster',
+                loadComponent: () => import('./features/hr/roster.component').then(m => m.RosterComponent)
+            },
+            {
+                path: 'hr-leave',
+                loadComponent: () => import('./features/hr/leave-management.component').then(m => m.LeaveManagementComponent)
+            },
+            {
+                path: 'referrals',
+                loadComponent: () => import('./features/referrals/referral.component').then(m => m.ReferralComponent)
             }
         ]
     },

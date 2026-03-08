@@ -57,6 +57,7 @@ public class BedAdmission : BaseEntity
     public string Status { get; set; } = "Active"; // Active, Discharged, Transferred
     public string? AdmissionReason { get; set; }
     public string? DischargeNotes { get; set; }
+    public string? DischargeReason { get; set; } // Improved, Cured, Transferred, Dead, AMA
     public decimal? DailyRate { get; set; }
     public string? Notes { get; set; }
     public int? EmergencyAdmissionId { get; set; }

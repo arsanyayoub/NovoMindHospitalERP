@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "9zUbPWwrMfs=",
+  "dgSpecHash": "d19pch9DWqo=",
   "success": true,
-  "projectFilePath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Api\\HospitalERP.API.csproj",
+  "projectFilePath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.API\\HospitalERP.API.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\arsany.awadallah\\.nuget\\packages\\azure.core\\1.25.0\\azure.core.1.25.0.nupkg.sha512",
     "C:\\Users\\arsany.awadallah\\.nuget\\packages\\azure.identity\\1.7.0\\azure.identity.1.7.0.nupkg.sha512",

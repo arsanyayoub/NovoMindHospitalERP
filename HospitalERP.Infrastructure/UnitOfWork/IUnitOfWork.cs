@@ -89,6 +89,47 @@ public interface IUnitOfWork : IDisposable
     IRepository<DeliveryRecord> DeliveryRecords { get; }
     IRepository<NeonatalRecord> NeonatalRecords { get; }
 
+    // Phase 12: Specialized Units & Support
+    IRepository<RehabPlan> RehabPlans { get; }
+    IRepository<PhysiotherapySession> PhysiotherapySessions { get; }
+    IRepository<RehabEquipment> RehabEquipments { get; }
+    IRepository<DentalChart> DentalCharts { get; }
+    IRepository<DentalProcedure> DentalProcedures { get; }
+    IRepository<OrthodonticCase> OrthodonticCases { get; }
+    IRepository<Ambulance> Ambulances { get; }
+    IRepository<AmbulanceDispatch> AmbulanceDispatches { get; }
+    IRepository<FleetMaintenance> FleetMaintenances { get; }
+    IRepository<DietPlan> DietPlans { get; }
+    IRepository<MealOrder> MealOrders { get; }
+    IRepository<KitchenStock> KitchenStocks { get; }
+
+    // Phase 13: BI, Housekeeping & Quality
+    IRepository<HousekeepingTask> HousekeepingTasks { get; }
+    IRepository<LaundryRecord> LaundryRecords { get; }
+    IRepository<ClinicalIncident> ClinicalIncidents { get; }
+    IRepository<PatientFeedback> PatientFeedbacks { get; }
+
+    // Phase 14: Support Services
+    IRepository<SterilizationBatch> SterilizationBatches { get; }
+    IRepository<SterilizedItem> SterilizedItems { get; }
+    IRepository<DeceasedRecord> DeceasedRecords { get; }
+
+    // Phase 15: HR Extended
+    IRepository<WorkShift> WorkShifts { get; }
+    IRepository<EmployeeRoster> EmployeeRosters { get; }
+    IRepository<LeaveRequest> LeaveRequests { get; }
+    IRepository<EmployeeLeaveBalance> EmployeeLeaveBalances { get; }
+
+    // Phase 16: HIE & Referrals
+    IRepository<ReferralFacility> ReferralFacilities { get; }
+    IRepository<ExternalReferral> ExternalReferrals { get; }
+    IRepository<HieTransaction> HieTransactions { get; }
+
+    // Phase 18: Advanced Supply Chain & eMAR
+    IRepository<PurchaseOrder> PurchaseOrders { get; }
+    IRepository<PurchaseOrderItem> PurchaseOrderItems { get; }
+    IRepository<WardStockDispensation> WardStockDispensations { get; }
+
     Task<int> SaveChangesAsync();
 
 }

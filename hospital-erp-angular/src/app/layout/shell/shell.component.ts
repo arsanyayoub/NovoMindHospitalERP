@@ -306,6 +306,20 @@ export class ShellComponent implements OnInit {
     { label: 'USERS_AND_ROLES', icon: 'admin_panel_settings', route: '/users', roles: ['Admin'] },
     { label: 'HR', icon: 'people', route: '/hr', roles: ['Admin'] },
     { label: 'ASSETS.TITLE', icon: 'construction', route: '/assets', roles: ['Admin', 'BioMedical'] },
+    { label: 'PHYSIOTHERAPY', icon: 'fitness_center', route: '/physiotherapy', roles: ['Admin', 'Doctor', 'Nurse'] },
+    { label: 'DENTAL', icon: 'dentistry', route: '/dental', roles: ['Admin', 'Doctor', 'Nurse'] },
+    { label: 'FLEET', icon: 'airport_shuttle', route: '/fleet', roles: ['Admin', 'Receptionist', 'Driver'] },
+    { label: 'DIETARY', icon: 'restaurant', route: '/dietary', roles: ['Admin', 'Dietition', 'Kitchen'] },
+    { label: 'INSIGHTS', icon: 'auto_graph', route: '/insights', roles: ['Admin', 'Accountant'] },
+    { label: 'HOUSEKEEPING', icon: 'cleaning_services', route: '/housekeeping', roles: ['Admin', 'Nurse', 'Support'] },
+    { label: 'QUALITY_ASSURANCE', icon: 'fact_check', route: '/quality', roles: ['Admin', 'Doctor'] },
+    { label: 'PATIENT_PORTAL', icon: 'account_circle', route: '/patient-portal', roles: ['Patient', 'Admin'] },
+    { label: 'CSSD', icon: 'sanitizer', route: '/cssd', roles: ['Admin', 'Doctor', 'Nurse'] },
+    { label: 'MORTUARY', icon: 'church', route: '/mortuary', roles: ['Admin', 'Doctor', 'Nurse'] },
+    { label: 'TELEHEALTH', icon: 'videocam', route: '/telehealth', roles: ['Admin', 'Doctor'] },
+    { label: 'HR_ROSTER', icon: 'event_note', route: '/hr-roster', roles: ['Admin', 'HR'] },
+    { label: 'HR_LEAVE', icon: 'time_to_leave', route: '/hr-leave', roles: ['Admin', 'HR', 'Employee'] },
+    { label: 'REFERRALS', icon: 'share', route: '/referrals', roles: ['Admin', 'Doctor'] },
   ];
 
   constructor(
