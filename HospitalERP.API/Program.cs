@@ -59,6 +59,15 @@ builder.Services.AddScoped<IFleetService, FleetService>();
 builder.Services.AddScoped<IDietaryService, DietaryService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<IHousekeepingService, HousekeepingService>();
+
+// ── Registered missing services ─────────────────────────────────
+builder.Services.AddScoped<IAppNotificationService, AppNotificationService>();
+builder.Services.AddScoped<IDoctorService, DoctorService>();
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IPurchaseService, PurchaseService>();
+builder.Services.AddScoped<ISalesService, SalesService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IQualityService, QualityService>();
 builder.Services.AddScoped<IPatientPortalService, PatientPortalService>();
 builder.Services.AddScoped<ISupportService, SupportService>();

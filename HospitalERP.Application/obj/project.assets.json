@@ -2639,11 +2639,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
+      "projectUniqueName": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
       "projectName": "HospitalERP.Application",
-      "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
+      "projectPath": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
       "packagesPath": "C:\\Users\\arsany.awadallah\\.nuget\\packages\\",
-      "outputPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\obj\\",
+      "outputPath": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Application\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -2658,18 +2658,17 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "https://api.nuget.org/v3/index.json": {},
-        "https://nuget.telerik.com/v3/index.json": {}
+        "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj": {
-              "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj"
+            "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj": {
+              "projectPath": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj"
             },
-            "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj": {
-              "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj"
+            "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj": {
+              "projectPath": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj"
             }
           }
         }
@@ -2734,13 +2733,5 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
       }
     }
-  },
-  "logs": [
-    {
-      "code": "NU1900",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Error occurred while getting package vulnerability data: Unable to load the service index for source https://nuget.telerik.com/v3/index.json."
-    }
-  ]
+  }
 }

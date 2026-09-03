@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.API\\HospitalERP.API.csproj": {}
+    "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.API\\HospitalERP.API.csproj": {}
   },
   "projects": {
-    "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.API\\HospitalERP.API.csproj": {
+    "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.API\\HospitalERP.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.API\\HospitalERP.API.csproj",
+        "projectUniqueName": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.API\\HospitalERP.API.csproj",
         "projectName": "HospitalERP.API",
-        "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.API\\HospitalERP.API.csproj",
+        "projectPath": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.API\\HospitalERP.API.csproj",
         "packagesPath": "C:\\Users\\arsany.awadallah\\.nuget\\packages\\",
-        "outputPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.API\\obj\\",
+        "outputPath": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.API\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -26,18 +26,17 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "https://api.nuget.org/v3/index.json": {},
-          "https://nuget.telerik.com/v3/index.json": {}
+          "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj": {
-                "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj"
+              "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj": {
+                "projectPath": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj"
               },
-              "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj": {
-                "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj"
+              "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj": {
+                "projectPath": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj"
               }
             }
           }
@@ -100,14 +99,14 @@
         }
       }
     },
-    "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj": {
+    "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
+        "projectUniqueName": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
         "projectName": "HospitalERP.Application",
-        "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
+        "projectPath": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Application\\HospitalERP.Application.csproj",
         "packagesPath": "C:\\Users\\arsany.awadallah\\.nuget\\packages\\",
-        "outputPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Application\\obj\\",
+        "outputPath": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Application\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -122,18 +121,17 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "https://api.nuget.org/v3/index.json": {},
-          "https://nuget.telerik.com/v3/index.json": {}
+          "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj": {
-                "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj"
+              "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj": {
+                "projectPath": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj"
               },
-              "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj": {
-                "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj"
+              "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj": {
+                "projectPath": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj"
               }
             }
           }
@@ -199,14 +197,14 @@
         }
       }
     },
-    "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj": {
+    "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj",
+        "projectUniqueName": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj",
         "projectName": "HospitalERP.Domain",
-        "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj",
+        "projectPath": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj",
         "packagesPath": "C:\\Users\\arsany.awadallah\\.nuget\\packages\\",
-        "outputPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\obj\\",
+        "outputPath": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -221,8 +219,7 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "https://api.nuget.org/v3/index.json": {},
-          "https://nuget.telerik.com/v3/index.json": {}
+          "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
@@ -265,14 +262,14 @@
         }
       }
     },
-    "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj": {
+    "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj",
+        "projectUniqueName": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj",
         "projectName": "HospitalERP.Infrastructure",
-        "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj",
+        "projectPath": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Infrastructure\\HospitalERP.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\arsany.awadallah\\.nuget\\packages\\",
-        "outputPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Infrastructure\\obj\\",
+        "outputPath": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -287,15 +284,14 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "https://api.nuget.org/v3/index.json": {},
-          "https://nuget.telerik.com/v3/index.json": {}
+          "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj": {
-                "projectPath": "D:\\Work\\Projects\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj"
+              "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj": {
+                "projectPath": "D:\\Work\\Projects\\AI\\ERP Hospital NEw\\HospitalERP.Domain\\HospitalERP.Domain.csproj"
               }
             }
           }
