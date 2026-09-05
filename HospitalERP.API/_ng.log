@@ -1,0 +1,32 @@
+Initial chunk files | Names                     |  Raw size
+polyfills.js        | polyfills                 |  88.09 kB | 
+styles.css          | styles                    |  18.12 kB | 
+main.js             | main                      |  10.23 kB | 
+chunk-CU6RKY6T.js   | -                         |   2.61 kB | 
+chunk-4ARXU3VZ.js   | -                         |   2.27 kB | 
+chunk-UCKHV4ZR.js   | -                         |   1.08 kB | 
+
+                    | Initial total             | 122.39 kB
+
+Lazy chunk files    | Names                     |  Raw size
+chunk-4OCXLQAS.js   | ot-management-component   |  91.81 kB | 
+chunk-PJ3XTNJW.js   | bed-management-component  |  87.52 kB | 
+chunk-TQSTZEJ4.js   | clinical-component        |  85.49 kB | 
+chunk-HPBHU3OJ.js   | reports-component         |  84.30 kB | 
+chunk-375ZB46F.js   | pharmacy-component        |  81.49 kB | 
+chunk-JCTS2KPB.js   | purchases-component       |  76.11 kB | 
+chunk-KKQZWJWJ.js   | sales-component           |  75.40 kB | 
+chunk-ZTWB2OQI.js   | inpatient-chart-component |  68.10 kB | 
+chunk-LONMNQTU.js   | inventory-component       |  64.86 kB | 
+chunk-6PQXKJR2.js   | hr-component              |  62.64 kB | 
+chunk-COMC2ES6.js   | -                         |  62.00 kB | 
+chunk-XS6QZXWB.js   | invoices-component        |  60.76 kB | 
+chunk-2VSNLWMW.js   | patient-profile-component |  59.97 kB | 
+chunk-Z6ZW5ZOB.js   | lab-component             |  52.61 kB | 
+chunk-QO3GFBEI.js   | appointments-component    |  51.34 kB | 
+...and 35 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [6.304 seconds]
+
+Watch mode enabled. Watching for file changes...
+  ➜  Local:   http://127.0.0.1:4200/

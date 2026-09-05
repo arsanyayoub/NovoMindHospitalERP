@@ -505,7 +505,7 @@ public class HospitalERPDbContext : DbContext
             new User
             {
                 Id = 1, Username = "admin", Email = "admin@hospital.com",
-                PasswordHash = "$2a$11$8K1p/a0dhrxSdiMLkBCl4.8Jj8Jjb3e2O0BYIWzNl8Ck9IuWc/Ea",
+                PasswordHash = "$2a$11$qc0Sp9VwLpUK/Z4Tdx7U3OfzQbPwKgZTcJ/vXtFz714TIeiXd7JNa",
                 FullName = "System Administrator", RoleId = 1,
                 CreatedDate = new DateTime(2024, 1, 1), CreatedBy = "system"
             }

@@ -154,6 +154,14 @@ public class InsuranceService : IInsuranceService
 
     public async Task<InsuranceClaimDto> CreateClaimAsync(CreateInsuranceClaimDto dto, string userId)
     {
+        var invoice = await _uow.Invoices.Query().FirstOrDefaultAsync(i => i.Id == dto.InvoiceId)
+            ?? throw new KeyNotFoundException($"Invoice {dto.InvoiceId} not found.");
+
+        // If not supplied, default claim amount to the invoice's insurer-share (or full total).
+        var claimAmount = dto.ClaimAmount > 0
+            ? dto.ClaimAmount
+            : (invoice.InsuranceShare > 0 ? invoice.InsuranceShare : invoice.TotalAmount);
+
         var count = await _uow.InsuranceClaims.CountAsync();
         var claim = new InsuranceClaim
         {
@@ -161,7 +169,7 @@ public class InsuranceService : IInsuranceService
             InvoiceId = dto.InvoiceId,
             PatientId = dto.PatientId,
             InsuranceProviderId = dto.InsuranceProviderId,
-            ClaimAmount = dto.ClaimAmount,
+            ClaimAmount = claimAmount,
             AuthCode = dto.AuthCode,
             Status = "Pending",
             SubmissionDate = DateTime.UtcNow,

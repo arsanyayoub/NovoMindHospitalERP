@@ -1,0 +1,35 @@
+- Building...
+
+Initial chunk files   | Names                     |  Raw size | Estimated transfer size
+chunk-EYT3OGNO.js     | -                         | 193.40 kB |                54.62 kB
+chunk-I5QMO7RN.js     | -                         |  85.52 kB |                21.32 kB
+main-J7FNAQYK.js      | main                      |  67.68 kB |                17.75 kB
+polyfills-FFHMD2TL.js | polyfills                 |  33.71 kB |                11.02 kB
+styles-KAIWBRJ7.css   | styles                    |  14.13 kB |                 3.31 kB
+chunk-U4RVHIYS.js     | -                         |   1.63 kB |               580 bytes
+chunk-BXUFT6RP.js     | -                         |   1.32 kB |               505 bytes
+
+                      | Initial total             | 397.39 kB |               109.08 kB
+
+Lazy chunk files      | Names                     |  Raw size | Estimated transfer size
+chunk-DXLU4PJF.js     | -                         |  57.91 kB |                13.21 kB
+chunk-JK5KM2FZ.js     | clinical-component        |  37.91 kB |                 8.22 kB
+chunk-KV6JDTRP.js     | ot-management-component   |  36.44 kB |                 7.19 kB
+chunk-KCPQKFS2.js     | -                         |  36.18 kB |                 4.24 kB
+chunk-7NBTJGMF.js     | bed-management-component  |  35.12 kB |                 7.02 kB
+chunk-SKSMEFRE.js     | reports-component         |  34.89 kB |                 7.53 kB
+chunk-OXRXRW7T.js     | pharmacy-component        |  34.35 kB |                 7.60 kB
+chunk-M4Q56NX4.js     | -                         |  32.64 kB |                 6.70 kB
+chunk-2LLIDJYW.js     | purchases-component       |  28.80 kB |                 6.29 kB
+chunk-2LVEUWYA.js     | sales-component           |  28.67 kB |                 6.22 kB
+chunk-CCEHR5G2.js     | inventory-component       |  27.62 kB |                 6.31 kB
+chunk-4OR4WHH7.js     | inpatient-chart-component |  27.09 kB |                 5.94 kB
+chunk-E6DOOM67.js     | patient-profile-component |  26.52 kB |                 6.41 kB
+chunk-6VVMD5YE.js     | invoices-component        |  24.64 kB |                 6.03 kB
+chunk-3XHGAKI4.js     | lab-component             |  24.28 kB |                 5.96 kB
+...and 36 more lazy chunks files. Use "--verbose" to show all the files.
+
+Output location: D:\Work\Projects\AI\ERP Hospital NEw\hospital-erp-angular\dist\hospital-erp-angular
+
+Application bundle generation complete. [15.616 seconds]
+

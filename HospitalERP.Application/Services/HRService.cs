@@ -278,13 +278,15 @@ public class DashboardService : IDashboardService
                 a.Fee, a.IsPaid, a.CreatedDate))
             .ToListAsync();
 
-        var topDoctors = await _uow.Appointments.Query()
-            .Include(a => a.Doctor)
-            .GroupBy(a => new { a.DoctorId, a.Doctor.FullName, a.Doctor.Specialization })
-            .Select(g => new TopDoctorDto(g.Key.FullName, g.Key.Specialization, g.Count()))
-            .OrderByDescending(d => d.AppointmentCount)
+        var topDoctorsRows = await _uow.Appointments.Query()
+            .GroupBy(a => new { a.DoctorId, DoctorName = a.Doctor.FullName, Specialization = a.Doctor.Specialization })
+            .Select(g => new { g.Key.DoctorName, g.Key.Specialization, AppointmentCount = g.Count() })
+            .OrderByDescending(x => x.AppointmentCount)
             .Take(5)
             .ToListAsync();
+        var topDoctors = topDoctorsRows
+            .Select(x => new TopDoctorDto(x.DoctorName, x.Specialization, x.AppointmentCount))
+            .ToList();
 
         var pendingPrescriptions = await _uow.Prescriptions.CountAsync(p => p.Status == "Pending" || p.Status == "Partially Dispensed");
         var pendingLab = await _uow.LabRequests.CountAsync(r => r.Status == "Pending" || r.Status == "Partial");
