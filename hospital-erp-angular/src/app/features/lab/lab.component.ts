@@ -6,10 +6,12 @@ import { LabService, PatientService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 import { NotificationService } from '../../core/services/notification.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
    selector: 'app-lab',
    standalone: true,
-   imports: [CommonModule, FormsModule, TranslateModule],
+   imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
    styles: [`
     .lab-tab-nav { display: flex; gap: 4px; background: rgba(0,0,0,0.15); padding: 5px; border-radius: 14px; margin-bottom: 24px; width: fit-content; border: 1px solid var(--border); }
     .lab-tab-btn { padding: 10px 20px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
@@ -47,6 +49,7 @@ import { NotificationService } from '../../core/services/notification.service';
         </button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="lab"></app-module-dashboard>
 
     <div class="lab-tab-nav animate-in">
        <button class="lab-tab-btn" [class.active]="tab==='requests'" (click)="tab='requests';loadRequests()">
@@ -134,7 +137,7 @@ import { NotificationService } from '../../core/services/notification.service';
        <div class="modal modal-xl animate-in" (click)="$event.stopPropagation()">
           <div class="modal-header">
              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-primary bg-opacity-10 text-primary flex items-center justify-center font-black">L</div>
+                <div class="w-12 h-12 rounded-2xl bg-primary bg-opacity-10 text-primary flex items-center justify-center font-black">{{ 'UI_L' | translate }}</div>
                 <div>
                    <h3 class="modal-title font-black uppercase tracking-tighter">{{ 'INPUT_DIAGNOSTIC_RESULTS' | translate }}</h3>
                    <div class="text-[0.6rem] font-black text-muted uppercase tracking-widest">ORDER #{{ selectedReq?.requestNumber }} &bull; {{ selectedReq?.patientName }}</div>
@@ -180,11 +183,11 @@ import { NotificationService } from '../../core/services/notification.service';
                       <div class="text-[0.6rem] font-black text-muted uppercase tracking-widest mb-2">{{ 'RESULT_FLAG'|translate }}</div>
                       <select class="form-control rounded-xl font-black text-xs h-11 border-2" [(ngModel)]="res.resultFlag" [disabled]="selectedReq.status==='Completed'"
                         [ngClass]="{'border-success': res.resultFlag==='Normal', 'border-warning': res.resultFlag==='Low', 'border-danger': res.resultFlag==='High'||res.resultFlag==='Critical'}">
-                         <option [ngValue]="null">NORMAL</option>
-                         <option value="Normal">NORMAL</option>
-                         <option value="Low">LOW</option>
-                         <option value="High">HIGH</option>
-                         <option value="Critical">CRITICAL</option>
+                         <option [ngValue]="null">{{ 'UI_NORMAL' | translate }}</option>
+                         <option value="Normal">{{ 'UI_NORMAL' | translate }}</option>
+                         <option value="Low">{{ 'UI_LOW' | translate }}</option>
+                         <option value="High">{{ 'UI_HIGH' | translate }}</option>
+                         <option value="Critical">{{ 'UI_CRITICAL' | translate }}</option>
                       </select>
                    </div>
 
@@ -199,7 +202,7 @@ import { NotificationService } from '../../core/services/notification.service';
                    </div>
                    <div class="col-span-5 mt-4">
                       <div class="text-[0.6rem] font-black text-muted uppercase tracking-widest mb-1">{{ 'PERFORMED_BY'|translate }}</div>
-                      <input class="form-control rounded-xl h-10 text-xs font-bold" [(ngModel)]="res.performedBy" [disabled]="selectedReq.status==='Completed'" placeholder="Technician Name">
+                      <input class="form-control rounded-xl h-10 text-xs font-bold" [(ngModel)]="res.performedBy" [disabled]="selectedReq.status==='Completed'" [placeholder]="'UI_TECHNICIAN_NAME' | translate">
                    </div>
                 </div>
              </div>
@@ -230,34 +233,34 @@ import { NotificationService } from '../../core/services/notification.service';
             <div class="modal-body bg-glass">
                 <div class="grid grid-cols-6 gap-3 mb-6 p-4 bg-primary bg-opacity-5 rounded-2xl border-2 border-primary border-opacity-10">
                     <div class="col-span-1">
-                        <label class="text-[0.6rem] font-black uppercase text-muted mb-1 block">Gender</label>
+                        <label class="text-[0.6rem] font-black uppercase text-muted mb-1 block">{{ 'UI_GENDER' | translate }}</label>
                         <select class="form-control h-10 text-xs font-bold" [(ngModel)]="rangeForm.gender">
-                            <option value="Both">Both</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
+                            <option value="Both">{{ 'UI_BOTH' | translate }}</option>
+                            <option value="Male">{{ 'UI_MALE' | translate }}</option>
+                            <option value="Female">{{ 'UI_FEMALE' | translate }}</option>
                         </select>
                     </div>
                     <div class="col-span-1">
-                        <label class="text-[0.6rem] font-black uppercase text-muted mb-1 block">Min Age</label>
+                        <label class="text-[0.6rem] font-black uppercase text-muted mb-1 block">{{ 'UI_MIN_AGE' | translate }}</label>
                         <input type="number" class="form-control h-10 text-xs font-black" [(ngModel)]="rangeForm.minAge">
                     </div>
                     <div class="col-span-1">
-                        <label class="text-[0.6rem] font-black uppercase text-muted mb-1 block">Max Age</label>
+                        <label class="text-[0.6rem] font-black uppercase text-muted mb-1 block">{{ 'UI_MAX_AGE' | translate }}</label>
                         <input type="number" class="form-control h-10 text-xs font-black" [(ngModel)]="rangeForm.maxAge">
                     </div>
                     <div class="col-span-1">
-                        <label class="text-[0.6rem] font-black uppercase text-muted mb-1 block">Min Val</label>
+                        <label class="text-[0.6rem] font-black uppercase text-muted mb-1 block">{{ 'UI_MIN_VAL' | translate }}</label>
                         <input type="number" class="form-control h-10 text-xs font-black" [(ngModel)]="rangeForm.minValue">
                     </div>
                     <div class="col-span-1">
-                        <label class="text-[0.6rem] font-black uppercase text-muted mb-1 block">Max Val</label>
+                        <label class="text-[0.6rem] font-black uppercase text-muted mb-1 block">{{ 'UI_MAX_VAL' | translate }}</label>
                         <input type="number" class="form-control h-10 text-xs font-black" [(ngModel)]="rangeForm.maxValue">
                     </div>
                     <div class="col-span-1 pt-4">
                         <button class="btn btn-primary h-10 w-full rounded-xl shadow-primary" (click)="addRange()"><span class="material-icons-round">add</span></button>
                     </div>
                     <div class="col-span-6">
-                         <input class="form-control h-10 text-xs italic" [(ngModel)]="rangeForm.rangeLabel" placeholder="Range Label (e.g., Adult Male Fasting)">
+                         <input class="form-control h-10 text-xs italic" [(ngModel)]="rangeForm.rangeLabel" [placeholder]="'UI_RANGE_LABEL_E_G_ADULT_MALE_F' | translate">
                     </div>
                 </div>
 
@@ -265,11 +268,11 @@ import { NotificationService } from '../../core/services/notification.service';
                     <table class="table">
                         <thead>
                             <tr class="text-[0.65rem] uppercase font-black">
-                                <th>Label</th>
-                                <th>Gender</th>
-                                <th>Age Range</th>
-                                <th>Value Range</th>
-                                <th>Status</th>
+                                <th>{{ 'UI_LABEL' | translate }}</th>
+                                <th>{{ 'UI_GENDER' | translate }}</th>
+                                <th>{{ 'UI_AGE_RANGE' | translate }}</th>
+                                <th>{{ 'UI_VALUE_RANGE' | translate }}</th>
+                                <th>{{ 'UI_STATUS' | translate }}</th>
                             </tr>
                         </thead>
                         <tbody>

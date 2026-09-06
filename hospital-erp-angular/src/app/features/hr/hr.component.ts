@@ -5,10 +5,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { HRService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
   selector: 'app-hr',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
   styles: [`
     .hr-tab-container { background: rgba(0,0,0,0.15); padding: 5px; border-radius: 14px; display: inline-flex; gap: 4px; border: 1px solid var(--border); margin-bottom: 24px; }
     .hr-tab { padding: 10px 24px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
@@ -38,6 +40,7 @@ import { ToastService } from '../../core/services/language.service';
         </button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="hr"></app-module-dashboard>
 
     <div class="hr-tab-container animate-in">
       <button class="hr-tab" [class.active]="tab==='employees'" (click)="tab='employees';loadEmployees()">
@@ -219,10 +222,10 @@ import { ToastService } from '../../core/services/language.service';
             <div class="form-group">
                <label class="form-label font-bold uppercase text-xs">{{ 'STATUS' | translate }}*</label>
                <select class="form-control" [(ngModel)]="attForm.status">
-                  <option value="Present">Present</option>
-                  <option value="Absent">Absent</option>
-                  <option value="Half-Day">Half-Day</option>
-                  <option value="Late">Late</option>
+                  <option value="Present">{{ 'UI_PRESENT' | translate }}</option>
+                  <option value="Absent">{{ 'UI_ABSENT' | translate }}</option>
+                  <option value="Half-Day">{{ 'UI_HALF_DAY' | translate }}</option>
+                  <option value="Late">{{ 'UI_LATE' | translate }}</option>
                </select>
             </div>
           </div>
@@ -273,11 +276,11 @@ import { ToastService } from '../../core/services/language.service';
             </div>
             <div class="form-group">
                <label class="form-label font-bold uppercase text-xs">{{ 'DEPARTMENT' | translate }}*</label>
-               <input class="form-control" [(ngModel)]="empForm.department" placeholder="Nursing, Admin, IT...">
+               <input class="form-control" [(ngModel)]="empForm.department" [placeholder]="'UI_NURSING_ADMIN_IT' | translate">
             </div>
             <div class="form-group">
                <label class="form-label font-bold uppercase text-xs">{{ 'POSITION' | translate }}*</label>
-               <input class="form-control" [(ngModel)]="empForm.position" placeholder="Senior Staff, Manager...">
+               <input class="form-control" [(ngModel)]="empForm.position" [placeholder]="'UI_SENIOR_STAFF_MANAGER' | translate">
             </div>
             <div class="form-group">
                <label class="form-label font-bold uppercase text-xs">{{ 'BASIC_SALARY' | translate }}</label>

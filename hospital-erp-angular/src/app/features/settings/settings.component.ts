@@ -5,6 +5,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/language.service';
+import { LanguageService } from '../../core/services/language.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -117,7 +118,7 @@ import { environment } from '../../../environments/environment';
 
             <div class="password-strength-info mb-4 alert alert-info">
               <span class="material-icons-round">info</span>
-              <span>Use at least 8 characters with a mix of letters, numbers and symbols for a strong password.</span>
+              <span>{{ 'UI_USE_AT_LEAST_8_CHARACTERS_WI' | translate }}</span>
             </div>
 
             <div class="form-group mb-4">
@@ -175,8 +176,8 @@ import { environment } from '../../../environments/environment';
             </h3>
             <div class="setting-row">
               <div>
-                <div class="font-semibold">Dark Mode</div>
-                <div class="text-sm text-muted">Always-on dark interface (cannot be changed)</div>
+                <div class="font-semibold">{{ 'UI_DARK_MODE' | translate }}</div>
+                <div class="text-sm text-muted">{{ 'UI_ALWAYS_ON_DARK_INTERFACE_CAN' | translate }}</div>
               </div>
               <div class="toggle-pill active">
                 <span class="material-icons-round" style="font-size:16px;color:var(--success)">check</span>
@@ -186,11 +187,11 @@ import { environment } from '../../../environments/environment';
             <div class="divider"></div>
             <div class="setting-row">
               <div>
-                <div class="font-semibold">Language</div>
-                <div class="text-sm text-muted">Interface language and text direction (RTL/LTR)</div>
+                <div class="font-semibold">{{ 'UI_LANGUAGE' | translate }}</div>
+                <div class="text-sm text-muted">{{ 'UI_INTERFACE_LANGUAGE_AND_TEXT_' | translate }}</div>
               </div>
               <div class="flex gap-2">
-                <button class="btn btn-sm" [class.btn-primary]="lang === 'en'" [class.btn-secondary]="lang !== 'en'" (click)="setLang('en')">EN</button>
+                <button class="btn btn-sm" [class.btn-primary]="lang === 'en'" [class.btn-secondary]="lang !== 'en'" (click)="setLang('en')">{{ 'UI_EN' | translate }}</button>
                 <button class="btn btn-sm" [class.btn-primary]="lang === 'ar'" [class.btn-secondary]="lang !== 'ar'" (click)="setLang('ar')">عربي</button>
               </div>
             </div>
@@ -203,28 +204,28 @@ import { environment } from '../../../environments/environment';
             </h3>
             <div class="info-grid">
               <div class="info-item">
-                <span class="info-label">Application</span>
-                <span class="info-value">Hospital ERP v2.0</span>
+                <span class="info-label">{{ 'UI_APPLICATION' | translate }}</span>
+                <span class="info-value">{{ 'UI_HOSPITAL_ERP_V2_0' | translate }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Backend</span>
+                <span class="info-label">{{ 'UI_BACKEND' | translate }}</span>
                 <span class="info-value">.NET 8 / ASP.NET Core</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Frontend</span>
-                <span class="info-value">Angular 17 (Standalone)</span>
+                <span class="info-label">{{ 'UI_FRONTEND' | translate }}</span>
+                <span class="info-value">{{ 'UI_ANGULAR_17_STANDALONE' | translate }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Database</span>
+                <span class="info-label">{{ 'UI_DATABASE' | translate }}</span>
                 <span class="info-value">SQL Server + EF Core</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Real-time</span>
-                <span class="info-value">SignalR</span>
+                <span class="info-label">{{ 'UI_REAL_TIME' | translate }}</span>
+                <span class="info-value">{{ 'UI_SIGNALR' | translate }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Auth</span>
-                <span class="info-value">JWT Bearer Tokens</span>
+                <span class="info-label">{{ 'UI_AUTH' | translate }}</span>
+                <span class="info-value">{{ 'UI_JWT_BEARER_TOKENS' | translate }}</span>
               </div>
             </div>
           </div>
@@ -236,8 +237,8 @@ import { environment } from '../../../environments/environment';
             </h3>
             <div class="setting-row">
               <div>
-                <div class="font-semibold">Clear Local Cache</div>
-                <div class="text-sm text-muted">Clears stored user session data</div>
+                <div class="font-semibold">{{ 'UI_CLEAR_LOCAL_CACHE' | translate }}</div>
+                <div class="text-sm text-muted">{{ 'UI_CLEARS_STORED_USER_SESSION_D' | translate }}</div>
               </div>
               <button class="btn btn-sm btn-danger" (click)="clearCache()">
                 <span class="material-icons-round" style="font-size:16px">delete_sweep</span>
@@ -339,6 +340,7 @@ export class SettingsComponent implements OnInit {
   constructor(
     public auth: AuthService,
     private http: HttpClient,
+    private langSvc: LanguageService,
     private toast: ToastService
   ) { }
 
@@ -390,10 +392,8 @@ export class SettingsComponent implements OnInit {
 
   setLang(lang: string) {
     this.lang = lang;
-    document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
-    document.documentElement.setAttribute('lang', lang);
-    localStorage.setItem('lang', lang);
-    location.reload();
+    this.langSvc.setLanguage(lang);
+    this.toast.success(lang === 'ar' ? 'تم تغيير اللغة إلى العربية' : 'Language switched to English');
   }
 
   clearCache() {

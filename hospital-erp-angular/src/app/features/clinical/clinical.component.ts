@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ClinicalService, PatientService, DoctorService, LabService, PharmacyService, RadiologyService, InventoryService } from '../../core/services/api.services';
-import { ToastService } from '../../core/services/language.service';
+import { ItemSearchSelectComponent, PickedItem } from '../../core/components/item-search-select.component';import { ToastService } from '../../core/services/language.service';
+
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
 
 @Component({
   selector: 'app-clinical',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, ItemSearchSelectComponent, ModuleDashboardComponent],
   styles: [`
     .vital-card { background: rgba(var(--card-bg-rgb), 0.3); border: 1px solid var(--border); border-radius: 16px; transition: all 0.2s; overflow: hidden; }
     .vital-card:hover { border-color: var(--primary); transform: translateY(-2px); }
@@ -45,6 +47,7 @@ import { ToastService } from '../../core/services/language.service';
         </button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="clinical"></app-module-dashboard>
 
     <div class="tab-nav animate-in">
       <button class="tab-btn" [class.active]="tab === 'vitals'" (click)="tab = 'vitals'; loadVitals()">
@@ -101,13 +104,13 @@ import { ToastService } from '../../core/services/language.service';
                 </div>
               </td>
               <td>
-                <div *ngIf="v.heartRate" class="font-bold text-success">{{ v.heartRate }} <span class="text-xs text-muted">BPM</span></div>
+                <div *ngIf="v.heartRate" class="font-bold text-success">{{ v.heartRate }} <span class="text-xs text-muted">{{ 'UI_BPM' | translate }}</span></div>
               </td>
               <td>
                 <div *ngIf="v.spO2" class="font-bold text-info">{{ v.spO2 }} <span class="text-xs text-muted">%</span></div>
               </td>
               <td>
-                <div *ngIf="v.weightKg" class="font-bold">{{ v.weightKg }} <span class="text-xs text-muted">kg</span></div>
+                <div *ngIf="v.weightKg" class="font-bold">{{ v.weightKg }} <span class="text-xs text-muted">{{ 'UI_KG' | translate }}</span></div>
                 <div *ngIf="v.bmi" class="text-xs font-black text-primary">BMI: {{ v.bmi }}</div>
               </td>
               <td class="text-end">
@@ -185,8 +188,8 @@ import { ToastService } from '../../core/services/language.service';
         </div>
         <div class="flex-grow p-6 overflow-y-auto bg-gray-50 dark:bg-gray-900 custom-scrollbar flex flex-col gap-4">
            <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl rounded-tl-sm shadow-sm border border-gray-100 dark:border-gray-700 max-w-[90%]">
-              <p class="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">Hello Doctor! I can help you analyze patient symptoms and suggest diagnostic codes.</p>
-              <p class="text-xs text-gray-500">Would you like me to review the active encounter's chief complaint and predict possible ICD-10 codes?</p>
+              <p class="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">{{ 'UI_HELLO_DOCTOR_I_CAN_HELP_YOU_' | translate }}</p>
+              <p class="text-xs text-gray-500">{{ 'UI_WOULD_YOU_LIKE_ME_TO_REVIEW_' | translate }}</p>
            </div>
            
            <div class="self-end bg-indigo-100 dark:bg-indigo-900/30 text-indigo-900 dark:text-indigo-100 p-3 rounded-2xl rounded-tr-sm shadow-sm max-w-[80%]" *ngIf="aiAnalyzing">
@@ -197,31 +200,31 @@ import { ToastService } from '../../core/services/language.service';
               <div class="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 mb-3 font-black text-xs uppercase tracking-widest">
                  <span class="material-icons-round text-sm">psychology</span> Analysis Complete
               </div>
-              <p class="mb-3 text-gray-700 dark:text-gray-300 font-semibold">Based on the symptoms, here are the most probable diagnoses:</p>
+              <p class="mb-3 text-gray-700 dark:text-gray-300 font-semibold">{{ 'UI_BASED_ON_THE_SYMPTOMS_HERE_A' | translate }}</p>
               
               <div class="flex flex-col gap-2">
                  <div class="p-2 border border-indigo-100 dark:border-indigo-900/40 rounded-lg bg-indigo-50/50 dark:bg-indigo-900/10 cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors">
                     <div class="flex justify-between items-center mb-1">
-                       <span class="font-black text-indigo-700 dark:text-indigo-300">G43.109</span>
+                       <span class="font-black text-indigo-700 dark:text-indigo-300">{{ 'UI_G43_109' | translate }}</span>
                        <span class="text-[0.6rem] font-black text-white bg-green-500 rounded px-1.5 py-0.5">89% MATCH</span>
                     </div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400">Migraine with aura, not intractable, without status migrainosus</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400">{{ 'UI_MIGRAINE_WITH_AURA_NOT_INTRA' | translate }}</div>
                  </div>
                  
                  <div class="p-2 border border-blue-100 dark:border-blue-900/40 rounded-lg bg-blue-50/50 dark:bg-blue-900/10 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
                     <div class="flex justify-between items-center mb-1">
-                       <span class="font-black text-blue-700 dark:text-blue-300">G44.209</span>
+                       <span class="font-black text-blue-700 dark:text-blue-300">{{ 'UI_G44_209' | translate }}</span>
                        <span class="text-[0.6rem] font-black text-white bg-blue-500 rounded px-1.5 py-0.5">65% MATCH</span>
                     </div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400">Tension-type headache, unspecified, not intractable</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400">{{ 'UI_TENSION_TYPE_HEADACHE_UNSPEC' | translate }}</div>
                  </div>
               </div>
               
               <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                 <p class="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2">Recommended Tests:</p>
+                 <p class="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2">{{ 'UI_RECOMMENDED_TESTS' | translate }}</p>
                  <div class="flex flex-wrap gap-1">
-                    <span class="badge bg-purple-100 text-purple-700 border border-purple-200">MRI Brain (W/O Contrast)</span>
-                    <span class="badge bg-teal-100 text-teal-700 border border-teal-200">CBC</span>
+                    <span class="badge bg-purple-100 text-purple-700 border border-purple-200">{{ 'UI_MRI_BRAIN_W_O_CONTRAST' | translate }}</span>
+                    <span class="badge bg-teal-100 text-teal-700 border border-teal-200">{{ 'UI_CBC' | translate }}</span>
                  </div>
               </div>
            </div>
@@ -231,7 +234,7 @@ import { ToastService } from '../../core/services/language.service';
            </div>
         </div>
         <div class="p-4 border-t bg-white dark:bg-gray-800 flex gap-2 rounded-b-2xl">
-           <input class="form-control flex-grow rounded-xl bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700" placeholder="Ask AI to analyze symptoms...">
+           <input class="form-control flex-grow rounded-xl bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700" [placeholder]="'UI_ASK_AI_TO_ANALYZE_SYMPTOMS' | translate">
            <button class="btn btn-primary btn-icon rounded-xl bg-indigo-600 hover:bg-indigo-700 border-0" (click)="simulateAi()">
               <span class="material-icons-round">send</span>
            </button>
@@ -256,7 +259,7 @@ import { ToastService } from '../../core/services/language.service';
             </div>
             <div class="form-group">
               <label class="form-label font-bold uppercase text-xs">{{ 'APPOINTMENT_CODE' | translate }}</label>
-              <input class="form-control" type="number" [(ngModel)]="form.appointmentId" placeholder="Optional">
+              <input class="form-control" type="number" [(ngModel)]="form.appointmentId" [placeholder]="'UI_OPTIONAL' | translate">
             </div>
           </div>
 
@@ -266,27 +269,27 @@ import { ToastService } from '../../core/services/language.service';
               <input class="form-control font-bold" type="number" step="0.1" [(ngModel)]="form.temperature">
             </div>
             <div class="form-group">
-              <label class="form-label font-bold text-xs">BP (SYS)</label>
+              <label class="form-label font-bold text-xs">{{ 'UI_BP_SYS' | translate }}</label>
               <input class="form-control font-bold" type="number" [(ngModel)]="form.bloodPressureSystolic">
             </div>
             <div class="form-group">
-              <label class="form-label font-bold text-xs">BP (DIA)</label>
+              <label class="form-label font-bold text-xs">{{ 'UI_BP_DIA' | translate }}</label>
               <input class="form-control font-bold" type="number" [(ngModel)]="form.bloodPressureDiastolic">
             </div>
             <div class="form-group">
-              <label class="form-label font-bold text-xs">HEART RATE</label>
+              <label class="form-label font-bold text-xs">{{ 'UI_HEART_RATE' | translate }}</label>
               <input class="form-control font-bold" type="number" [(ngModel)]="form.heartRate">
             </div>
             <div class="form-group">
-              <label class="form-label font-bold text-xs">SPO2 (%)</label>
+              <label class="form-label font-bold text-xs">{{ 'UI_SPO2' | translate }}</label>
               <input class="form-control font-bold" type="number" [(ngModel)]="form.spO2">
             </div>
             <div class="form-group">
-              <label class="form-label font-bold text-xs">WEIGHT (KG)</label>
+              <label class="form-label font-bold text-xs">{{ 'UI_WEIGHT_KG' | translate }}</label>
               <input class="form-control font-bold" type="number" step="0.1" [(ngModel)]="form.weightKg">
             </div>
             <div class="form-group col-span-2">
-              <label class="form-label font-bold text-xs">RESPIRATORY RATE</label>
+              <label class="form-label font-bold text-xs">{{ 'UI_RESPIRATORY_RATE' | translate }}</label>
               <input class="form-control" type="number" [(ngModel)]="form.respiratoryRate">
             </div>
           </div>
@@ -334,29 +337,29 @@ import { ToastService } from '../../core/services/language.service';
                 <span class="material-icons-round text-[10px]">auto_awesome</span> AI Triage Generate
               </button>
             </label>
-            <input class="form-control font-bold" [(ngModel)]="encounterForm.chiefComplaint" [disabled]="encounterForm.isFinalized" placeholder="Reason for encounter...">
+            <input class="form-control font-bold" [(ngModel)]="encounterForm.chiefComplaint" [disabled]="encounterForm.isFinalized" [placeholder]="'UI_REASON_FOR_ENCOUNTER' | translate">
           </div>
 
           <div class="grid grid-cols-2 gap-4 mb-6">
             <div class="soap-box relative">
-              <span class="soap-letter">S</span>
+              <span class="soap-letter">{{ 'UI_S' | translate }}</span>
               <label class="form-label font-bold text-primary">{{ 'SUBJECTIVE' | translate }}</label>
-              <textarea class="form-control bg-transparent border-0 p-0" [(ngModel)]="encounterForm.subjective" rows="4" [disabled]="encounterForm.isFinalized" placeholder="Patient history, symptoms..."></textarea>
+              <textarea class="form-control bg-transparent border-0 p-0" [(ngModel)]="encounterForm.subjective" rows="4" [disabled]="encounterForm.isFinalized" [placeholder]="'UI_PATIENT_HISTORY_SYMPTOMS' | translate"></textarea>
             </div>
             <div class="soap-box relative">
-              <span class="soap-letter">O</span>
+              <span class="soap-letter">{{ 'UI_O' | translate }}</span>
               <label class="form-label font-bold text-primary">{{ 'OBJECTIVE' | translate }}</label>
-              <textarea class="form-control bg-transparent border-0 p-0" [(ngModel)]="encounterForm.objective" rows="4" [disabled]="encounterForm.isFinalized" placeholder="Physical exam findings, vitals..."></textarea>
+              <textarea class="form-control bg-transparent border-0 p-0" [(ngModel)]="encounterForm.objective" rows="4" [disabled]="encounterForm.isFinalized" [placeholder]="'UI_PHYSICAL_EXAM_FINDINGS_VITAL' | translate"></textarea>
             </div>
             <div class="soap-box relative">
-              <span class="soap-letter">A</span>
+              <span class="soap-letter">{{ 'UI_A' | translate }}</span>
               <label class="form-label font-bold text-primary">{{ 'ASSESSMENT' | translate }}</label>
-              <textarea class="form-control bg-transparent border-0 p-0" [(ngModel)]="encounterForm.assessment" rows="4" [disabled]="encounterForm.isFinalized" placeholder="Diagnosis, differential diagnosis..."></textarea>
+              <textarea class="form-control bg-transparent border-0 p-0" [(ngModel)]="encounterForm.assessment" rows="4" [disabled]="encounterForm.isFinalized" [placeholder]="'UI_DIAGNOSIS_DIFFERENTIAL_DIAGN' | translate"></textarea>
             </div>
             <div class="soap-box relative">
-              <span class="soap-letter">P</span>
+              <span class="soap-letter">{{ 'UI_P' | translate }}</span>
               <label class="form-label font-bold text-primary">{{ 'PLAN' | translate }}</label>
-              <textarea class="form-control bg-transparent border-0 p-0" [(ngModel)]="encounterForm.plan" rows="4" [disabled]="encounterForm.isFinalized" placeholder="Treatment, medications, referrals..."></textarea>
+              <textarea class="form-control bg-transparent border-0 p-0" [(ngModel)]="encounterForm.plan" rows="4" [disabled]="encounterForm.isFinalized" [placeholder]="'UI_TREATMENT_MEDICATIONS_REFERR' | translate"></textarea>
             </div>
           </div>
 
@@ -366,12 +369,12 @@ import { ToastService } from '../../core/services/language.service';
                 <label class="font-bold flex items-center gap-2 m-0 text-sm">
                    <span class="material-icons-round text-primary">local_hospital</span> Primary Diagnosis (ICD-10)
                 </label>
-                <div class="badge badge-primary badge-outline text-[0.6rem]">OPTIONAL</div>
+                <div class="badge badge-primary badge-outline text-[0.6rem]">{{ 'UI_OPTIONAL_2' | translate }}</div>
              </div>
              <div class="flex gap-2">
-                <input class="form-control font-mono w-32 uppercase" placeholder="e.g. J01.90" [(ngModel)]="encounterForm.icdCode">
-                <input class="form-control flex-grow" placeholder="Diagnosis description..." [(ngModel)]="encounterForm.icdDescription">
-                <button class="btn btn-secondary btn-icon" title="Search ICD-10 Database (Mock)"><span class="material-icons-round">search</span></button>
+                <input class="form-control font-mono w-32 uppercase" [placeholder]="'UI_E_G_J01_90' | translate" [(ngModel)]="encounterForm.icdCode">
+                <input class="form-control flex-grow" [placeholder]="'UI_DIAGNOSIS_DESCRIPTION' | translate" [(ngModel)]="encounterForm.icdDescription">
+                <button class="btn btn-secondary btn-icon" [title]="'UI_SEARCH_ICD_10_DATABASE_MOCK' | translate"><span class="material-icons-round">search</span></button>
              </div>
           </div>
 
@@ -381,24 +384,21 @@ import { ToastService } from '../../core/services/language.service';
              <div class="order-section">
                 <div class="order-title"><span class="material-icons-round">medication</span> PHARMACY ORDERS</div>
                 <div class="flex gap-2 mb-4">
-                   <select class="form-control" [(ngModel)]="currentMed" (change)="addMedication()">
-                      <option [ngValue]="null">Search Medication...</option>
-                      <option *ngFor="let m of medicines" [ngValue]="m">{{ m.itemName }} ({{ m.unit }})</option>
-                   </select>
+                   <app-item-search-select category="Medicine" (picked)="pickMed($event)"></app-item-search-select>
                 </div>
                 <div class="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar">
                    <div *ngFor="let mi of encounterOrders.medications; let i = index" class="item-row">
                       <div class="text-xs">
                          <div class="font-bold">{{ mi.itemName }}</div>
-                         <input class="form-control h-7 px-2 border-0 bg-transparent text-[0.6rem] font-bold" [(ngModel)]="mi.dosage" placeholder="Dosage (e.g. 500mg)">
+                         <input class="form-control h-7 px-2 border-0 bg-transparent text-[0.6rem] font-bold" [(ngModel)]="mi.dosage" [placeholder]="'UI_DOSAGE_E_G_500MG' | translate">
                       </div>
-                      <input class="form-control h-8 text-center font-bold" type="number" [(ngModel)]="mi.quantity" placeholder="Qty">
+                      <input class="form-control h-8 text-center font-bold" type="number" [(ngModel)]="mi.quantity" [placeholder]="'UI_QTY' | translate">
                       <select class="form-control h-8 text-[0.6rem] font-bold" [(ngModel)]="mi.frequency">
-                         <option value="Once Daily">Once Daily</option>
-                         <option value="BID (2x)">BID (2x)</option>
-                         <option value="TID (3x)">TID (3x)</option>
-                         <option value="QID (4x)">QID (4x)</option>
-                         <option value="As Needed">As Needed</option>
+                         <option value="Once Daily">{{ 'UI_ONCE_DAILY' | translate }}</option>
+                         <option value="BID (2x)">{{ 'UI_BID_2X' | translate }}</option>
+                         <option value="TID (3x)">{{ 'UI_TID_3X' | translate }}</option>
+                         <option value="QID (4x)">{{ 'UI_QID_4X' | translate }}</option>
+                         <option value="As Needed">{{ 'UI_AS_NEEDED' | translate }}</option>
                       </select>
                       <button class="btn btn-icon btn-xs text-danger" (click)="removeMed(i)"><span class="material-icons-round">close</span></button>
                    </div>
@@ -410,7 +410,7 @@ import { ToastService } from '../../core/services/language.service';
                 <div class="order-title"><span class="material-icons-round">biotech</span> DIAGNOSTICS & IMAGING</div>
                 <div class="flex flex-col gap-4">
                    <div>
-                      <div class="text-[0.6rem] font-black text-muted uppercase mb-2">Laboratory Tests</div>
+                      <div class="text-[0.6rem] font-black text-muted uppercase mb-2">{{ 'UI_LABORATORY_TESTS' | translate }}</div>
                       <div class="flex flex-wrap gap-2">
                          <div *ngFor="let t of labTests" class="test-pill cursor-pointer hover:bg-opacity-20" 
                               [class.bg-primary]="isTestSelected(t.id, 'lab')"
@@ -421,7 +421,7 @@ import { ToastService } from '../../core/services/language.service';
                       </div>
                    </div>
                    <div class="pt-4 border-top">
-                      <div class="text-[0.6rem] font-black text-muted uppercase mb-2">Imaging (Radiology)</div>
+                      <div class="text-[0.6rem] font-black text-muted uppercase mb-2">{{ 'UI_IMAGING_RADIOLOGY' | translate }}</div>
                       <div class="flex flex-wrap gap-2">
                          <div *ngFor="let rt of radTests" class="test-pill cursor-pointer hover:bg-opacity-20"
                               [class.bg-accent]="isTestSelected(rt.id, 'rad')"
@@ -608,6 +608,17 @@ export class ClinicalComponent implements OnInit {
       }).subscribe();
     }
   }
+
+  pickMed(it: any) {
+
+    if (!it) { this.currentMed = null; return; }
+
+    const m = (this.medicines || []).find((x: any) => x.id === it.id);
+
+    if (m) { this.currentMed = m; this.addMedication(); }
+
+  }
+
 
   addMedication() {
     if (!this.currentMed) return;

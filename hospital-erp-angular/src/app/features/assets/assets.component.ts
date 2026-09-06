@@ -5,10 +5,12 @@ import { TranslateModule } from '@ngx-translate/core';
 import { AssetService, PagedResult } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
     selector: 'app-assets',
     standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule],
+    imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
     template: `
     <div class="container-fluid p-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
@@ -18,6 +20,7 @@ import { ToastService } from '../../core/services/language.service';
           </h2>
           <p class="text-muted mb-0 small">Manage hospital equipment and maintenance lifecycle</p>
         </div>
+    <app-module-dashboard class="no-print" name="assets"></app-module-dashboard>
         <div class="d-flex gap-2">
           <button class="btn btn-outline-primary shadow-sm rounded-pill px-4" (click)="loadInitialData()">
             <i class="fas fa-sync-alt me-2"></i>{{ 'REFRESH' | translate }}

@@ -4,11 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SalesService, InventoryService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
+import { ItemSearchSelectComponent, PickedItem } from '../../core/components/item-search-select.component';
+
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
 
 @Component({
   selector: 'app-sales',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, ItemSearchSelectComponent, ModuleDashboardComponent],
   styles: [`
     .tab-bar { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
     .tab-item { padding: 12px 24px; cursor: pointer; border-bottom: 2px solid transparent; color: var(--text-muted); font-weight: 600; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
@@ -46,6 +49,7 @@ import { ToastService } from '../../core/services/language.service';
         </button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="sales"></app-module-dashboard>
 
     <div class="tab-bar">
       <div class="tab-item" [class.active]="tab==='customers'" (click)="tab='customers';loadCustomers()">
@@ -238,7 +242,7 @@ import { ToastService } from '../../core/services/language.service';
               </div>
               <div class="form-group"><label class="form-label font-bold">{{ 'DATE' | translate }}</label><input class="form-control" type="date" [(ngModel)]="invoiceForm.invoiceDate"></div>
               <div class="form-group"><label class="form-label font-bold">{{ 'DUE_DATE' | translate }}</label><input class="form-control" type="date" [(ngModel)]="invoiceForm.dueDate"></div>
-              <div class="form-group col-span-3 mb-0"><label class="form-label">{{ 'NOTES' | translate }}</label><input class="form-control" [(ngModel)]="invoiceForm.notes" placeholder="Optional notes..."></div>
+              <div class="form-group col-span-3 mb-0"><label class="form-label">{{ 'NOTES' | translate }}</label><input class="form-control" [(ngModel)]="invoiceForm.notes" [placeholder]="'UI_OPTIONAL_NOTES' | translate"></div>
             </div>
           </div>
 
@@ -253,10 +257,7 @@ import { ToastService } from '../../core/services/language.service';
             <div *ngFor="let line of invoiceForm.items; let i = index" class="inv-line animate-in">
               <div>
                 <label *ngIf="i===0" class="text-xs text-muted uppercase font-bold mb-1 block">{{ 'ITEM' | translate }}</label>
-                <select class="form-control" [(ngModel)]="line.itemId" (change)="onItemSelect(line)">
-                  <option [ngValue]="null">— Select Item —</option>
-                  <option *ngFor="let it of inventoryItems" [ngValue]="it.id">{{ it.itemName }}</option>
-                </select>
+                <app-item-search-select (picked)="onItemPicked(line, $event)" [preselect]="line.itemId ? { id: line.itemId, itemName: line.itemName || '' } : null"></app-item-search-select>
               </div>
               <div>
                 <label *ngIf="i===0" class="text-xs text-muted uppercase font-bold mb-1 block">{{ 'WAREHOUSE' | translate }}</label>
@@ -422,6 +423,12 @@ export class SalesComponent implements OnInit {
   addLine() { this.invoiceForm.items.push(this.freshLine()); }
   removeLine(i: number) { if (this.invoiceForm.items.length > 1) this.invoiceForm.items.splice(i, 1); }
 
+  onItemPicked(line: any, it: PickedItem | null) {
+    if (!it) { line.itemId = null; line.itemName = ''; line.unitPrice = 0; return; }
+    line.itemId = it.id; line.itemName = it.itemName || '';
+    line.unitPrice = Number(it.salePrice ?? 0); line.taxRate = Number(it.taxRate ?? 0);
+    this.calcLine(line);
+  }
   onItemSelect(line: any) {
     const item = this.inventoryItems.find(it => it.id === line.itemId);
     if (item) {

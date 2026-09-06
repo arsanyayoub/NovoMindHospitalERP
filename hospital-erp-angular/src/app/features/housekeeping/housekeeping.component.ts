@@ -4,34 +4,37 @@ import { FormsModule } from '@angular/forms';
 import { HousekeepingService } from '../../core/services/api.services';
 import { TranslateModule } from '@ngx-translate/core';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
     selector: 'app-housekeeping',
     standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule],
+    imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
     template: `
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-slate-800">Housekeeping & Facility Care</h1>
+        <h1 class="text-2xl font-bold text-slate-800">{{ 'UI_HOUSEKEEPING_FACILITY_CARE' | translate }}</h1>
         <button (click)="showNewTask = true" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-all flex items-center gap-2">
           <i class="fas fa-plus"></i> New Task
         </button>
       </div>
+    <app-module-dashboard class="no-print" name="housekeeping"></app-module-dashboard>
 
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-amber-50 border border-amber-100 p-4 rounded-xl">
-          <p class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Dirty Beds</p>
+          <p class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">{{ 'UI_DIRTY_BEDS' | translate }}</p>
           <h3 class="text-2xl font-bold text-amber-800">{{filterTasks('Pending').length}}</h3>
         </div>
         <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl">
-          <p class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">In Progress</p>
+          <p class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">{{ 'UI_IN_PROGRESS' | translate }}</p>
           <h3 class="text-2xl font-bold text-blue-800">{{filterTasks('InProgress').length}}</h3>
         </div>
         <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-xl">
-          <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Clean/Ready</p>
+          <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">{{ 'UI_CLEAN_READY' | translate }}</p>
           <h3 class="text-2xl font-bold text-emerald-800">{{filterTasks('Completed').length}}</h3>
         </div>
         <div class="bg-slate-50 border border-slate-100 p-4 rounded-xl">
-          <p class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Total Tasks</p>
+          <p class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">{{ 'UI_TOTAL_TASKS' | translate }}</p>
           <h3 class="text-2xl font-bold text-slate-800">{{tasks.length}}</h3>
         </div>
       </div>
@@ -40,11 +43,11 @@ import { TranslateModule } from '@ngx-translate/core';
         <table class="w-full text-left">
           <thead class="bg-slate-50 border-b border-slate-200">
             <tr>
-              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Location/Bed</th>
-              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Task Type</th>
-              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Assigned To</th>
-              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Status</th>
-              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Actions</th>
+              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{{ 'UI_LOCATION_BED' | translate }}</th>
+              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{{ 'UI_TASK_TYPE' | translate }}</th>
+              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{{ 'UI_ASSIGNED_TO' | translate }}</th>
+              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{{ 'UI_STATUS' | translate }}</th>
+              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{{ 'UI_ACTIONS' | translate }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
@@ -69,17 +72,17 @@ import { TranslateModule } from '@ngx-translate/core';
               </td>
               <td class="px-6 py-4">
                 <div class="flex gap-2">
-                  <button *ngIf="t.status === 'Pending'" (click)="updateStatus(t.id, 'InProgress')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Start Job">
+                  <button *ngIf="t.status === 'Pending'" (click)="updateStatus(t.id, 'InProgress')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all" [title]="'UI_START_JOB' | translate">
                     <i class="fas fa-play"></i>
                   </button>
-                  <button *ngIf="t.status === 'InProgress'" (click)="updateStatus(t.id, 'Completed')" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" title="Complete Job">
+                  <button *ngIf="t.status === 'InProgress'" (click)="updateStatus(t.id, 'Completed')" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" [title]="'UI_COMPLETE_JOB' | translate">
                     <i class="fas fa-check"></i>
                   </button>
                 </div>
               </td>
             </tr>
             <tr *ngIf="!tasks.length">
-              <td colspan="5" class="py-12 text-center text-slate-400">No active housekeeping tasks</td>
+              <td colspan="5" class="py-12 text-center text-slate-400">{{ 'UI_NO_ACTIVE_HOUSEKEEPING_TASKS' | translate }}</td>
             </tr>
           </tbody>
         </table>
@@ -89,31 +92,31 @@ import { TranslateModule } from '@ngx-translate/core';
       <div *ngIf="showNewTask" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
           <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-            <h3 class="font-bold text-lg">Create Cleaning Task</h3>
+            <h3 class="font-bold text-lg">{{ 'UI_CREATE_CLEANING_TASK' | translate }}</h3>
             <button (click)="showNewTask = false" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
           </div>
           <div class="p-6 space-y-4">
              <div>
-               <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Task Type</label>
+               <label class="block text-xs font-bold text-slate-500 uppercase mb-1">{{ 'UI_TASK_TYPE' | translate }}</label>
                <select [(ngModel)]="newTask.taskType" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-indigo-500">
-                 <option value="Routine Cleaning">Routine Cleaning</option>
-                 <option value="Deep Clean">Deep Clean</option>
-                 <option value="Discharge Clean">Discharge Clean</option>
-                 <option value="Infection Control Wash">Infection Control Wash</option>
+                 <option value="Routine Cleaning">{{ 'UI_ROUTINE_CLEANING' | translate }}</option>
+                 <option value="Deep Clean">{{ 'UI_DEEP_CLEAN' | translate }}</option>
+                 <option value="Discharge Clean">{{ 'UI_DISCHARGE_CLEAN' | translate }}</option>
+                 <option value="Infection Control Wash">{{ 'UI_INFECTION_CONTROL_WASH' | translate }}</option>
                </select>
              </div>
              <div>
-               <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Staff Assignment</label>
-               <input type="text" [(ngModel)]="newTask.assignedStaffId" placeholder="Staff Name or ID" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-indigo-500">
+               <label class="block text-xs font-bold text-slate-500 uppercase mb-1">{{ 'UI_STAFF_ASSIGNMENT' | translate }}</label>
+               <input type="text" [(ngModel)]="newTask.assignedStaffId" [placeholder]="'UI_STAFF_NAME_OR_ID' | translate" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-indigo-500">
              </div>
              <div>
-               <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Remarks</label>
+               <label class="block text-xs font-bold text-slate-500 uppercase mb-1">{{ 'UI_REMARKS' | translate }}</label>
                <textarea [(ngModel)]="newTask.remarks" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
              </div>
           </div>
           <div class="p-6 bg-slate-50 flex gap-3">
-             <button (click)="showNewTask = false" class="flex-1 px-4 py-2 border border-slate-200 rounded-lg font-medium text-slate-600 hover:bg-slate-100">Cancel</button>
-             <button (click)="saveTask()" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 shadow-md">Create Task</button>
+             <button (click)="showNewTask = false" class="flex-1 px-4 py-2 border border-slate-200 rounded-lg font-medium text-slate-600 hover:bg-slate-100">{{ 'UI_CANCEL' | translate }}</button>
+             <button (click)="saveTask()" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 shadow-md">{{ 'UI_CREATE_TASK' | translate }}</button>
           </div>
         </div>
       </div>

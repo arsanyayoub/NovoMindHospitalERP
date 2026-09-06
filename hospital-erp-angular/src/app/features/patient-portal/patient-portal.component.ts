@@ -14,7 +14,7 @@ import { TranslateModule } from '@ngx-translate/core';
         <!-- Header Section -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
           <div>
-            <h1 class="text-3xl font-black text-slate-900 tracking-tight">Health Record <span class="text-indigo-600">Portal</span></h1>
+            <h1 class="text-3xl font-black text-slate-900 tracking-tight">Health Record <span class="text-indigo-600">{{ 'UI_PORTAL' | translate }}</span></h1>
             <p class="text-slate-500 font-medium">Welcome back, {{profile?.fullName}}</p>
           </div>
           <div class="flex gap-3 w-full md:w-auto">
@@ -22,7 +22,7 @@ import { TranslateModule } from '@ngx-translate/core';
                <i class="fas fa-file-download text-indigo-500"></i> Export Medical Summary
              </button>
              <button class="flex-1 md:flex-none px-6 py-3 bg-indigo-600 text-white rounded-2xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg active:scale-95">
-               Book Visit
+               {{ 'UI_BOOK_VISIT' | translate }}
              </button>
           </div>
         </div>
@@ -43,11 +43,11 @@ import { TranslateModule } from '@ngx-translate/core';
                
                <div class="space-y-4 relative z-10">
                  <div class="flex justify-between items-center py-2 border-b border-slate-50">
-                    <span class="text-xs font-bold text-slate-400 uppercase">Gender</span>
+                    <span class="text-xs font-bold text-slate-400 uppercase">{{ 'UI_GENDER' | translate }}</span>
                     <span class="text-sm font-semibold text-slate-700">{{profile?.gender}}</span>
                  </div>
                  <div class="flex justify-between items-center py-2 border-b border-slate-50">
-                    <span class="text-xs font-bold text-slate-400 uppercase">DOB</span>
+                    <span class="text-xs font-bold text-slate-400 uppercase">{{ 'UI_DOB' | translate }}</span>
                     <span class="text-sm font-semibold text-slate-700">{{profile?.dateOfBirth | date}}</span>
                  </div>
                  <div class="flex items-center gap-3 mt-6">
@@ -55,7 +55,7 @@ import { TranslateModule } from '@ngx-translate/core';
                        <i class="fas fa-phone-alt"></i>
                     </div>
                     <div>
-                      <p class="text-[10px] font-bold text-slate-400 uppercase">Mobile</p>
+                      <p class="text-[10px] font-bold text-slate-400 uppercase">{{ 'UI_MOBILE' | translate }}</p>
                       <p class="text-sm font-semibold text-slate-800">{{profile?.phone}}</p>
                     </div>
                  </div>
@@ -64,7 +64,7 @@ import { TranslateModule } from '@ngx-translate/core';
                        <i class="fas fa-envelope"></i>
                     </div>
                     <div>
-                      <p class="text-[10px] font-bold text-slate-400 uppercase">Email</p>
+                      <p class="text-[10px] font-bold text-slate-400 uppercase">{{ 'UI_EMAIL' | translate }}</p>
                       <p class="text-sm font-semibold text-slate-800">{{profile?.email}}</p>
                     </div>
                  </div>
@@ -76,21 +76,21 @@ import { TranslateModule } from '@ngx-translate/core';
                <div class="absolute -bottom-8 -right-8 opacity-10">
                  <i class="fas fa-heartbeat text-9xl"></i>
                </div>
-               <h4 class="text-lg font-bold mb-6">Health Snapshot</h4>
+               <h4 class="text-lg font-bold mb-6">{{ 'UI_HEALTH_SNAPSHOT' | translate }}</h4>
                <div class="space-y-6">
                  <div>
                     <div class="flex justify-between text-xs font-bold text-indigo-300 uppercase mb-2">
-                       <span>Blood Pressure</span>
-                       <span>Normal</span>
+                       <span>{{ 'UI_BLOOD_PRESSURE_2' | translate }}</span>
+                       <span>{{ 'UI_NORMAL_2' | translate }}</span>
                     </div>
-                    <p class="text-2xl font-bold">120/80 <span class="text-xs font-medium text-indigo-400">mmHg</span></p>
+                    <p class="text-2xl font-bold">120/80 <span class="text-xs font-medium text-indigo-400">{{ 'UI_MMHG' | translate }}</span></p>
                  </div>
                  <div>
                     <div class="flex justify-between text-xs font-bold text-indigo-300 uppercase mb-2">
-                       <span>Weight</span>
-                       <span>Steady</span>
+                       <span>{{ 'UI_WEIGHT_2' | translate }}</span>
+                       <span>{{ 'UI_STEADY' | translate }}</span>
                     </div>
-                    <p class="text-2xl font-bold">74.5 <span class="text-xs font-medium text-indigo-400">kg</span></p>
+                    <p class="text-2xl font-bold">74.5 <span class="text-xs font-medium text-indigo-400">{{ 'UI_KG' | translate }}</span></p>
                  </div>
                </div>
             </div>
@@ -126,14 +126,14 @@ import { TranslateModule } from '@ngx-translate/core';
                    </div>
                    
                    <div *ngIf="app.diagnosis" class="mt-4 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-                      <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Diagnosis/Notes</p>
+                      <p class="text-[10px] font-black text-slate-400 uppercase mb-2">{{ 'UI_DIAGNOSIS_NOTES' | translate }}</p>
                       <p class="text-sm text-slate-600 leading-relaxed">{{app.diagnosis}}</p>
                    </div>
                  </div>
 
                  <div *ngIf="!appointments.length" class="text-center py-10 opacity-40">
                     <i class="fas fa-calendar-alt text-4xl mb-3"></i>
-                    <p class="font-bold">No visit history found</p>
+                    <p class="font-bold">{{ 'UI_NO_VISIT_HISTORY_FOUND' | translate }}</p>
                  </div>
                </div>
             </div>
@@ -144,7 +144,7 @@ import { TranslateModule } from '@ngx-translate/core';
                  <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                    <i class="fas fa-flask text-rose-500"></i> Recent Lab Results
                  </h3>
-                 <button class="text-indigo-600 font-bold text-xs hover:underline">View All</button>
+                 <button class="text-indigo-600 font-bold text-xs hover:underline">{{ 'UI_VIEW_ALL' | translate }}</button>
                </div>
 
                <div class="space-y-4">
@@ -154,7 +154,7 @@ import { TranslateModule } from '@ngx-translate/core';
                          <i class="fas fa-vial"></i>
                        </div>
                        <div>
-                         <h5 class="font-bold text-slate-800">Comprehensive Lipid Panel</h5>
+                         <h5 class="font-bold text-slate-800">{{ 'UI_COMPREHENSIVE_LIPID_PANEL' | translate }}</h5>
                          <p class="text-xs text-slate-400">Oct 24, 2024 • Normal Range</p>
                        </div>
                     </div>
@@ -167,7 +167,7 @@ import { TranslateModule } from '@ngx-translate/core';
                          <i class="fas fa-vial"></i>
                        </div>
                        <div>
-                         <h5 class="font-bold text-slate-800">Vitamin D (25-Hydroxy)</h5>
+                         <h5 class="font-bold text-slate-800">{{ 'UI_VITAMIN_D_25_HYDROXY' | translate }}</h5>
                          <p class="text-xs text-slate-400">Sep 12, 2024 • Requires Attention</p>
                        </div>
                     </div>

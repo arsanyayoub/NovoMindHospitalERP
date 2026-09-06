@@ -4,27 +4,30 @@ import { FormsModule } from '@angular/forms';
 import { QualityService } from '../../core/services/api.services';
 import { TranslateModule } from '@ngx-translate/core';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
     selector: 'app-quality',
     standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule],
+    imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
     template: `
     <div class="p-6">
       <div class="flex justify-between items-center mb-8">
         <div>
-          <h1 class="text-2xl font-bold text-slate-800">Quality & Patient Safety</h1>
-          <p class="text-slate-500 text-sm">Incident reporting and patient satisfaction tracking</p>
+          <h1 class="text-2xl font-bold text-slate-800">{{ 'UI_QUALITY_PATIENT_SAFETY' | translate }}</h1>
+          <p class="text-slate-500 text-sm">{{ 'UI_INCIDENT_REPORTING_AND_PATIE' | translate }}</p>
         </div>
+    <app-module-dashboard class="no-print" name="quality"></app-module-dashboard>
         <div class="flex gap-3">
-          <button (click)="view = 'incidents'" [class.bg-indigo-600]="view === 'incidents'" [class.text-white]="view === 'incidents'" class="px-4 py-2 rounded-lg text-sm font-medium border border-slate-200 hover:bg-slate-50 transition-all">Incidents</button>
-          <button (click)="view = 'feedback'" [class.bg-indigo-600]="view === 'feedback'" [class.text-white]="view === 'feedback'" class="px-4 py-2 rounded-lg text-sm font-medium border border-slate-200 hover:bg-slate-50 transition-all">Feedback</button>
+          <button (click)="view = 'incidents'" [class.bg-indigo-600]="view === 'incidents'" [class.text-white]="view === 'incidents'" class="px-4 py-2 rounded-lg text-sm font-medium border border-slate-200 hover:bg-slate-50 transition-all">{{ 'UI_INCIDENTS' | translate }}</button>
+          <button (click)="view = 'feedback'" [class.bg-indigo-600]="view === 'feedback'" [class.text-white]="view === 'feedback'" class="px-4 py-2 rounded-lg text-sm font-medium border border-slate-200 hover:bg-slate-50 transition-all">{{ 'UI_FEEDBACK' | translate }}</button>
         </div>
       </div>
 
       <!-- INCIDENTS VIEW -->
       <div *ngIf="view === 'incidents'">
         <div class="flex justify-between items-center mb-6">
-           <h2 class="text-lg font-bold text-slate-700">Clinical Incidents</h2>
+           <h2 class="text-lg font-bold text-slate-700">{{ 'UI_CLINICAL_INCIDENTS' | translate }}</h2>
            <button (click)="showReportModal = true" class="bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-rose-700 shadow-md flex items-center gap-2">
              <i class="fas fa-exclamation-triangle"></i> Report Incident
            </button>
@@ -34,11 +37,11 @@ import { TranslateModule } from '@ngx-translate/core';
           <table class="w-full text-left">
             <thead class="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Type</th>
-                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Patient</th>
-                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Severity</th>
-                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Status</th>
-                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Date</th>
+                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{{ 'UI_TYPE' | translate }}</th>
+                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{{ 'UI_PATIENT' | translate }}</th>
+                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{{ 'UI_SEVERITY' | translate }}</th>
+                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{{ 'UI_STATUS' | translate }}</th>
+                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">{{ 'UI_DATE' | translate }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -57,7 +60,7 @@ import { TranslateModule } from '@ngx-translate/core';
                 <td class="px-6 py-4 text-xs text-slate-400">{{i.createdDate | date:'mediumDate'}}</td>
               </tr>
               <tr *ngIf="!incidents.length">
-                 <td colspan="5" class="py-12 text-center text-slate-400 italic">No incidents reported. Good job!</td>
+                 <td colspan="5" class="py-12 text-center text-slate-400 italic">{{ 'UI_NO_INCIDENTS_REPORTED_GOOD_J' | translate }}</td>
               </tr>
             </tbody>
           </table>
@@ -68,7 +71,7 @@ import { TranslateModule } from '@ngx-translate/core';
       <div *ngIf="view === 'feedback'">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center">
-             <p class="text-xs font-bold text-slate-400 uppercase mb-2">Avg. Satisfaction</p>
+             <p class="text-xs font-bold text-slate-400 uppercase mb-2">{{ 'UI_AVG_SATISFACTION' | translate }}</p>
              <div class="flex items-baseline gap-2">
                <h3 class="text-4xl font-black text-indigo-600">4.8</h3>
                <span class="text-slate-400 text-sm">/ 5.0</span>
@@ -106,36 +109,36 @@ import { TranslateModule } from '@ngx-translate/core';
           <div class="p-6 space-y-4">
              <div class="grid grid-cols-2 gap-4">
                <div>
-                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Type</label>
+                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">{{ 'UI_TYPE' | translate }}</label>
                  <select [(ngModel)]="newIncident.incidentType" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none">
-                   <option value="Medication Error">Medication Error</option>
-                   <option value="Patient Fall">Patient Fall</option>
-                   <option value="Surgical Complication">Surgical Complication</option>
-                   <option value="Diagnostic Delay">Diagnostic Delay</option>
+                   <option value="Medication Error">{{ 'UI_MEDICATION_ERROR' | translate }}</option>
+                   <option value="Patient Fall">{{ 'UI_PATIENT_FALL' | translate }}</option>
+                   <option value="Surgical Complication">{{ 'UI_SURGICAL_COMPLICATION' | translate }}</option>
+                   <option value="Diagnostic Delay">{{ 'UI_DIAGNOSTIC_DELAY' | translate }}</option>
                  </select>
                </div>
                <div>
-                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Severity</label>
+                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">{{ 'UI_SEVERITY' | translate }}</label>
                  <select [(ngModel)]="newIncident.severity" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none">
-                   <option value="Low">Low</option>
-                   <option value="Medium">Medium</option>
-                   <option value="High">High</option>
-                   <option value="Critical">Critical</option>
+                   <option value="Low">{{ 'UI_LOW_2' | translate }}</option>
+                   <option value="Medium">{{ 'UI_MEDIUM' | translate }}</option>
+                   <option value="High">{{ 'UI_HIGH_2' | translate }}</option>
+                   <option value="Critical">{{ 'UI_CRITICAL_2' | translate }}</option>
                  </select>
                </div>
              </div>
              <div>
-               <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Incident Description</label>
-               <textarea [(ngModel)]="newIncident.description" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none" placeholder="Exactly what happened..."></textarea>
+               <label class="block text-xs font-bold text-slate-500 uppercase mb-1">{{ 'UI_INCIDENT_DESCRIPTION' | translate }}</label>
+               <textarea [(ngModel)]="newIncident.description" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none" [placeholder]="'UI_EXACTLY_WHAT_HAPPENED' | translate"></textarea>
              </div>
              <div>
-               <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Immediate Action Taken</label>
-               <textarea [(ngModel)]="newIncident.actionTaken" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none" placeholder="First response..."></textarea>
+               <label class="block text-xs font-bold text-slate-500 uppercase mb-1">{{ 'UI_IMMEDIATE_ACTION_TAKEN' | translate }}</label>
+               <textarea [(ngModel)]="newIncident.actionTaken" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none" [placeholder]="'UI_FIRST_RESPONSE' | translate"></textarea>
              </div>
           </div>
           <div class="p-6 bg-slate-50 flex gap-3">
-             <button (click)="showReportModal = false" class="flex-1 px-4 py-2 border border-slate-200 rounded-lg font-medium text-slate-600 hover:bg-slate-100">Cancel</button>
-             <button (click)="submitIncident()" class="flex-1 px-4 py-2 bg-rose-600 text-white rounded-lg font-medium hover:bg-rose-700 shadow-md">Submit Report</button>
+             <button (click)="showReportModal = false" class="flex-1 px-4 py-2 border border-slate-200 rounded-lg font-medium text-slate-600 hover:bg-slate-100">{{ 'UI_CANCEL' | translate }}</button>
+             <button (click)="submitIncident()" class="flex-1 px-4 py-2 bg-rose-600 text-white rounded-lg font-medium hover:bg-rose-700 shadow-md">{{ 'UI_SUBMIT_REPORT' | translate }}</button>
           </div>
         </div>
       </div>

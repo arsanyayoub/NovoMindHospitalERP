@@ -5,11 +5,14 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { InvoiceService, PatientService, SalesService, InventoryService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 import { ExportService } from '../../core/services/export.service';
+import { ItemSearchSelectComponent, PickedItem } from '../../core/components/item-search-select.component';
+
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
 
 @Component({
    selector: 'app-invoices',
    standalone: true,
-   imports: [CommonModule, FormsModule, TranslateModule],
+   imports: [CommonModule, FormsModule, TranslateModule, ItemSearchSelectComponent, ModuleDashboardComponent],
    styles: [`
     .inv-card { background: rgba(var(--card-bg-rgb), 0.3); border: 1px solid var(--border); border-radius: 18px; transition: 0.2s; overflow: hidden; }
     .inv-card:hover { border-color: var(--primary); transform: translateY(-3px); }
@@ -39,6 +42,7 @@ import { ExportService } from '../../core/services/export.service';
         </button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="invoices"></app-module-dashboard>
 
     <div class="filter-bar gray-glass p-3 rounded-2xl mb-6 flex gap-3 animate-in">
        <div class="search-bar flex-grow" style="max-width:350px">
@@ -167,12 +171,9 @@ import { ExportService } from '../../core/services/export.service';
                    </thead>
                    <tbody>
                       <tr *ngFor="let item of form.items; let i = index" class="animate-in">
-                         <td>
-                            <select class="form-control form-control-sm" [(ngModel)]="item.itemId" (change)="onItemChange(item)">
-                               <option [ngValue]="null">[{{ 'CUSTOM_ITEM' | translate }}]</option>
-                               <option *ngFor="let invItem of itemsList" [value]="invItem.id">{{ invItem.itemName }}</option>
-                            </select>
-                         </td>
+                          <td>
+                             <app-item-search-select (picked)="onItemSearchPicked(item, $event)" [preselect]="item.itemId ? { id: item.itemId, itemName: item.description || item.itemName || '' } : null"></app-item-search-select>
+                          </td>
                          <td><input class="form-control form-control-sm" [(ngModel)]="item.description"></td>
                          <td><input class="form-control form-control-sm font-bold text-center" type="number" [(ngModel)]="item.quantity" (ngModelChange)="calculateFormTotals()"></td>
                          <td><input class="form-control form-control-sm font-bold" type="number" [(ngModel)]="item.unitPrice" (ngModelChange)="calculateFormTotals()"></td>
@@ -188,7 +189,7 @@ import { ExportService } from '../../core/services/export.service';
              <div class="grid grid-cols-2 gap-10">
                 <div class="form-group">
                    <label class="form-label font-bold uppercase text-xs">{{ 'REMARKS_NOTES' | translate }}</label>
-                   <textarea class="form-control" [(ngModel)]="form.notes" rows="6" placeholder="Payment instructions, clinical notes ref..."></textarea>
+                   <textarea class="form-control" [(ngModel)]="form.notes" rows="6" [placeholder]="'UI_PAYMENT_INSTRUCTIONS_CLINICA' | translate"></textarea>
                 </div>
                 <div class="pricing-summary">
                    <div class="pricing-row"><span>{{ 'SUBTOTAL' | translate }}</span><span>{{ calculation.subTotal | currency }}</span></div>
@@ -249,7 +250,7 @@ import { ExportService } from '../../core/services/export.service';
 
              <div class="form-group">
                 <label class="form-label font-bold text-xs uppercase">{{ 'REFERENCE_CODE' | translate }}</label>
-                <input class="form-control" [(ngModel)]="paymentForm.referenceNumber" placeholder="TXN-XXXXXX">
+                <input class="form-control" [(ngModel)]="paymentForm.referenceNumber" [placeholder]="'UI_TXN_XXXXXX' | translate">
              </div>
           </div>
           <div class="modal-footer flex-col border-0 pt-0">
@@ -333,6 +334,19 @@ export class InvoicesComponent implements OnInit {
       this.calculateFormTotals();
    }
 
+   onItemSearchPicked(itemRef: any, it: PickedItem | null) {
+      if (!it) { this.clearLineItem(itemRef); return; }
+      itemRef.itemId = it.id;
+      itemRef.itemName = it.itemName || '';
+      itemRef.description = it.itemName || '';
+      itemRef.unitPrice = Number(it.salePrice ?? it.purchasePrice ?? 0);
+      itemRef.taxRate = Number(it.taxRate ?? 0);
+      this.calculateFormTotals();
+   }
+   clearLineItem(itemRef: any) {
+      itemRef.itemId = null; itemRef.itemName = ''; itemRef.description = ''; itemRef.unitPrice = 0;
+      this.calculateFormTotals();
+   }
    onItemChange(itemRef: any) {
       if (itemRef.itemId) {
          const found = this.itemsList.find(x => x.id === itemRef.itemId);

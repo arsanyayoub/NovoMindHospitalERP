@@ -36,11 +36,11 @@ import { ToastService } from '../../core/services/language.service';
                 </button>
              </div>
              <div class="text-right">
-                <div class="text-[0.65rem] font-bold text-muted uppercase tracking-wider">Admission Date</div>
+                <div class="text-[0.65rem] font-bold text-muted uppercase tracking-wider">{{ 'UI_ADMISSION_DATE' | translate }}</div>
                 <div class="font-black">{{ admission.admissionDate | date:'mediumDate' }}</div>
              </div>
              <div class="text-right">
-                <div class="text-[0.65rem] font-bold text-muted uppercase tracking-wider">Attending Doctor</div>
+                <div class="text-[0.65rem] font-bold text-muted uppercase tracking-wider">{{ 'UI_ATTENDING_DOCTOR' | translate }}</div>
                 <div class="font-black">Dr. {{ admission.doctorName || 'N/A' }}</div>
              </div>
           </div>
@@ -158,7 +158,7 @@ import { ToastService } from '../../core/services/language.service';
 
               <div *ngIf="assessments.length === 0" class="card text-center py-20 opacity-50 italic col-span-full">
                  <span class="material-icons-round text-4xl mb-2">assignment_late</span>
-                 <p>No nursing assessments found for this stay.</p>
+                 <p>{{ 'UI_NO_NURSING_ASSESSMENTS_FOUND' | translate }}</p>
               </div>
            </div>
         </div>
@@ -223,7 +223,7 @@ import { ToastService } from '../../core/services/language.service';
                              <td class="text-[0.65rem] font-bold text-muted">{{ h.administeredBy }}</td>
                           </tr>
                           <tr *ngIf="marHistory.length === 0">
-                             <td colspan="5" class="text-center py-10 opacity-50 italic">No administration records yet.</td>
+                             <td colspan="5" class="text-center py-10 opacity-50 italic">{{ 'UI_NO_ADMINISTRATION_RECORDS_YE' | translate }}</td>
                           </tr>
                        </tbody>
                     </table>
@@ -253,28 +253,28 @@ import { ToastService } from '../../core/services/language.service';
                 <input type="number" class="form-control" [(ngModel)]="vitalsForm.temperature" step="0.1">
              </div>
              <div class="form-group">
-                <label class="form-label">Heart Rate (bpm)</label>
+                <label class="form-label">{{ 'UI_HEART_RATE_BPM' | translate }}</label>
                 <input type="number" class="form-control" [(ngModel)]="vitalsForm.heartRate">
              </div>
              <div class="form-group">
-                <label class="form-label">BP Systolic</label>
+                <label class="form-label">{{ 'UI_BP_SYSTOLIC' | translate }}</label>
                 <input type="number" class="form-control" [(ngModel)]="vitalsForm.bloodPressureSystolic">
              </div>
              <div class="form-group">
-                <label class="form-label">BP Diastolic</label>
+                <label class="form-label">{{ 'UI_BP_DIASTOLIC' | translate }}</label>
                 <input type="number" class="form-control" [(ngModel)]="vitalsForm.bloodPressureDiastolic">
              </div>
              <div class="form-group">
-                <label class="form-label">SpO2 (%)</label>
+                <label class="form-label">{{ 'UI_SPO2_3' | translate }}</label>
                 <input type="number" class="form-control" [(ngModel)]="vitalsForm.spO2">
              </div>
              <div class="form-group">
-                <label class="form-label">Resp. Rate</label>
+                <label class="form-label">{{ 'UI_RESP_RATE' | translate }}</label>
                 <input type="number" class="form-control" [(ngModel)]="vitalsForm.respiratoryRate">
              </div>
           </div>
           <div class="form-group mt-3">
-             <label class="form-label">Notes</label>
+             <label class="form-label">{{ 'UI_NOTES' | translate }}</label>
              <textarea class="form-control" [(ngModel)]="vitalsForm.notes"></textarea>
           </div>
         </div>
@@ -306,19 +306,19 @@ import { ToastService } from '../../core/services/language.service';
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div class="form-group">
                 <label class="form-label">{{ 'NEUROLOGICAL' | translate }}</label>
-                <input type="text" class="form-control" [(ngModel)]="assessmentForm.neurological" placeholder="Alert and oriented x3...">
+                <input type="text" class="form-control" [(ngModel)]="assessmentForm.neurological" [placeholder]="'UI_ALERT_AND_ORIENTED_X3' | translate">
              </div>
              <div class="form-group">
                 <label class="form-label">{{ 'RESPIRATORY' | translate }}</label>
-                <input type="text" class="form-control" [(ngModel)]="assessmentForm.respiratory" placeholder="Lungs clear, easy breathing...">
+                <input type="text" class="form-control" [(ngModel)]="assessmentForm.respiratory" [placeholder]="'UI_LUNGS_CLEAR_EASY_BREATHING' | translate">
              </div>
              <div class="form-group">
                 <label class="form-label">{{ 'CARDIOVASCULAR' | translate }}</label>
-                <input type="text" class="form-control" [(ngModel)]="assessmentForm.cardiovascular" placeholder="Normal S1/S2, regular rhythm...">
+                <input type="text" class="form-control" [(ngModel)]="assessmentForm.cardiovascular" [placeholder]="'UI_NORMAL_S1_S2_REGULAR_RHYTHM' | translate">
              </div>
              <div class="form-group">
                 <label class="form-label">{{ 'SKIN_INTEGUMENTARY' | translate }}</label>
-                <input type="text" class="form-control" [(ngModel)]="assessmentForm.skinIntegumentary" placeholder="Warm, dry, intact...">
+                <input type="text" class="form-control" [(ngModel)]="assessmentForm.skinIntegumentary" [placeholder]="'UI_WARM_DRY_INTACT' | translate">
              </div>
           </div>
 
@@ -328,7 +328,7 @@ import { ToastService } from '../../core/services/language.service';
           </div>
           <div class="form-group mt-3">
              <label class="form-label">{{ 'PLAN_OF_CARE' | translate }}</label>
-             <textarea class="form-control" [(ngModel)]="assessmentForm.planOfCare" rows="2" placeholder="Continue monitoring, assist with ambulation..."></textarea>
+             <textarea class="form-control" [(ngModel)]="assessmentForm.planOfCare" rows="2" [placeholder]="'UI_CONTINUE_MONITORING_ASSIST_W' | translate"></textarea>
           </div>
         </div>
         <div class="modal-footer">
@@ -351,7 +351,7 @@ import { ToastService } from '../../core/services/language.service';
              <div class="font-black text-primary">{{ selectedMedication?.itemName }}</div>
              <div class="text-xs font-bold">{{ selectedMedication?.dosage }} • {{ selectedMedication?.frequency }}</div>
              <div class="mt-2 pt-2 border-t flex justify-between items-center">
-                <span class="text-[0.6rem] font-black uppercase text-muted tracking-widest">Pharmacy Status</span>
+                <span class="text-[0.6rem] font-black uppercase text-muted tracking-widest">{{ 'UI_PHARMACY_STATUS' | translate }}</span>
                 <span class="badge text-[0.6rem]" [ngClass]="selectedMedication?.isDispensed ? 'badge-success' : 'badge-danger'">
                   {{ (selectedMedication?.isDispensed ? 'DISPENSED' : 'NOT_DISPENSED') | translate }}
                 </span>

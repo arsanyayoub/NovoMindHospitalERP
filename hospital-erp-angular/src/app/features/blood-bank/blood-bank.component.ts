@@ -5,10 +5,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BloodBankService, PatientService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
     selector: 'app-blood-bank',
     standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule],
+    imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
     styles: [`
         .bb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
         .stock-card { background: var(--glass); border: 1.5px solid var(--border); border-radius: 20px; padding: 20px; transition: 0.3s; }
@@ -32,6 +34,7 @@ import { ToastService } from '../../core/services/language.service';
          </button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="bloodbank"></app-module-dashboard>
 
     <div class="inventory-summary animate-in">
         <div class="inv-item" *ngFor="let s of stockSummary">

@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PharmacyService, PatientService, InventoryService } from '../../core/services/api.services';
-import { ToastService } from '../../core/services/language.service';
+import { ItemSearchSelectComponent, PickedItem } from '../../core/components/item-search-select.component';import { ToastService } from '../../core/services/language.service';
+
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
 
 @Component({
    selector: 'app-pharmacy',
    standalone: true,
-   imports: [CommonModule, FormsModule, TranslateModule],
+   imports: [CommonModule, FormsModule, TranslateModule, ItemSearchSelectComponent, ModuleDashboardComponent],
    styles: [`
     .rx-card { background: rgba(var(--card-bg-rgb), 0.3); border: 1px solid var(--border); border-radius: 20px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
     .rx-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: var(--shadow-lg); }
@@ -51,6 +53,7 @@ import { ToastService } from '../../core/services/language.service';
         </button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="pharmacy"></app-module-dashboard>
 
     <div class="tab-switcher animate-in">
       <button class="tab-trigger" [class.active]="tab==='overview'" (click)="tab='overview';loadDashboard()">
@@ -256,7 +259,7 @@ import { ToastService } from '../../core/services/language.service';
                 </div>
              </div>
              <div class="text-right">
-                <div class="text-2xl font-black text-primary mb-1">{{ pi.quantity }} <span class="text-xs text-muted">QTY</span></div>
+                <div class="text-2xl font-black text-primary mb-1">{{ pi.quantity }} <span class="text-xs text-muted">{{ 'UI_QTY_2' | translate }}</span></div>
                 <div class="flex gap-2 justify-end">
                    <button class="btn btn-secondary btn-xs" (click)="openReturnForm(pi)">
                       <span class="material-icons-round mr-1" style="font-size:16px">keyboard_return</span> {{ 'RETURN' | translate }}
@@ -321,7 +324,7 @@ import { ToastService } from '../../core/services/language.service';
               </div>
               <div class="form-group">
                  <label class="form-label font-bold uppercase text-xs">{{ 'CLINICAL_NOTES' | translate }}</label>
-                 <textarea class="form-control" [(ngModel)]="rxForm.notes" rows="1" placeholder="Diagnosis or special instructions..."></textarea>
+                 <textarea class="form-control" [(ngModel)]="rxForm.notes" rows="1" [placeholder]="'UI_DIAGNOSIS_OR_SPECIAL_INSTRUC' | translate"></textarea>
               </div>
            </div>
            
@@ -334,9 +337,7 @@ import { ToastService } from '../../core/services/language.service';
                <div *ngFor="let item of rxForm.items; let i = index" class="grid grid-cols-[2fr,1fr,1fr,1fr,1fr,auto] gap-3 items-end p-3 bg-glass border rounded-xl animate-in">
                   <div class="form-group">
                      <label class="form-label text-xs font-bold">{{ 'MEDICINE' | translate }}</label>
-                     <select class="form-control" [(ngModel)]="item.itemId" (change)="checkInteractions()">
-                        <option *ngFor="let m of medicines" [value]="m.id">{{ m.itemName }}</option>
-                     </select>
+                     <app-item-search-select category="Medicine" [preselect]="item.itemId ? { id: item.itemId, itemName: item.medName || '' } : null" (picked)="onMedPicked(item, $event)"></app-item-search-select>
                   </div>
                   <div class="form-group">
                      <label class="form-label text-xs font-bold">{{ 'DOSAGE' | translate }}</label>
@@ -344,7 +345,7 @@ import { ToastService } from '../../core/services/language.service';
                   </div>
                   <div class="form-group">
                      <label class="form-label text-xs font-bold">{{ 'FREQ' | translate }}</label>
-                     <input class="form-control" [(ngModel)]="item.frequency" placeholder="TID">
+                     <input class="form-control" [(ngModel)]="item.frequency" [placeholder]="'UI_TID' | translate">
                   </div>
                   <div class="form-group">
                      <label class="form-label text-xs font-bold">{{ 'DURATION' | translate }}</label>
@@ -588,7 +589,13 @@ export class PharmacyComponent implements OnInit {
       });
    }
 
-   checkInteractions() {
+   onMedPicked(row: any, it: PickedItem | null) {
+
+     if (!it) { row.itemId = null; row.medName = ''; } else { row.itemId = it.id; row.medName = it.itemName || ''; }
+
+     if (typeof this.checkInteractions === 'function') { this.checkInteractions(); }
+
+   }checkInteractions() {
       if (!this.rxForm.patientId) return;
       const itemIds = this.rxForm.items.map((i: any) => i.itemId).filter((id: any) => !!id);
       if (!itemIds.length) {

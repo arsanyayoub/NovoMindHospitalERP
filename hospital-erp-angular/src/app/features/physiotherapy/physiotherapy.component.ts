@@ -5,10 +5,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PhysiotherapyService, PatientService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
     selector: 'app-physiotherapy',
     standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule],
+    imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
     template: `
     <div class="page-header">
       <div>
@@ -19,6 +21,7 @@ import { ToastService } from '../../core/services/language.service';
          <span class="material-icons-round">add_circle</span> {{ 'NEW_PLAN' | translate }}
       </button>
     </div>
+    <app-module-dashboard class="no-print" name="physiotherapy"></app-module-dashboard>
 
     <div class="card p-0 overflow-hidden">
         <table class="table mb-0">

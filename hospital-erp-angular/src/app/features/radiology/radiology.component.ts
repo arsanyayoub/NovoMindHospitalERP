@@ -6,10 +6,12 @@ import { RadiologyService, PatientService } from '../../core/services/api.servic
 import { ToastService } from '../../core/services/language.service';
 import { NotificationService } from '../../core/services/notification.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
    selector: 'app-radiology',
    standalone: true,
-   imports: [CommonModule, FormsModule, TranslateModule],
+   imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
    styles: [`
     .rad-tab-nav { display: flex; gap: 4px; background: rgba(0,0,0,0.15); padding: 5px; border-radius: 14px; margin-bottom: 24px; width: fit-content; border: 1px solid var(--border); }
     .rad-tab-btn { padding: 10px 20px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
@@ -43,6 +45,7 @@ import { NotificationService } from '../../core/services/notification.service';
         </button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="radiology"></app-module-dashboard>
 
     <div class="rad-tab-nav animate-in">
        <button class="rad-tab-btn" [class.active]="tab==='requests'" (click)="tab='requests';loadRequests()">
@@ -125,7 +128,7 @@ import { NotificationService } from '../../core/services/notification.service';
        <div class="modal modal-xl animate-in" (click)="$event.stopPropagation()">
           <div class="modal-header">
              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-primary bg-opacity-10 text-primary flex items-center justify-center font-black">X</div>
+                <div class="w-12 h-12 rounded-2xl bg-primary bg-opacity-10 text-primary flex items-center justify-center font-black">{{ 'UI_X' | translate }}</div>
                 <div>
                    <h3 class="modal-title font-black uppercase tracking-tighter">{{ 'RADIOLOGY_REPORTING_TOOL' | translate }}</h3>
                    <div class="text-[0.6rem] font-black text-muted uppercase tracking-widest">ORDER #{{ selectedReq?.requestNumber }} &bull; {{ selectedReq?.patientName }}</div>

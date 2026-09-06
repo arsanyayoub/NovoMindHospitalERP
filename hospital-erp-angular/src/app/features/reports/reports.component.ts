@@ -511,7 +511,7 @@ import { ToastService } from '../../core/services/language.service';
                          <td class="max-w-[300px] truncate text-xs italic">{{ l.changes }}</td>
                       </tr>
                       <tr *ngIf="auditLogs.length === 0">
-                         <td colspan="5" class="text-center py-20 italic opacity-50">No activity logs found</td>
+                         <td colspan="5" class="text-center py-20 italic opacity-50">{{ 'UI_NO_ACTIVITY_LOGS_FOUND' | translate }}</td>
                       </tr>
                    </tbody>
                 </table>

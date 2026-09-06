@@ -7,15 +7,17 @@ import { ToastService } from '../../core/services/language.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
   selector: 'app-messaging',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
   template: `
     <div class="page-header">
       <div class="header-content">
         <h1 class="page-title">{{ 'MESSAGES' | translate }}</h1>
-        <p class="page-subtitle">Internal hospital communication and announcements</p>
+        <p class="page-subtitle">{{ 'UI_INTERNAL_HOSPITAL_COMMUNICAT' | translate }}</p>
       </div>
       <div class="header-actions">
         <button class="btn btn-primary btn-with-icon" (click)="openCompose()">
@@ -24,6 +26,7 @@ import { NotificationService } from '../../core/services/notification.service';
         </button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="messaging"></app-module-dashboard>
 
     <div class="messaging-layout">
       <!-- Sidebar / Folders -->
@@ -46,7 +49,7 @@ import { NotificationService } from '../../core/services/notification.service';
         <div class="panel-header">
           <div class="search-box">
             <span class="material-icons-round search-icon">search</span>
-            <input type="text" placeholder="Search conversations..." class="search-input">
+            <input type="text" [placeholder]="'UI_SEARCH_CONVERSATIONS' | translate" class="search-input">
           </div>
         </div>
 
@@ -74,7 +77,7 @@ import { NotificationService } from '../../core/services/notification.service';
 
           <div *ngIf="messages.length === 0 && !loading" class="empty-state">
             <span class="material-icons-round empty-icon">mail_outline</span>
-            <p>No messages found</p>
+            <p>{{ 'UI_NO_MESSAGES_FOUND' | translate }}</p>
           </div>
         </div>
       </div>
@@ -107,8 +110,8 @@ import { NotificationService } from '../../core/services/notification.service';
         <ng-template #selectMessageHint>
           <div class="empty-detail">
             <span class="material-icons-round large-icon">chat_bubble_outline</span>
-            <h3>Select a message to read</h3>
-            <p>Choose a conversation from the list on the left.</p>
+            <h3>{{ 'UI_SELECT_A_MESSAGE_TO_READ' | translate }}</h3>
+            <p>{{ 'UI_CHOOSE_A_CONVERSATION_FROM_T' | translate }}</p>
           </div>
         </ng-template>
       </div>
@@ -128,7 +131,7 @@ import { NotificationService } from '../../core/services/notification.service';
           <div class="form-group mb-4">
             <label class="form-label">To *</label>
             <select class="form-control form-select" [(ngModel)]="composeForm.receiverId">
-              <option value="">Select Recipient</option>
+              <option value="">{{ 'UI_SELECT_RECIPIENT' | translate }}</option>
               <ng-container *ngFor="let user of users">
                 <option *ngIf="user.id !== auth.currentUser?.userId" [value]="user.id">
                   {{ user.fullName }} ({{ user.roleName }})
@@ -138,11 +141,11 @@ import { NotificationService } from '../../core/services/notification.service';
           </div>
           <div class="form-group">
             <label class="form-label">Message Content *</label>
-            <textarea class="form-control" rows="8" [(ngModel)]="composeForm.content" placeholder="Type your message here..."></textarea>
+            <textarea class="form-control" rows="8" [(ngModel)]="composeForm.content" [placeholder]="'UI_TYPE_YOUR_MESSAGE_HERE' | translate"></textarea>
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" (click)="showCompose = false">Discard</button>
+          <button class="btn btn-secondary" (click)="showCompose = false">{{ 'UI_DISCARD' | translate }}</button>
           <button class="btn btn-primary" (click)="send()" [disabled]="sending || !composeForm.receiverId || !composeForm.content">
             <span class="material-icons-round" *ngIf="!sending">send</span>
             {{ sending ? 'Sending...' : 'Send Message' }}

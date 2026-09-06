@@ -5,10 +5,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AccountingService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
   selector: 'app-accounting',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
   styles: [`
     .acc-tab-nav { display: flex; gap: 4px; background: rgba(0,0,0,0.15); padding: 5px; border-radius: 14px; margin-bottom: 24px; width: fit-content; border: 1px solid var(--border); }
     .acc-tab-btn { padding: 10px 20px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
@@ -39,6 +41,7 @@ import { ToastService } from '../../core/services/language.service';
         </button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="accounting"></app-module-dashboard>
 
     <div class="acc-tab-nav animate-in">
        <button class="acc-tab-btn" [class.active]="tab==='accounts'" (click)="tab='accounts';loadAccounts()">
@@ -269,11 +272,11 @@ import { ToastService } from '../../core/services/language.service';
                 <div class="form-group">
                    <label class="form-label font-black text-xs uppercase">{{ 'HEAD_TYPE' | translate }}*</label>
                    <select class="form-control font-bold" [(ngModel)]="accForm.accountType">
-                      <option value="Asset">Asset</option>
-                      <option value="Liability">Liability</option>
-                      <option value="Equity">Equity</option>
-                      <option value="Revenue">Revenue</option>
-                      <option value="Expense">Expense</option>
+                      <option value="Asset">{{ 'UI_ASSET' | translate }}</option>
+                      <option value="Liability">{{ 'UI_LIABILITY' | translate }}</option>
+                      <option value="Equity">{{ 'UI_EQUITY' | translate }}</option>
+                      <option value="Revenue">{{ 'UI_REVENUE' | translate }}</option>
+                      <option value="Expense">{{ 'UI_EXPENSE' | translate }}</option>
                    </select>
                 </div>
                 <div class="form-group col-span-2"><label class="form-label font-black text-xs uppercase">{{ 'DISPLAY_NAME_EN' | translate }}</label><input class="form-control" [(ngModel)]="accForm.accountName"></div>

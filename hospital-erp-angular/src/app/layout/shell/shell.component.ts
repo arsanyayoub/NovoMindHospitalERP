@@ -26,8 +26,8 @@ interface NavItem {
           <span class="material-icons-round brand-icon">hub</span>
         </div>
         <div class="brand-text-wrap" *ngIf="!sidebarCollapsed">
-          <span class="brand-text">Novo<span class="brand-accent">Mind</span></span>
-          <span class="brand-tagline">Hospital ERP</span>
+          <span class="brand-text">Novo<span class="brand-accent">{{ 'UI_MIND' | translate }}</span></span>
+          <span class="brand-tagline">{{ 'UI_HOSPITAL_ERP' | translate }}</span>
         </div>
       </div>
 
@@ -46,6 +46,10 @@ interface NavItem {
         <a routerLink="/reports" routerLinkActive="active" class="nav-item" [title]="'REPORTS' | translate">
           <span class="material-icons-round nav-icon">analytics</span>
           <span class="nav-label" *ngIf="!sidebarCollapsed">{{ 'REPORTS' | translate }}</span>
+        </a>
+        <a routerLink="/report-center" routerLinkActive="active" class="nav-item" [title]="'REPORT_CENTER' | translate">
+          <span class="material-icons-round nav-icon">dynamic_feed</span>
+          <span class="nav-label" *ngIf="!sidebarCollapsed">{{ 'REPORT_CENTER' | translate }}</span>
         </a>
       </nav>
 
@@ -77,7 +81,7 @@ interface NavItem {
 
         <div class="header-right">
           <!-- Language Toggle -->
-          <button class="header-btn" (click)="langService.toggleLanguage()" title="Toggle Language">
+          <button class="header-btn" (click)="langService.toggleLanguage()" [title]="'UI_TOGGLE_LANGUAGE' | translate">
             <span class="material-icons-round">translate</span>
             <span class="btn-label">{{ langService.getCurrentLang() === 'en' ? 'العربية' : 'EN' }}</span>
           </button>

@@ -5,10 +5,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FleetService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
     selector: 'app-fleet',
     standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule],
+    imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
     styles: [`
         .ambulance-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         .amb-card { background: var(--glass); border: 2px solid var(--border); border-radius: 20px; padding: 20px; transition: 0.3s; position: relative; overflow: hidden; }
@@ -27,6 +29,7 @@ import { ToastService } from '../../core/services/language.service';
          <span class="material-icons-round">emergency_share</span> {{ 'NEW_DISPATCH' | translate }}
       </button>
     </div>
+    <app-module-dashboard class="no-print" name="fleet"></app-module-dashboard>
 
     <div class="ambulance-grid mb-8">
         <div *ngFor="let a of ambulances" class="amb-card animate-in" [class.dispatched]="a.status === 'Dispatched'">

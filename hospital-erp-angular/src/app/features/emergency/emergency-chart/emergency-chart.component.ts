@@ -56,15 +56,15 @@ import { ToastService } from '../../../core/services/language.service';
                 <div class="grid grid-cols-2 gap-3">
                     <div class="vital-card">
                         <div class="vital-val text-red-500">{{ latestVital?.temperature || '--' }}</div>
-                        <div class="vital-label">TEMP</div>
+                        <div class="vital-label">{{ 'UI_TEMP' | translate }}</div>
                     </div>
                     <div class="vital-card">
                         <div class="vital-val text-blue-500">{{ latestVital?.spO2 || '--' }}%</div>
-                        <div class="vital-label">SpO2</div>
+                        <div class="vital-label">{{ 'UI_SPO2_2' | translate }}</div>
                     </div>
                     <div class="vital-card col-span-2">
                         <div class="vital-val text-primary">{{ latestVital?.bloodPressure || '--' }}</div>
-                        <div class="vital-label">BLOOD PRESSURE</div>
+                        <div class="vital-label">{{ 'UI_BLOOD_PRESSURE' | translate }}</div>
                     </div>
                 </div>
                 <button class="btn btn-secondary btn-xs w-full mt-3 rounded-lg py-2" (click)="openVitalsModal()">

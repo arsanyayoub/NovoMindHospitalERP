@@ -5,10 +5,12 @@ import { TranslateModule } from '@ngx-translate/core';
 import { InpatientBillingService, BedManagementService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
   selector: 'app-inpatient-billing',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
   template: `
     <div class="animate-in">
       <div class="flex justify-between items-center mb-8">
@@ -16,6 +18,7 @@ import { ToastService } from '../../core/services/language.service';
           <h1 class="text-3xl font-black tracking-tighter m-0">{{ 'INPATIENT_BILLING' | translate }}</h1>
           <p class="text-muted font-bold text-sm">{{ 'MANAGE_INPATIENT_CHARGES_AND_DAILY_BILLING' | translate }}</p>
         </div>
+    <app-module-dashboard class="no-print" name="inpatient"></app-module-dashboard>
         <div class="flex gap-3">
           <button class="btn btn-primary flex items-center gap-2" (click)="processDaily()" [disabled]="processing">
             <span class="material-icons-round" [class.animate-spin]="processing">autorenew</span>
@@ -28,11 +31,11 @@ import { ToastService } from '../../core/services/language.service';
         <!-- Stats Row -->
         <div class="col-span-12 grid grid-cols-4 gap-6 mb-4">
           <div class="card bg-glass border-primary border-opacity-20">
-            <div class="text-[0.65rem] font-black uppercase text-primary tracking-widest mb-1">Active Admissions</div>
+            <div class="text-[0.65rem] font-black uppercase text-primary tracking-widest mb-1">{{ 'UI_ACTIVE_ADMISSIONS' | translate }}</div>
             <div class="text-3xl font-black">{{ activeAdmissions.length }}</div>
           </div>
           <div class="card bg-glass">
-            <div class="text-[0.65rem] font-black uppercase text-muted tracking-widest mb-1">Last Daily Process</div>
+            <div class="text-[0.65rem] font-black uppercase text-muted tracking-widest mb-1">{{ 'UI_LAST_DAILY_PROCESS' | translate }}</div>
             <div class="text-xl font-black">{{ lastProcessDate ? (lastProcessDate | date:'medium') : ('NEVER' | translate) }}</div>
           </div>
           <!-- Add more stats as needed -->

@@ -14,8 +14,8 @@ import { FormsModule } from '@angular/forms';
         
         <div class="flex justify-between items-center mb-10">
           <div>
-            <h1 class="text-4xl font-black text-slate-900 tracking-tight">Leave <span class="text-indigo-600">Requests</span></h1>
-            <p class="text-slate-500 font-medium">Manage time-off and absence coverage</p>
+            <h1 class="text-4xl font-black text-slate-900 tracking-tight">Leave <span class="text-indigo-600">{{ 'UI_REQUESTS' | translate }}</span></h1>
+            <p class="text-slate-500 font-medium">{{ 'UI_MANAGE_TIME_OFF_AND_ABSENCE_' | translate }}</p>
           </div>
           <div class="flex gap-4">
              <div class="px-6 py-3 bg-white border border-slate-200 rounded-2xl flex items-center gap-3 shadow-sm">
@@ -30,12 +30,12 @@ import { FormsModule } from '@angular/forms';
            <div class="lg:col-span-1 space-y-6">
               <div class="bg-indigo-600 rounded-[32px] p-8 text-white shadow-xl relative overflow-hidden">
                  <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-                 <h4 class="text-xs font-black text-indigo-200 uppercase tracking-widest mb-6">Annual Quota</h4>
+                 <h4 class="text-xs font-black text-indigo-200 uppercase tracking-widest mb-6">{{ 'UI_ANNUAL_QUOTA' | translate }}</h4>
                  <div class="space-y-6">
                     <div class="flex justify-between items-end">
                        <div>
-                          <p class="text-3xl font-black">22 <span class="text-xs opacity-60">Days</span></p>
-                          <p class="text-[10px] font-bold opacity-60 uppercase">Used YTD</p>
+                          <p class="text-3xl font-black">22 <span class="text-xs opacity-60">{{ 'UI_DAYS' | translate }}</span></p>
+                          <p class="text-[10px] font-bold opacity-60 uppercase">{{ 'UI_USED_YTD' | translate }}</p>
                        </div>
                        <i class="fas fa-calendar-check text-2xl opacity-40"></i>
                     </div>
@@ -46,18 +46,18 @@ import { FormsModule } from '@angular/forms';
               </div>
 
               <div class="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm">
-                 <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 text-center">Top Leave Types</h4>
+                 <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 text-center">{{ 'UI_TOP_LEAVE_TYPES' | translate }}</h4>
                  <div class="space-y-4">
                     <div class="flex items-center justify-between p-3 bg-slate-50 rounded-2xl">
-                       <span class="text-xs font-bold text-slate-600">Annual Leave</span>
+                       <span class="text-xs font-bold text-slate-600">{{ 'UI_ANNUAL_LEAVE' | translate }}</span>
                        <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-black rounded-md">65%</span>
                     </div>
                     <div class="flex items-center justify-between p-3 bg-slate-50 rounded-2xl">
-                       <span class="text-xs font-bold text-slate-600">Sick Leave</span>
+                       <span class="text-xs font-bold text-slate-600">{{ 'UI_SICK_LEAVE' | translate }}</span>
                        <span class="px-2 py-0.5 bg-rose-100 text-rose-700 text-[10px] font-black rounded-md">20%</span>
                     </div>
                     <div class="flex items-center justify-between p-3 bg-slate-50 rounded-2xl">
-                       <span class="text-xs font-bold text-slate-600">Compassionate</span>
+                       <span class="text-xs font-bold text-slate-600">{{ 'UI_COMPASSIONATE' | translate }}</span>
                        <span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-black rounded-md">15%</span>
                     </div>
                  </div>
@@ -70,11 +70,11 @@ import { FormsModule } from '@angular/forms';
                  <table class="w-full text-left border-collapse">
                     <thead>
                        <tr class="bg-slate-50/50 border-b border-slate-100">
-                          <th class="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Employee</th>
-                          <th class="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Period</th>
-                          <th class="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Type</th>
-                          <th class="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                          <th class="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                          <th class="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ 'UI_EMPLOYEE' | translate }}</th>
+                          <th class="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ 'UI_PERIOD' | translate }}</th>
+                          <th class="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ 'UI_TYPE' | translate }}</th>
+                          <th class="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ 'UI_STATUS' | translate }}</th>
+                          <th class="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">{{ 'UI_ACTIONS' | translate }}</th>
                        </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">

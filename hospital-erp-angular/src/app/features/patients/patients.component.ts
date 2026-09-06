@@ -6,10 +6,12 @@ import { RouterModule } from '@angular/router';
 import { PatientService, InvoiceService, AppointmentService, InsuranceService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
    selector: 'app-patients',
    standalone: true,
-   imports: [CommonModule, FormsModule, TranslateModule, RouterModule],
+   imports: [CommonModule, FormsModule, TranslateModule, RouterModule, ModuleDashboardComponent],
    styles: [`
     .patient-tab-nav { display: flex; gap: 4px; background: rgba(0,0,0,0.15); padding: 5px; border-radius: 14px; margin-bottom: 24px; width: fit-content; border: 1px solid var(--border); }
     .patient-tab-btn { padding: 10px 20px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
@@ -46,6 +48,7 @@ import { ToastService } from '../../core/services/language.service';
         </button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="patients"></app-module-dashboard>
 
     <div class="patient-tab-nav animate-in">
        <button class="patient-tab-btn" [class.active]="tab==='patients'" (click)="tab='patients';loadData()">
@@ -198,7 +201,7 @@ import { ToastService } from '../../core/services/language.service';
                       </div>
                       <div class="form-group">
                          <label class="form-label font-black text-[0.6rem] uppercase">{{ 'MANUAL_PROVIDER_NAME' | translate }}</label>
-                         <input class="form-control h-12 rounded-xl" [(ngModel)]="form.insuranceProviderNameManual" [disabled]="!!form.insuranceProviderId" placeholder="If not in list...">
+                         <input class="form-control h-12 rounded-xl" [(ngModel)]="form.insuranceProviderNameManual" [disabled]="!!form.insuranceProviderId" [placeholder]="'UI_IF_NOT_IN_LIST' | translate">
                       </div>
                    </div>
                 </div>

@@ -6,10 +6,12 @@ import { InventoryService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 import { NotificationService } from '../../core/services/notification.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
    selector: 'app-inventory',
    standalone: true,
-   imports: [CommonModule, FormsModule, TranslateModule],
+   imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
    styles: [`
     .inv-tab-nav { display: flex; gap: 4px; background: rgba(0,0,0,0.15); padding: 5px; border-radius: 14px; margin-bottom: 24px; width: fit-content; border: 1px solid var(--border); overflow-x: auto; max-width: 100%; }
     .inv-tab-btn { padding: 10px 20px; border-radius: 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
@@ -47,6 +49,7 @@ import { NotificationService } from '../../core/services/notification.service';
         </button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="inventory"></app-module-dashboard>
 
     <div class="inv-tab-nav animate-in">
       <button class="inv-tab-btn" [class.active]="tab==='items'" (click)="tab='items'; loadItems()">

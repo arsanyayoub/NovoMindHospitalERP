@@ -5,10 +5,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { InsuranceService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
     selector: 'app-insurance',
     standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule],
+    imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
     template: `
     <div class="page-header">
       <div>
@@ -22,6 +24,7 @@ import { ToastService } from '../../core/services/language.service';
          </button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="insurance"></app-module-dashboard>
 
     <div class="card p-0 mb-6 overflow-hidden">
       <div class="flex border-bottom bg-glass">
@@ -88,10 +91,10 @@ import { ToastService } from '../../core/services/language.service';
           </div>
           <select class="form-control w-48" [(ngModel)]="statusFilter" (change)="loadClaims()">
             <option value="">{{ 'ALL_STATUS' | translate }}</option>
-            <option value="Pending">Pending</option>
-            <option value="Approved">Approved</option>
-            <option value="Rejected">Rejected</option>
-            <option value="Paid">Paid</option>
+            <option value="Pending">{{ 'UI_PENDING' | translate }}</option>
+            <option value="Approved">{{ 'UI_APPROVED' | translate }}</option>
+            <option value="Rejected">{{ 'UI_REJECTED' | translate }}</option>
+            <option value="Paid">{{ 'UI_PAID' | translate }}</option>
           </select>
         </div>
         

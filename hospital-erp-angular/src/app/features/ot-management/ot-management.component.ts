@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { OTService, PatientService, DoctorService, InventoryService, SystemService, BedManagementService } from '../../core/services/api.services';
-import { ToastService } from '../../core/services/language.service';
+import { ItemSearchSelectComponent, PickedItem } from '../../core/components/item-search-select.component';import { ToastService } from '../../core/services/language.service';
+
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
 
 @Component({
   selector: 'app-ot-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, ItemSearchSelectComponent, ModuleDashboardComponent],
   template: `
     <div class="page-header">
       <div>
@@ -24,6 +26,7 @@ import { ToastService } from '../../core/services/language.service';
         </button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="ot"></app-module-dashboard>
 
     <div class="flex border-b mb-6 bg-white dark:bg-gray-800 rounded-xl px-2">
       <button class="px-6 py-4 font-black text-sm transition-all border-b-2" 
@@ -82,13 +85,13 @@ import { ToastService } from '../../core/services/language.service';
                 <button class="btn btn-xs btn-primary btn-with-icon" (click)="finalizeBill(s)" *ngIf="s.status === 'Completed' && !s.invoiceId">
                    <span class="material-icons-round text-xs">payments</span> {{ ('BILL' | translate) || 'Bill' }}
                 </button>
-                <button class="btn btn-xs btn-icon btn-outline-primary" (click)="openResourceModal(s)" title="Resources">
+                <button class="btn btn-xs btn-icon btn-outline-primary" (click)="openResourceModal(s)" [title]="'UI_RESOURCES' | translate">
                   <span class="material-icons-round">inventory_2</span>
                 </button>
-                <button class="btn btn-xs btn-icon btn-outline-info" (click)="openChecklistModal(s)" title="Safety Checklist">
+                <button class="btn btn-xs btn-icon btn-outline-info" (click)="openChecklistModal(s)" [title]="'UI_SAFETY_CHECKLIST' | translate">
                    <span class="material-icons-round">rule</span>
                 </button>
-                <button class="btn btn-xs btn-icon btn-outline-secondary" (click)="openAuditModal(s)" title="Audit Logs">
+                <button class="btn btn-xs btn-icon btn-outline-secondary" (click)="openAuditModal(s)" [title]="'UI_AUDIT_LOGS' | translate">
                   <span class="material-icons-round">history</span>
                 </button>
               </div>
@@ -97,7 +100,7 @@ import { ToastService } from '../../core/services/language.service';
 
           <div *ngIf="surgeries.length === 0" class="col-span-full py-20 text-center opacity-50 italic">
             <span class="material-icons-round text-6xl mb-4">event_busy</span>
-            <p>No surgeries scheduled at this time.</p>
+            <p>{{ 'UI_NO_SURGERIES_SCHEDULED_AT_TH' | translate }}</p>
           </div>
         </div>
       </div>
@@ -115,15 +118,15 @@ import { ToastService } from '../../core/services/language.service';
             
             <div class="flex flex-col gap-4 mt-4">
                <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-3 rounded-xl">
-                  <span class="text-xs font-bold">Status</span>
+                  <span class="text-xs font-bold">{{ 'UI_STATUS' | translate }}</span>
                   <span class="badge" [class.badge-success]="ot.status === 'Available'" [class.badge-danger]="ot.status === 'Busy'" [class.badge-warning]="ot.status === 'Under Maintenance'">
                     {{ ot.status }}
                   </span>
                </div>
                
                <div class="flex gap-2">
-                 <button class="btn btn-xs btn-outline flex-1" (click)="updateOTStatus(ot, 'Available')">Available</button>
-                 <button class="btn btn-xs btn-outline btn-warning flex-1" (click)="updateOTStatus(ot, 'Under Maintenance')">Maintain</button>
+                 <button class="btn btn-xs btn-outline flex-1" (click)="updateOTStatus(ot, 'Available')">{{ 'UI_AVAILABLE' | translate }}</button>
+                 <button class="btn btn-xs btn-outline btn-warning flex-1" (click)="updateOTStatus(ot, 'Under Maintenance')">{{ 'UI_MAINTAIN' | translate }}</button>
                </div>
             </div>
           </div>
@@ -157,14 +160,14 @@ import { ToastService } from '../../core/services/language.service';
             <div class="form-group col-span-2" *ngIf="activePatientAdmissions.length > 0">
                <label class="form-label font-bold text-xs uppercase tracking-widest text-primary">{{ ('LINK_TO_ADMISSION' | translate) || 'Link to Inpatient Admission' }}</label>
                <select class="form-control" [(ngModel)]="surgeryForm.bedAdmissionId">
-                  <option [value]="null">Outpatient / Not Linked</option>
+                  <option [value]="null">{{ 'UI_OUTPATIENT_NOT_LINKED' | translate }}</option>
                   <option *ngFor="let a of activePatientAdmissions" [value]="a.id">{{ a.wardName }} - {{ a.bedNumber }} ({{ a.admissionDate | date:'short' }})</option>
                </select>
             </div>
             
             <div class="form-group col-span-2">
               <label class="form-label">{{ 'PROCEDURE_NAME' | translate }} *</label>
-              <input type="text" class="form-control" [(ngModel)]="surgeryForm.procedureName" placeholder="e.g. Appendectomy">
+              <input type="text" class="form-control" [(ngModel)]="surgeryForm.procedureName" [placeholder]="'UI_E_G_APPENDECTOMY' | translate">
             </div>
 
             <div class="form-group">
@@ -177,7 +180,7 @@ import { ToastService } from '../../core/services/language.service';
             <div class="form-group">
               <label class="form-label">{{ 'ANESTHETIST' | translate }}</label>
               <select class="form-control" [(ngModel)]="surgeryForm.anesthetistId">
-                <option [value]="null">Select Anesthetist</option>
+                <option [value]="null">{{ 'UI_SELECT_ANESTHETIST' | translate }}</option>
                 <option *ngFor="let d of doctors" [value]="d.id">Dr. {{ d.fullName }}</option>
               </select>
             </div>
@@ -192,9 +195,9 @@ import { ToastService } from '../../core/services/language.service';
             <div class="form-group">
               <label class="form-label">{{ 'PRIORITY' | translate }}</label>
               <select class="form-control" [(ngModel)]="surgeryForm.priority">
-                <option value="Routine">Routine</option>
-                <option value="Urgent">Urgent</option>
-                <option value="Emergency">Emergency</option>
+                <option value="Routine">{{ 'UI_ROUTINE' | translate }}</option>
+                <option value="Urgent">{{ 'UI_URGENT' | translate }}</option>
+                <option value="Emergency">{{ 'UI_EMERGENCY' | translate }}</option>
               </select>
             </div>
 
@@ -232,11 +235,11 @@ import { ToastService } from '../../core/services/language.service';
         <div class="modal-body">
           <div class="form-group mb-4">
             <label class="form-label">{{ 'OT_NAME' | translate }} *</label>
-            <input type="text" class="form-control" [(ngModel)]="otForm.name" placeholder="Operating Theater 1">
+            <input type="text" class="form-control" [(ngModel)]="otForm.name" [placeholder]="'UI_OPERATING_THEATER_1' | translate">
           </div>
           <div class="form-group">
             <label class="form-label">{{ 'LOCATION' | translate }}</label>
-            <input type="text" class="form-control" [(ngModel)]="otForm.location" placeholder="Floor 2, Wing B">
+            <input type="text" class="form-control" [(ngModel)]="otForm.location" [placeholder]="'UI_FLOOR_2_WING_B' | translate">
           </div>
         </div>
         <div class="modal-footer">
@@ -263,9 +266,7 @@ import { ToastService } from '../../core/services/language.service';
             <div class="grid grid-cols-12 gap-4 items-end">
               <div class="col-span-6">
                 <label class="form-label">{{ 'ITEM' | translate }}</label>
-                <select class="form-control" [(ngModel)]="resourceForm.itemId">
-                  <option *ngFor="let i of inventoryItems" [value]="i.id">{{ i.itemName }} ({{ i.unit }})</option>
-                </select>
+                <app-item-search-select (picked)="onResPicked($event)" [preselect]="resourceForm.itemId ? { id: resourceForm.itemId, itemName: resName } : null"></app-item-search-select>
               </div>
               <div class="col-span-2">
                 <label class="form-label">{{ 'QTY' | translate }}</label>
@@ -301,7 +302,7 @@ import { ToastService } from '../../core/services/language.service';
                   </td>
                 </tr>
                 <tr *ngIf="resources.length === 0">
-                  <td colspan="4" class="text-center py-8 opacity-50 italic">No resources tracked yet</td>
+                  <td colspan="4" class="text-center py-8 opacity-50 italic">{{ 'UI_NO_RESOURCES_TRACKED_YET' | translate }}</td>
                 </tr>
               </tbody>
             </table>
@@ -336,7 +337,7 @@ import { ToastService } from '../../core/services/language.service';
             </div>
             <div *ngIf="auditLogs.length === 0" class="text-center py-20 opacity-30 italic">
               <span class="material-icons-round text-5xl mb-2">history_toggle_off</span>
-              <p>No audit records found for this surgery.</p>
+              <p>{{ 'UI_NO_AUDIT_RECORDS_FOUND_FOR_T' | translate }}</p>
             </div>
           </div>
         </div>
@@ -648,6 +649,17 @@ export class OTManagementComponent implements OnInit {
     if (!this.selectedSurgery) return;
     this.otSvc.getResources(this.selectedSurgery.id).subscribe(res => this.resources = res);
   }
+
+  resName = '';
+
+  onResPicked(it: any) {
+
+    this.resourceForm.itemId = it ? it.id : null;
+
+    this.resName = it ? (it.itemName || '') : '';
+
+  }
+
 
   addResource() {
     if (!this.resourceForm.itemId || !this.resourceForm.quantity) return;

@@ -3,23 +3,26 @@ import { CommonModule } from '@angular/common';
 import { AppointmentService, TelehealthService } from '../../core/services/api.services';
 import { TranslateModule } from '@ngx-translate/core';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
     selector: 'app-telehealth',
     standalone: true,
-    imports: [CommonModule, TranslateModule],
+    imports: [CommonModule, TranslateModule, ModuleDashboardComponent],
     template: `
     <div class="p-8 bg-slate-50 min-h-screen">
       <div class="max-w-7xl mx-auto">
         
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
           <div>
-            <h1 class="text-4xl font-black text-slate-900 tracking-tighter">Telehealth <span class="text-indigo-600">CMD</span></h1>
-            <p class="text-slate-500 font-medium">Virtual consultation management & remote diagnostics</p>
+            <h1 class="text-4xl font-black text-slate-900 tracking-tighter">Telehealth <span class="text-indigo-600">{{ 'UI_CMD' | translate }}</span></h1>
+            <p class="text-slate-500 font-medium">{{ 'UI_VIRTUAL_CONSULTATION_MANAGEM' | translate }}</p>
           </div>
+    <app-module-dashboard class="no-print" name="telehealth"></app-module-dashboard>
           <div class="flex items-center gap-4 bg-white p-2 rounded-2xl shadow-sm border border-slate-100">
              <div class="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl flex items-center gap-2">
                 <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                <span class="text-xs font-black uppercase tracking-widest">Network Secure</span>
+                <span class="text-xs font-black uppercase tracking-widest">{{ 'UI_NETWORK_SECURE' | translate }}</span>
              </div>
              <div class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
                 <i class="fas fa-cog"></i>
@@ -32,7 +35,7 @@ import { TranslateModule } from '@ngx-translate/core';
           <div class="lg:col-span-2 space-y-8">
              <div class="bg-white rounded-[32px] p-8 shadow-sm border border-slate-100">
                 <div class="flex justify-between items-center mb-8">
-                   <h3 class="font-black text-xl text-slate-800">Scheduled <span class="text-indigo-600">Virtual Visits</span></h3>
+                   <h3 class="font-black text-xl text-slate-800">Scheduled <span class="text-indigo-600">{{ 'UI_VIRTUAL_VISITS' | translate }}</span></h3>
                    <span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-widest">{{teleApps.length}} APPS</span>
                 </div>
 
@@ -67,7 +70,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
                    <div *ngIf="!teleApps.length" class="text-center py-20 opacity-30">
                       <i class="fas fa-video-slash text-5xl mb-4"></i>
-                      <p class="font-black text-lg">No virtual sessions queued</p>
+                      <p class="font-black text-lg">{{ 'UI_NO_VIRTUAL_SESSIONS_QUEUED' | translate }}</p>
                    </div>
                 </div>
              </div>
@@ -86,31 +89,31 @@ import { TranslateModule } from '@ngx-translate/core';
                          <i class="fas fa-camera text-slate-400"></i>
                          <span class="text-xs font-bold">4K Camera</span>
                       </div>
-                      <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Active</span>
+                      <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{{ 'UI_ACTIVE' | translate }}</span>
                    </div>
                    <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
                       <div class="flex items-center gap-3">
                          <i class="fas fa-microphone text-slate-400"></i>
-                         <span class="text-xs font-bold">Spatial Mic</span>
+                         <span class="text-xs font-bold">{{ 'UI_SPATIAL_MIC' | translate }}</span>
                       </div>
-                      <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Active</span>
+                      <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{{ 'UI_ACTIVE' | translate }}</span>
                    </div>
                    <div class="p-4 bg-indigo-600 rounded-2xl">
-                      <p class="text-[10px] font-black text-indigo-200 uppercase tracking-widest mb-1">Bandwidth Status</p>
-                      <p class="text-xl font-black">94.2 <span class="text-xs opacity-60">Mbps</span></p>
+                      <p class="text-[10px] font-black text-indigo-200 uppercase tracking-widest mb-1">{{ 'UI_BANDWIDTH_STATUS' | translate }}</p>
+                      <p class="text-xl font-black">94.2 <span class="text-xs opacity-60">{{ 'UI_MBPS' | translate }}</span></p>
                    </div>
                 </div>
              </div>
 
              <div class="bg-white rounded-[32px] p-8 shadow-sm border border-slate-100">
-                <h4 class="font-black text-slate-800 mb-6">Patient Instructions</h4>
+                <h4 class="font-black text-slate-800 mb-6">{{ 'UI_PATIENT_INSTRUCTIONS' | translate }}</h4>
                 <div class="space-y-4">
                    <div class="p-4 bg-slate-50 rounded-2xl relative before:absolute before:left-0 before:top-1/4 before:bottom-1/4 before:w-1 before:bg-indigo-500">
-                      <p class="text-xs font-bold text-slate-700 leading-relaxed">Ensure patient has a stable connection and is in a quiet, well-lit environment.</p>
+                      <p class="text-xs font-bold text-slate-700 leading-relaxed">{{ 'UI_ENSURE_PATIENT_HAS_A_STABLE_' | translate }}</p>
                    </div>
                 </div>
                 <button class="w-full mt-6 py-4 border-2 border-indigo-50 text-indigo-600 font-black rounded-2xl text-xs hover:bg-indigo-50 transition-all uppercase tracking-widest">
-                   Send Guide to Patient
+                   {{ 'UI_SEND_GUIDE_TO_PATIENT' | translate }}
                 </button>
              </div>
           </div>

@@ -4,17 +4,20 @@ import { SupportService } from '../../core/services/api.services';
 import { TranslateModule } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
     selector: 'app-cssd',
     standalone: true,
-    imports: [CommonModule, TranslateModule, FormsModule],
+    imports: [CommonModule, TranslateModule, FormsModule, ModuleDashboardComponent],
     template: `
     <div class="p-6 bg-slate-50 min-h-screen">
       <div class="flex justify-between items-center mb-8">
         <div>
-          <h1 class="text-3xl font-black text-slate-800 tracking-tight">CSSD <span class="text-indigo-600">Sterilization</span></h1>
-          <p class="text-slate-500 font-medium">Instrument safety and decontamination logs</p>
+          <h1 class="text-3xl font-black text-slate-800 tracking-tight">CSSD <span class="text-indigo-600">{{ 'UI_STERILIZATION' | translate }}</span></h1>
+          <p class="text-slate-500 font-medium">{{ 'UI_INSTRUMENT_SAFETY_AND_DECONT' | translate }}</p>
         </div>
+    <app-module-dashboard class="no-print" name="cssd"></app-module-dashboard>
         <button (click)="showNewBatch = true" class="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg active:scale-95 flex items-center gap-2">
           <i class="fas fa-plus"></i> New Batch
         </button>
@@ -22,20 +25,20 @@ import { FormsModule } from '@angular/forms';
 
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Active Batches</p>
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ 'UI_ACTIVE_BATCHES' | translate }}</p>
           <h3 class="text-2xl font-bold text-indigo-600">{{batches.length}}</h3>
         </div>
         <div class="bg-emerald-50 p-6 rounded-2xl border border-emerald-100 shadow-sm">
-          <p class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Sterility Success</p>
+          <p class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">{{ 'UI_STERILITY_SUCCESS' | translate }}</p>
           <h3 class="text-2xl font-bold text-emerald-800">99.8%</h3>
         </div>
         <div class="bg-amber-50 p-6 rounded-2xl border border-amber-100 shadow-sm">
-          <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">Equipment Uptime</p>
+          <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">{{ 'UI_EQUIPMENT_UPTIME' | translate }}</p>
           <h3 class="text-2xl font-bold text-amber-800">100%</h3>
         </div>
         <div class="bg-indigo-900 p-6 rounded-2xl shadow-xl text-white relative overflow-hidden">
            <i class="fas fa-microscope absolute -right-4 -bottom-4 text-6xl opacity-10"></i>
-           <p class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest mb-1">Avg Cycle Time</p>
+           <p class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest mb-1">{{ 'UI_AVG_CYCLE_TIME' | translate }}</p>
            <h3 class="text-2xl font-bold">45m</h3>
         </div>
       </div>
@@ -44,11 +47,11 @@ import { FormsModule } from '@angular/forms';
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="bg-slate-50/50 border-b border-slate-100">
-              <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Batch Info</th>
-              <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Equipment</th>
-              <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Items</th>
-              <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-              <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Started</th>
+              <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ 'UI_BATCH_INFO' | translate }}</th>
+              <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ 'UI_EQUIPMENT' | translate }}</th>
+              <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ 'UI_ITEMS' | translate }}</th>
+              <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ 'UI_STATUS' | translate }}</th>
+              <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ 'UI_STARTED' | translate }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-50">
@@ -88,7 +91,7 @@ import { FormsModule } from '@angular/forms';
       <div *ngIf="showNewBatch" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden border border-white/20">
           <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-            <h3 class="font-black text-xl text-slate-800 tracking-tight">Register <span class="text-indigo-600">Sterilization Batch</span></h3>
+            <h3 class="font-black text-xl text-slate-800 tracking-tight">Register <span class="text-indigo-600">{{ 'UI_STERILIZATION_BATCH' | translate }}</span></h3>
             <button (click)="showNewBatch = false" class="w-10 h-10 flex items-center justify-center bg-white rounded-full text-slate-400 hover:text-rose-500 shadow-sm transition-all"><i class="fas fa-times"></i></button>
           </div>
           <div class="p-8 space-y-6">
@@ -98,26 +101,26 @@ import { FormsModule } from '@angular/forms';
                   <input type="text" [(ngModel)]="newBatch.batchNumber" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-semibold">
                </div>
                <div>
-                  <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Equipment</label>
+                  <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{{ 'UI_EQUIPMENT' | translate }}</label>
                   <select [(ngModel)]="newBatch.equipmentName" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-semibold appearance-none">
-                    <option value="Autoclave 01">Autoclave 01</option>
-                    <option value="Autoclave 02">Autoclave 02</option>
-                    <option value="Flash Sterilizer">Flash Sterilizer</option>
+                    <option value="Autoclave 01">{{ 'UI_AUTOCLAVE_01' | translate }}</option>
+                    <option value="Autoclave 02">{{ 'UI_AUTOCLAVE_02' | translate }}</option>
+                    <option value="Flash Sterilizer">{{ 'UI_FLASH_STERILIZER' | translate }}</option>
                   </select>
                </div>
              </div>
              <div>
-                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Operator Name</label>
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{{ 'UI_OPERATOR_NAME' | translate }}</label>
                 <input type="text" [(ngModel)]="newBatch.operatorName" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-semibold">
              </div>
              <div>
-                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Items (comma separated)</label>
-                <textarea (change)="parseItems($event)" rows="3" placeholder="Major Set, Dental Kit, Ortho Pack..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-semibold"></textarea>
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{{ 'UI_ITEMS_COMMA_SEPARATED' | translate }}</label>
+                <textarea (change)="parseItems($event)" rows="3" [placeholder]="'UI_MAJOR_SET_DENTAL_KIT_ORTHO_P' | translate" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-semibold"></textarea>
              </div>
           </div>
           <div class="p-8 bg-slate-50/50 flex gap-4">
-             <button (click)="showNewBatch = false" class="flex-1 px-6 py-3 border-2 border-slate-200 rounded-2xl font-bold text-slate-500 hover:bg-white active:scale-95 transition-all">Cancel</button>
-             <button (click)="saveBatch()" class="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 active:scale-95 transition-all">Start Cycle</button>
+             <button (click)="showNewBatch = false" class="flex-1 px-6 py-3 border-2 border-slate-200 rounded-2xl font-bold text-slate-500 hover:bg-white active:scale-95 transition-all">{{ 'UI_CANCEL' | translate }}</button>
+             <button (click)="saveBatch()" class="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 active:scale-95 transition-all">{{ 'UI_START_CYCLE' | translate }}</button>
           </div>
         </div>
       </div>

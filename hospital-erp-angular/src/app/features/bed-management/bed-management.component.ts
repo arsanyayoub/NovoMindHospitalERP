@@ -6,10 +6,12 @@ import { TranslateModule } from '@ngx-translate/core';
 import { BedManagementService, PatientService, DoctorService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
   selector: 'app-bed-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, RouterModule],
+  imports: [CommonModule, FormsModule, TranslateModule, RouterModule, ModuleDashboardComponent],
   template: `
     <div class="page-header">
       <div>
@@ -22,6 +24,7 @@ import { ToastService } from '../../core/services/language.service';
         </button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="beds"></app-module-dashboard>
 
     <!-- Wards Grid -->
     <div *ngIf="!activeWard" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
@@ -182,17 +185,17 @@ import { ToastService } from '../../core/services/language.service';
           <div class="form-row">
             <div class="form-group flex-1">
               <label class="form-label">{{ 'WARD_CODE' | translate }} *</label>
-              <input type="text" class="form-control" [(ngModel)]="wardForm.wardCode" placeholder="e.g. W-ICU-01">
+              <input type="text" class="form-control" [(ngModel)]="wardForm.wardCode" [placeholder]="'UI_E_G_W_ICU_01' | translate">
             </div>
             <div class="form-group flex-1">
               <label class="form-label">{{ 'WARD_TYPE' | translate }}</label>
               <select class="form-control form-select" [(ngModel)]="wardForm.wardType">
-                <option value="General">General</option>
-                <option value="ICU">ICU</option>
-                <option value="CCU">CCU</option>
-                <option value="Pediatric">Pediatric</option>
-                <option value="Maternity">Maternity</option>
-                <option value="Surgical">Surgical</option>
+                <option value="General">{{ 'UI_GENERAL' | translate }}</option>
+                <option value="ICU">{{ 'UI_ICU' | translate }}</option>
+                <option value="CCU">{{ 'UI_CCU' | translate }}</option>
+                <option value="Pediatric">{{ 'UI_PEDIATRIC' | translate }}</option>
+                <option value="Maternity">{{ 'UI_MATERNITY' | translate }}</option>
+                <option value="Surgical">{{ 'UI_SURGICAL' | translate }}</option>
               </select>
             </div>
           </div>
@@ -238,11 +241,11 @@ import { ToastService } from '../../core/services/language.service';
             <div class="form-group flex-1">
               <label class="form-label">{{ 'ROOM_TYPE' | translate }}</label>
               <select class="form-control form-select" [(ngModel)]="roomForm.roomType">
-                <option value="Standard">Standard</option>
-                <option value="Deluxe">Deluxe</option>
-                <option value="Semi-Private">Semi-Private</option>
-                <option value="Private">Private</option>
-                <option value="Isolation">Isolation</option>
+                <option value="Standard">{{ 'UI_STANDARD' | translate }}</option>
+                <option value="Deluxe">{{ 'UI_DELUXE' | translate }}</option>
+                <option value="Semi-Private">{{ 'UI_SEMI_PRIVATE' | translate }}</option>
+                <option value="Private">{{ 'UI_PRIVATE' | translate }}</option>
+                <option value="Isolation">{{ 'UI_ISOLATION' | translate }}</option>
               </select>
             </div>
           </div>
@@ -284,7 +287,7 @@ import { ToastService } from '../../core/services/language.service';
           </div>
           <div class="form-group mt-3">
             <label class="form-label">{{ 'BED_NUMBER' | translate }} *</label>
-            <input type="text" class="form-control" [(ngModel)]="bedForm.bedNumber" placeholder="e.g. B-101">
+            <input type="text" class="form-control" [(ngModel)]="bedForm.bedNumber" [placeholder]="'UI_E_G_B_101' | translate">
           </div>
           <div class="form-group mt-3">
             <label class="form-label">{{ 'BED_STATUS' | translate }}</label>
@@ -337,10 +340,10 @@ import { ToastService } from '../../core/services/language.service';
               <div class="form-group flex-1">
                 <label class="form-label">{{ 'ADMISSION_TYPE' | translate }}</label>
                 <select class="form-control form-select" [(ngModel)]="admitForm.admissionType">
-                    <option value="General">General</option>
-                    <option value="Emergency">Emergency</option>
-                    <option value="Surgical">Surgical</option>
-                    <option value="Observation">Observation</option>
+                    <option value="General">{{ 'UI_GENERAL' | translate }}</option>
+                    <option value="Emergency">{{ 'UI_EMERGENCY' | translate }}</option>
+                    <option value="Surgical">{{ 'UI_SURGICAL' | translate }}</option>
+                    <option value="Observation">{{ 'UI_OBSERVATION' | translate }}</option>
                 </select>
               </div>
               <div class="form-group flex-1">
@@ -383,7 +386,7 @@ import { ToastService } from '../../core/services/language.service';
             
             <div class="form-group">
                 <label class="form-label">{{ 'DISCHARGE_NOTES' | translate }}</label>
-                <textarea class="form-control" rows="4" [(ngModel)]="dischargeForm.dischargeNotes" placeholder="Summary of treatment, medication, next visit..."></textarea>
+                <textarea class="form-control" rows="4" [(ngModel)]="dischargeForm.dischargeNotes" [placeholder]="'UI_SUMMARY_OF_TREATMENT_MEDICAT' | translate"></textarea>
             </div>
             
             <p class="text-xs text-muted mt-4 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">

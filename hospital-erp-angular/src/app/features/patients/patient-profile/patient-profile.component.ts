@@ -156,11 +156,11 @@ import { ToastService } from '../../../core/services/language.service';
                       </div>
                       <div class="grid grid-cols-2 gap-4">
                          <div class="p-3 bg-glass border rounded-xl">
-                            <div class="text-[0.6rem] font-black text-primary uppercase mb-1">Assessment</div>
+                            <div class="text-[0.6rem] font-black text-primary uppercase mb-1">{{ 'UI_ASSESSMENT' | translate }}</div>
                             <div class="text-sm font-bold truncate">{{ e.assessment }}</div>
                          </div>
                          <div class="p-3 bg-glass border rounded-xl">
-                            <div class="text-[0.6rem] font-black text-primary uppercase mb-1">Plan</div>
+                            <div class="text-[0.6rem] font-black text-primary uppercase mb-1">{{ 'UI_PLAN' | translate }}</div>
                             <div class="text-sm font-bold truncate">{{ e.plan }}</div>
                          </div>
                       </div>
@@ -172,7 +172,7 @@ import { ToastService } from '../../../core/services/language.service';
                <div class="grid grid-cols-2 gap-8">
                   <div class="vital-trend-box">
                      <div class="flex justify-between items-center mb-4">
-                        <h4 class="font-black text-sm uppercase tracking-widest text-primary">Temperature Trend</h4>
+                        <h4 class="font-black text-sm uppercase tracking-widest text-primary">{{ 'UI_TEMPERATURE_TREND' | translate }}</h4>
                         <span class="material-icons-round text-danger">thermostat</span>
                      </div>
                      <div class="trend-chart">
@@ -181,13 +181,13 @@ import { ToastService } from '../../../core/services/language.service';
                              [attr.data-val]="v.temperature + '°C'"></div>
                      </div>
                      <div class="flex justify-between text-[0.6rem] font-black text-muted mt-2">
-                        <span>Past Records</span>
-                        <span>Latest</span>
+                        <span>{{ 'UI_PAST_RECORDS' | translate }}</span>
+                        <span>{{ 'UI_LATEST' | translate }}</span>
                      </div>
                   </div>
                   <div class="vital-trend-box">
                      <div class="flex justify-between items-center mb-4">
-                        <h4 class="font-black text-sm uppercase tracking-widest text-primary">Heart Rate Trend</h4>
+                        <h4 class="font-black text-sm uppercase tracking-widest text-primary">{{ 'UI_HEART_RATE_TREND' | translate }}</h4>
                         <span class="material-icons-round text-success">favorite</span>
                      </div>
                      <div class="trend-chart">
@@ -197,8 +197,8 @@ import { ToastService } from '../../../core/services/language.service';
                              style="background: var(--success)"></div>
                      </div>
                      <div class="flex justify-between text-[0.6rem] font-black text-muted mt-2">
-                        <span>Past Records</span>
-                        <span>Latest</span>
+                        <span>{{ 'UI_PAST_RECORDS' | translate }}</span>
+                        <span>{{ 'UI_LATEST' | translate }}</span>
                      </div>
                   </div>
                </div>
@@ -206,12 +206,12 @@ import { ToastService } from '../../../core/services/language.service';
                   <table class="table">
                      <thead>
                         <tr>
-                           <th>Date</th>
-                           <th>Temp</th>
-                           <th>BP</th>
-                           <th>HR</th>
-                           <th>SpO2</th>
-                           <th>Weight</th>
+                           <th>{{ 'UI_DATE' | translate }}</th>
+                           <th>{{ 'UI_TEMP_2' | translate }}</th>
+                           <th>{{ 'UI_BP' | translate }}</th>
+                           <th>{{ 'UI_HR' | translate }}</th>
+                           <th>{{ 'UI_SPO2_2' | translate }}</th>
+                           <th>{{ 'UI_WEIGHT_2' | translate }}</th>
                         </tr>
                      </thead>
                      <tbody>
@@ -331,9 +331,9 @@ import { ToastService } from '../../../core/services/language.service';
                   <div class="p-6">
                          <div *ngIf="vitals && vitals.length > 0; else noVitals" class="flex flex-col gap-6">
                             <div class="flex items-center gap-4">
-                               <div class="w-10 h-10 rounded-xl bg-danger bg-opacity-10 text-danger flex items-center justify-center font-black">T</div>
+                               <div class="w-10 h-10 rounded-xl bg-danger bg-opacity-10 text-danger flex items-center justify-center font-black">{{ 'UI_T' | translate }}</div>
                                <div class="flex-grow">
-                                  <div class="text-[0.6rem] font-black text-muted uppercase">Latest Temperature</div>
+                                  <div class="text-[0.6rem] font-black text-muted uppercase">{{ 'UI_LATEST_TEMPERATURE' | translate }}</div>
                                   <div class="font-black text-xl">{{ vitals[vitals.length-1].temperature }}°C</div>
                                </div>
                                <div class="text-xs font-black" [ngClass]="vitals[vitals.length-1].temperature > 37.5 ? 'text-danger' : 'text-success'">
@@ -341,9 +341,9 @@ import { ToastService } from '../../../core/services/language.service';
                                </div>
                             </div>
                             <div class="flex items-center gap-4">
-                               <div class="w-10 h-10 rounded-xl bg-primary bg-opacity-10 text-primary flex items-center justify-center font-black">BP</div>
+                               <div class="w-10 h-10 rounded-xl bg-primary bg-opacity-10 text-primary flex items-center justify-center font-black">{{ 'UI_BP' | translate }}</div>
                                <div class="flex-grow">
-                                  <div class="text-[0.6rem] font-black text-muted uppercase">Latest Blood Pressure</div>
+                                  <div class="text-[0.6rem] font-black text-muted uppercase">{{ 'UI_LATEST_BLOOD_PRESSURE' | translate }}</div>
                                   <div class="font-black text-xl">{{ vitals[vitals.length-1].bloodPressureSystolic }}/{{ vitals[vitals.length-1].bloodPressureDiastolic }}</div>
                                </div>
                             </div>
@@ -352,15 +352,15 @@ import { ToastService } from '../../../core/services/language.service';
                             <div class="text-center py-6 opacity-40 italic text-xs uppercase font-black tracking-widest">{{ 'NO_VITALS_RECORDED' | translate }}</div>
                          </ng-template>
                          <div class="pt-4 border-top">
-                            <div class="text-[0.6rem] font-black text-muted uppercase mb-3">Pending Diagnostics</div>
+                            <div class="text-[0.6rem] font-black text-muted uppercase mb-3">{{ 'UI_PENDING_DIAGNOSTICS' | translate }}</div>
                             <div class="flex gap-2">
                                <div class="flex-1 p-3 bg-glass border rounded-xl text-center">
                                   <div class="font-black text-lg">{{ getPendingCount('lab') }}</div>
-                                  <div class="text-[0.5rem] font-black text-muted uppercase">Lab</div>
+                                  <div class="text-[0.5rem] font-black text-muted uppercase">{{ 'UI_LAB' | translate }}</div>
                                </div>
                                <div class="flex-1 p-3 bg-glass border rounded-xl text-center">
                                   <div class="font-black text-lg">{{ getPendingCount('rad') }}</div>
-                                  <div class="text-[0.5rem] font-black text-muted uppercase">Rad</div>
+                                  <div class="text-[0.5rem] font-black text-muted uppercase">{{ 'UI_RAD' | translate }}</div>
                                </div>
                             </div>
                          </div>

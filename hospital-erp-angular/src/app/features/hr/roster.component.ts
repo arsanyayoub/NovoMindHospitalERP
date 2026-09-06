@@ -14,8 +14,8 @@ import { FormsModule } from '@angular/forms';
         
         <div class="flex justify-between items-end mb-10">
           <div>
-            <h1 class="text-4xl font-black text-slate-900 tracking-tight mb-2">Staff <span class="text-indigo-600">Rostering</span></h1>
-            <p class="text-slate-500 font-medium">Efficient shift coordination and hospital coverage</p>
+            <h1 class="text-4xl font-black text-slate-900 tracking-tight mb-2">Staff <span class="text-indigo-600">{{ 'UI_ROSTERING' | translate }}</span></h1>
+            <p class="text-slate-500 font-medium">{{ 'UI_EFFICIENT_SHIFT_COORDINATION' | translate }}</p>
           </div>
           <div class="flex gap-3">
              <button (click)="prevWeek()" class="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 shadow-sm transition-all"><i class="fas fa-chevron-left"></i></button>
@@ -31,7 +31,7 @@ import { FormsModule } from '@angular/forms';
 
         <div class="bg-white rounded-[40px] shadow-sm border border-slate-100 overflow-hidden">
           <div class="grid grid-cols-8 border-b border-slate-100 bg-slate-50/50">
-             <div class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-100">Employee</div>
+             <div class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-100">{{ 'UI_EMPLOYEE' | translate }}</div>
              <div *ngFor="let day of weekDays" class="p-6 text-center">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{day | date:'EEE'}}</p>
                 <p class="text-lg font-black text-slate-800">{{day | date:'d'}}</p>
@@ -67,36 +67,36 @@ import { FormsModule } from '@angular/forms';
       <div *ngIf="showAssign" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
          <div class="bg-white rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden border border-white/20">
             <div class="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-               <h3 class="font-black text-xl text-slate-800">Shift <span class="text-indigo-600">Assignment</span></h3>
+               <h3 class="font-black text-xl text-slate-800">Shift <span class="text-indigo-600">{{ 'UI_ASSIGNMENT' | translate }}</span></h3>
                <button (click)="showAssign = false" class="w-10 h-10 flex items-center justify-center bg-white rounded-full text-slate-400 hover:text-rose-500 shadow-sm transition-all"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-8 space-y-6">
                <div>
-                  <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Select Employee</label>
+                  <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{{ 'UI_SELECT_EMPLOYEE' | translate }}</label>
                   <select [(ngModel)]="newRoster.employeeId" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-semibold">
                      <option *ngFor="let e of employees" [value]="e.id">{{e.fullName}}</option>
                   </select>
                </div>
                <div class="grid grid-cols-2 gap-4">
                   <div>
-                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Shift Type</label>
+                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{{ 'UI_SHIFT_TYPE' | translate }}</label>
                      <select [(ngModel)]="newRoster.workShiftId" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-semibold uppercase">
                         <option *ngFor="let s of shifts" [value]="s.id">{{s.shiftName}}</option>
                      </select>
                   </div>
                   <div>
-                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Date</label>
+                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{{ 'UI_DATE' | translate }}</label>
                      <input type="date" [(ngModel)]="newRoster.date" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-semibold">
                   </div>
                </div>
                <div>
-                  <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Internal Notes</label>
+                  <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{{ 'UI_INTERNAL_NOTES' | translate }}</label>
                   <textarea [(ngModel)]="newRoster.notes" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-semibold"></textarea>
                </div>
             </div>
             <div class="p-8 bg-slate-50/50 flex gap-4">
-               <button (click)="showAssign = false" class="flex-1 px-6 py-3 border-2 border-slate-200 rounded-2xl font-bold text-slate-500 hover:bg-white active:scale-95 transition-all">Cancel</button>
-               <button (click)="saveRoster()" class="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 active:scale-95 transition-all">Create Slot</button>
+               <button (click)="showAssign = false" class="flex-1 px-6 py-3 border-2 border-slate-200 rounded-2xl font-bold text-slate-500 hover:bg-white active:scale-95 transition-all">{{ 'UI_CANCEL' | translate }}</button>
+               <button (click)="saveRoster()" class="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 active:scale-95 transition-all">{{ 'UI_CREATE_SLOT' | translate }}</button>
             </div>
          </div>
       </div>

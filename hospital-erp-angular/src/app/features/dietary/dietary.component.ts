@@ -5,10 +5,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DietaryService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
     selector: 'app-dietary',
     standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule],
+    imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
     template: `
     <div class="page-header">
       <div>
@@ -16,6 +18,7 @@ import { ToastService } from '../../core/services/language.service';
         <p class="page-subtitle">{{ 'KITCHEN_AND_PATIENT_MEALS' | translate }}</p>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="dietary"></app-module-dashboard>
 
     <div class="card p-0 overflow-hidden mb-6">
       <div class="flex border-bottom bg-glass">
@@ -67,9 +70,9 @@ import { ToastService } from '../../core/services/language.service';
               <tbody>
                   <tr *ngFor="let p of mealOrders"> <!-- Demo reuse -->
                       <td class="font-black">{{ p.patientName }}</td>
-                      <td>Regular / Cardiac</td>
-                      <td><span class="badge badge-success">Active</span></td>
-                      <td><button class="btn btn-xs btn-secondary">View Plan</button></td>
+                      <td>{{ 'UI_REGULAR_CARDIAC' | translate }}</td>
+                      <td><span class="badge badge-success">{{ 'UI_ACTIVE' | translate }}</span></td>
+                      <td><button class="btn btn-xs btn-secondary">{{ 'UI_VIEW_PLAN' | translate }}</button></td>
                   </tr>
               </tbody>
           </table>

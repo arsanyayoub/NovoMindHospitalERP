@@ -7,10 +7,12 @@ import { EmergencyService, PatientService, DoctorService } from '../../core/serv
 import { ToastService } from '../../core/services/language.service';
 import { NotificationService } from '../../core/services/notification.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
     selector: 'app-emergency',
     standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule],
+    imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
     styles: [`
     .er-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; }
     .er-card { background: rgba(var(--card-bg-rgb), 0.4); border: 1.5px solid var(--border); border-radius: 24px; padding: 24px; transition: 0.3s; position: relative; overflow: hidden; }
@@ -42,6 +44,7 @@ import { NotificationService } from '../../core/services/notification.service';
         </button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="emergency"></app-module-dashboard>
 
     <div class="stats-bar animate-in">
         <div class="stat-pill border-primary border-opacity-30">
@@ -50,15 +53,15 @@ import { NotificationService } from '../../core/services/notification.service';
         </div>
         <div class="stat-pill border-red-500 border-opacity-30">
             <span class="stat-val text-red-500">{{ occupancy?.level1Count || 0 }}</span>
-            <span class="stat-label">RESUSCITATION (L1)</span>
+            <span class="stat-label">{{ 'UI_RESUSCITATION_L1' | translate }}</span>
         </div>
         <div class="stat-pill border-orange-500 border-opacity-30">
             <span class="stat-val text-orange-500">{{ occupancy?.level2Count || 0 }}</span>
-            <span class="stat-label">EMERGENT (L2)</span>
+            <span class="stat-label">{{ 'UI_EMERGENT_L2' | translate }}</span>
         </div>
         <div class="stat-pill opacity-50">
             <span class="stat-val">{{ occupancy?.waitingCount || 0 }}</span>
-            <span class="stat-label">PENDING TRIAGE</span>
+            <span class="stat-label">{{ 'UI_PENDING_TRIAGE' | translate }}</span>
         </div>
     </div>
 
@@ -99,7 +102,7 @@ import { NotificationService } from '../../core/services/notification.service';
             </div>
 
             <div class="flex justify-end gap-2 mt-6 pt-4 border-top">
-                <button class="btn btn-icon-secondary btn-sm rounded-lg" (click)="openTriage(a)" title="Triage Scoring">
+                <button class="btn btn-icon-secondary btn-sm rounded-lg" (click)="openTriage(a)" [title]="'UI_TRIAGE_SCORING' | translate">
                     <span class="material-icons-round">analytics</span>
                 </button>
                 <button class="btn btn-primary btn-sm px-4 rounded-lg font-black" (click)="viewAdmission(a)">
@@ -119,23 +122,23 @@ import { NotificationService } from '../../core/services/notification.service';
             <div class="modal-body">
                 <div class="form-group mb-4">
                     <label class="form-label font-black text-xs uppercase">{{ 'PATIENT_NAME'|translate }}</label>
-                    <input class="form-control" [(ngModel)]="regForm.patientFullNameManual" placeholder="Search or Enter Name">
+                    <input class="form-control" [(ngModel)]="regForm.patientFullNameManual" [placeholder]="'UI_SEARCH_OR_ENTER_NAME' | translate">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="form-group">
                         <label class="form-label font-black text-xs uppercase">{{ 'GENDER'|translate }}</label>
                         <select class="form-control" [(ngModel)]="regForm.patientGender">
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Unknown/Other</option>
+                            <option value="Male">{{ 'UI_MALE' | translate }}</option>
+                            <option value="Female">{{ 'UI_FEMALE' | translate }}</option>
+                            <option value="Other">{{ 'UI_UNKNOWN_OTHER' | translate }}</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label font-black text-xs uppercase">{{ 'ARRIVAL_MODE'|translate }}</label>
                         <select class="form-control" [(ngModel)]="regForm.arrivalMode">
-                            <option value="Walk-in">Walk-in</option>
-                            <option value="Ambulance">Ambulance</option>
-                            <option value="Referral">Physician Referral</option>
+                            <option value="Walk-in">{{ 'UI_WALK_IN' | translate }}</option>
+                            <option value="Ambulance">{{ 'UI_AMBULANCE' | translate }}</option>
+                            <option value="Referral">{{ 'UI_PHYSICIAN_REFERRAL' | translate }}</option>
                         </select>
                     </div>
                 </div>
@@ -145,7 +148,7 @@ import { NotificationService } from '../../core/services/notification.service';
                 </div>
                 <div class="form-group">
                     <label class="form-label font-black text-xs uppercase">{{ 'ER_BAY_ROOM'|translate }}</label>
-                    <input class="form-control" [(ngModel)]="regForm.erBayNumber" placeholder="e.g. Bay 4, Resus 1">
+                    <input class="form-control" [(ngModel)]="regForm.erBayNumber" [placeholder]="'UI_E_G_BAY_4_RESUS_1' | translate">
                 </div>
             </div>
             <div class="modal-footer border-0">
@@ -170,7 +173,7 @@ import { NotificationService } from '../../core/services/notification.service';
             <div class="modal-body p-8">
                 <div class="grid grid-cols-2 gap-6 mb-8">
                     <div>
-                        <label class="form-label font-black text-xs uppercase mb-3 block">ESI Triage Level</label>
+                        <label class="form-label font-black text-xs uppercase mb-3 block">{{ 'UI_ESI_TRIAGE_LEVEL' | translate }}</label>
                         <div class="flex flex-col gap-2">
                             <button class="btn text-left justify-start gap-4 h-12 rounded-xl font-black" 
                                 [class.btn-danger]="triageForm.triageLevel===1" [class.btn-secondary]="triageForm.triageLevel!==1"
@@ -195,17 +198,17 @@ import { NotificationService } from '../../core/services/notification.service';
                         </div>
                     </div>
                     <div class="bg-glass p-6 rounded-3xl border border-primary border-opacity-10">
-                        <h4 class="text-[0.65rem] font-black uppercase text-primary mb-4">Initial Triage Vitals</h4>
+                        <h4 class="text-[0.65rem] font-black uppercase text-primary mb-4">{{ 'UI_INITIAL_TRIAGE_VITALS' | translate }}</h4>
                         <div class="grid grid-cols-2 gap-4">
                             <div class="form-group mb-0"><label class="text-[0.6rem] font-black uppercase opacity-60">Temp (°C)</label><input type="number" step="0.1" class="form-control form-control-sm" [(ngModel)]="triageForm.temp"></div>
-                            <div class="form-group mb-0"><label class="text-[0.6rem] font-black uppercase opacity-60">BP</label><input class="form-control form-control-sm" [(ngModel)]="triageForm.bp" placeholder="120/80"></div>
-                            <div class="form-group mb-0"><label class="text-[0.6rem] font-black uppercase opacity-60">Pulse</label><input type="number" class="form-control form-control-sm" [(ngModel)]="triageForm.hr"></div>
-                            <div class="form-group mb-0"><label class="text-[0.6rem] font-black uppercase opacity-60">SpO2 (%)</label><input type="number" class="form-control form-control-sm" [(ngModel)]="triageForm.spO2"></div>
+                            <div class="form-group mb-0"><label class="text-[0.6rem] font-black uppercase opacity-60">{{ 'UI_BP' | translate }}</label><input class="form-control form-control-sm" [(ngModel)]="triageForm.bp" placeholder="120/80"></div>
+                            <div class="form-group mb-0"><label class="text-[0.6rem] font-black uppercase opacity-60">{{ 'UI_PULSE' | translate }}</label><input type="number" class="form-control form-control-sm" [(ngModel)]="triageForm.hr"></div>
+                            <div class="form-group mb-0"><label class="text-[0.6rem] font-black uppercase opacity-60">{{ 'UI_SPO2_3' | translate }}</label><input type="number" class="form-control form-control-sm" [(ngModel)]="triageForm.spO2"></div>
                         </div>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label font-black text-xs uppercase">Triage Assessment Notes</label>
+                    <label class="form-label font-black text-xs uppercase">{{ 'UI_TRIAGE_ASSESSMENT_NOTES' | translate }}</label>
                     <textarea class="form-control" rows="3" [(ngModel)]="triageForm.triageNotes"></textarea>
                 </div>
             </div>

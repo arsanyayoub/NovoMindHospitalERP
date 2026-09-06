@@ -41,7 +41,7 @@ import { LanguageService } from '../../../core/services/language.service';
             <div class="input-with-icon">
               <span class="material-icons-round input-icon">person</span>
               <input type="text" class="form-control" [(ngModel)]="username" name="username"
-                     placeholder="admin" required autocomplete="username">
+                     [placeholder]="'UI_ADMIN' | translate" required autocomplete="username">
             </div>
           </div>
 

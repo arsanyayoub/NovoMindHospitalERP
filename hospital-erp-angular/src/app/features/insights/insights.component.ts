@@ -11,8 +11,8 @@ import { TranslateModule } from '@ngx-translate/core';
     <div class="p-6 bg-slate-50 min-h-screen">
       <div class="flex justify-between items-center mb-8">
         <div>
-          <h1 class="text-3xl font-bold text-slate-800">Hospital Intelligence</h1>
-          <p class="text-slate-500">Real-time clinical and operational analytics</p>
+          <h1 class="text-3xl font-bold text-slate-800">{{ 'UI_HOSPITAL_INTELLIGENCE' | translate }}</h1>
+          <p class="text-slate-500">{{ 'UI_REAL_TIME_CLINICAL_AND_OPERA' | translate }}</p>
         </div>
         <div class="flex gap-3">
            <button class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm">
@@ -31,7 +31,7 @@ import { TranslateModule } from '@ngx-translate/core';
             <i class="fas fa-users"></i>
           </div>
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Patients</p>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">{{ 'UI_TOTAL_PATIENTS' | translate }}</p>
             <h3 class="text-2xl font-bold text-slate-800">{{stats?.totalPatients || 0}}</h3>
           </div>
         </div>
@@ -41,7 +41,7 @@ import { TranslateModule } from '@ngx-translate/core';
             <i class="fas fa-calendar-check"></i>
           </div>
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Today's Apps</p>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">{{ 'UI_TODAY_S_APPS' | translate }}</p>
             <h3 class="text-2xl font-bold text-slate-800">{{stats?.todayAppointments || 0}}</h3>
           </div>
         </div>
@@ -51,7 +51,7 @@ import { TranslateModule } from '@ngx-translate/core';
             <i class="fas fa-dollar-sign"></i>
           </div>
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Monthly Revenue</p>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">{{ 'UI_MONTHLY_REVENUE' | translate }}</p>
             <h3 class="text-2xl font-bold text-slate-800">{{stats?.monthlyRevenue | currency}}</h3>
           </div>
         </div>
@@ -61,7 +61,7 @@ import { TranslateModule } from '@ngx-translate/core';
             <i class="fas fa-bed"></i>
           </div>
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Low Stock Alerts</p>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">{{ 'UI_LOW_STOCK_ALERTS' | translate }}</p>
             <h3 class="text-2xl font-bold text-slate-800 text-rose-600">{{stats?.lowStockItems || 0}}</h3>
           </div>
         </div>
@@ -70,24 +70,24 @@ import { TranslateModule } from '@ngx-translate/core';
       <!-- Clinical KPIs -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 p-6 rounded-2xl shadow-xl text-white">
-          <p class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-200 mb-1">Avg Length of Stay (ALOS)</p>
+          <p class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-200 mb-1">{{ 'UI_AVG_LENGTH_OF_STAY_ALOS' | translate }}</p>
           <div class="flex items-end gap-2">
             <h3 class="text-3xl font-black">{{stats?.clinicalKpis?.avgLengthOfStay || 0}}</h3>
-            <span class="text-xs font-bold text-indigo-300 mb-1">Days</span>
+            <span class="text-xs font-bold text-indigo-300 mb-1">{{ 'UI_DAYS' | translate }}</span>
           </div>
           <p class="text-[10px] mt-2 text-indigo-100/60">Target: < 4.5 Days</p>
         </div>
         
         <div class="bg-gradient-to-br from-purple-600 to-purple-800 p-6 rounded-2xl shadow-xl text-white">
-          <p class="text-[10px] font-black uppercase tracking-[0.2em] text-purple-200 mb-1">Readmission Rate (30d)</p>
+          <p class="text-[10px] font-black uppercase tracking-[0.2em] text-purple-200 mb-1">{{ 'UI_READMISSION_RATE_30D' | translate }}</p>
           <div class="flex items-end gap-2">
             <h3 class="text-3xl font-black">{{stats?.clinicalKpis?.readmissionRate || 0}}%</h3>
           </div>
-          <p class="text-[10px] mt-2 text-purple-100/60">Benchmark: 11.2%</p>
+          <p class="text-[10px] mt-2 text-purple-100/60">{{ 'UI_BENCHMARK_11_2' | translate }}</p>
         </div>
 
         <div class="bg-gradient-to-br from-rose-600 to-rose-800 p-6 rounded-2xl shadow-xl text-white">
-          <p class="text-[10px] font-black uppercase tracking-[0.2em] text-rose-200 mb-1">Gross Mortality Rate</p>
+          <p class="text-[10px] font-black uppercase tracking-[0.2em] text-rose-200 mb-1">{{ 'UI_GROSS_MORTALITY_RATE' | translate }}</p>
           <div class="flex items-end gap-2">
             <h3 class="text-3xl font-black">{{stats?.clinicalKpis?.mortalityRate || 0}}%</h3>
           </div>
@@ -99,10 +99,10 @@ import { TranslateModule } from '@ngx-translate/core';
         <!-- Revenue Chart Mock -->
         <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
           <div class="flex justify-between items-center mb-6">
-            <h3 class="text-lg font-bold text-slate-800">Financial Performance</h3>
+            <h3 class="text-lg font-bold text-slate-800">{{ 'UI_FINANCIAL_PERFORMANCE' | translate }}</h3>
             <select class="text-sm bg-slate-50 border-none rounded-lg px-2 py-1 outline-none text-slate-500">
-              <option>Last 6 Months</option>
-              <option>Year to Date</option>
+              <option>{{ 'UI_LAST_6_MONTHS' | translate }}</option>
+              <option>{{ 'UI_YEAR_TO_DATE' | translate }}</option>
             </select>
           </div>
           <div class="h-64 flex items-end justify-between gap-4 px-2">
@@ -125,18 +125,18 @@ import { TranslateModule } from '@ngx-translate/core';
           <div class="flex justify-center gap-6 mt-8">
             <div class="flex items-center gap-2">
               <span class="w-3 h-3 bg-indigo-500 rounded-full"></span>
-              <span class="text-xs font-medium text-slate-600">Revenue</span>
+              <span class="text-xs font-medium text-slate-600">{{ 'UI_REVENUE' | translate }}</span>
             </div>
             <div class="flex items-center gap-2">
               <span class="w-3 h-3 bg-rose-300 rounded-full"></span>
-              <span class="text-xs font-medium text-slate-600">Expenses</span>
+              <span class="text-xs font-medium text-slate-600">{{ 'UI_EXPENSES' | translate }}</span>
             </div>
           </div>
         </div>
 
         <!-- Occupancy -->
         <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-           <h3 class="text-lg font-bold text-slate-800 mb-6">Ward Occupancy</h3>
+           <h3 class="text-lg font-bold text-slate-800 mb-6">{{ 'UI_WARD_OCCUPANCY' | translate }}</h3>
            <div class="space-y-6">
               <div *ngFor="let w of stats?.wardOccupancy" class="relative">
                 <div class="flex justify-between items-center mb-2">
@@ -152,7 +152,7 @@ import { TranslateModule } from '@ngx-translate/core';
               
               <div *ngIf="!stats?.wardOccupancy?.length" class="text-center py-12 text-slate-400">
                 <i class="fas fa-chart-pie text-4xl mb-3 opacity-20"></i>
-                <p>No ward data available</p>
+                <p>{{ 'UI_NO_WARD_DATA_AVAILABLE' | translate }}</p>
               </div>
            </div>
         </div>
@@ -161,14 +161,14 @@ import { TranslateModule } from '@ngx-translate/core';
       <!-- Recent Activity Section -->
       <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div class="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
-           <h3 class="text-lg font-bold text-slate-800 mb-6">Recent System Activity</h3>
+           <h3 class="text-lg font-bold text-slate-800 mb-6">{{ 'UI_RECENT_SYSTEM_ACTIVITY' | translate }}</h3>
            <div class="overflow-x-auto">
              <table class="w-full text-left">
                <thead>
                  <tr class="text-slate-400 text-xs uppercase tracking-widest border-b border-slate-50">
-                   <th class="pb-4 font-semibold">Entity</th>
-                   <th class="pb-4 font-semibold">Description</th>
-                   <th class="pb-4 font-semibold">Time</th>
+                   <th class="pb-4 font-semibold">{{ 'UI_ENTITY' | translate }}</th>
+                   <th class="pb-4 font-semibold">{{ 'UI_DESCRIPTION' | translate }}</th>
+                   <th class="pb-4 font-semibold">{{ 'UI_TIME' | translate }}</th>
                  </tr>
                </thead>
                <tbody class="divide-y divide-slate-50">
@@ -191,12 +191,12 @@ import { TranslateModule } from '@ngx-translate/core';
               <i class="fas fa-brain text-[200px]"></i>
            </div>
            <div>
-             <h3 class="text-xl font-bold mb-2">Predictive Insights</h3>
-             <p class="text-indigo-200 text-sm leading-relaxed">Based on current trends, occupancy is expected to reach 92% in Ward A over the next 48 hours.</p>
+             <h3 class="text-xl font-bold mb-2">{{ 'UI_PREDICTIVE_INSIGHTS' | translate }}</h3>
+             <p class="text-indigo-200 text-sm leading-relaxed">{{ 'UI_BASED_ON_CURRENT_TRENDS_OCCU' | translate }}</p>
            </div>
            <div class="mt-12 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/5">
-              <p class="text-xs font-semibold text-indigo-300 uppercase tracking-widest mb-2">Recommendation</p>
-              <p class="text-sm font-medium">Coordinate with Discharge Planning to expedite 4 clearable cases in Ward A.</p>
+              <p class="text-xs font-semibold text-indigo-300 uppercase tracking-widest mb-2">{{ 'UI_RECOMMENDATION' | translate }}</p>
+              <p class="text-sm font-medium">{{ 'UI_COORDINATE_WITH_DISCHARGE_PL' | translate }}</p>
            </div>
         </div>
       </div>

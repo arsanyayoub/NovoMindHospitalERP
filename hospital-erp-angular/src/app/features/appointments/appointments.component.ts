@@ -6,10 +6,12 @@ import { AppointmentService, DoctorService, PatientService } from '../../core/se
 import { ToastService } from '../../core/services/language.service';
 import { ExportService } from '../../core/services/export.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
   selector: 'app-appointments',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
   styles: [`
     .view-toggle { display: flex; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; background: rgba(var(--card-bg-rgb), 0.3); }
     .view-toggle button { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border: none; background: none; color: var(--text-muted); cursor: pointer; font-weight: 600; transition: all 0.2s; font-size: 0.85rem; }
@@ -60,6 +62,9 @@ import { ExportService } from '../../core/services/export.service';
             {{ 'CALENDAR_VIEW' | translate }}
           </button>
         </div>
+        <button class="btn btn-secondary px-4" (click)="printAll()">
+          <span class="material-icons-round mr-1" style="font-size:20px">print</span> {{ 'PRINT_ALL' | translate }}
+        </button>
         <button class="btn btn-secondary px-4" (click)="exportCsv()">
           <span class="material-icons-round mr-1" style="font-size:20px">file_download</span> {{ 'EXPORT' | translate }}
         </button>
@@ -68,6 +73,7 @@ import { ExportService } from '../../core/services/export.service';
         </button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="appointments"></app-module-dashboard>
 
     <div class="filter-bar mb-6 animate-in">
       <div class="search-bar" style="max-width:300px">
@@ -106,6 +112,7 @@ import { ExportService } from '../../core/services/export.service';
                 <th>{{ 'DATE' | translate }}</th>
                 <th>{{ 'TIME' | translate }}</th>
                 <th>{{ 'STATUS' | translate }}</th>
+                <th class="text-end">{{ 'FEE' | translate }}</th>
                 <th class="text-end">{{ 'ACTIONS' | translate }}</th>
               </tr>
             </thead>
@@ -127,8 +134,12 @@ import { ExportService } from '../../core/services/export.service';
                     {{ (a.status === 'InProgress' ? 'IN_PROGRESS' : a.status) | translate }}
                   </span>
                 </td>
+                <td class="text-end font-bold font-mono">{{ fmtFee(a.fee) }}</td>
                 <td class="text-end">
                   <div class="flex justify-end gap-1">
+                    <button class="btn btn-icon btn-xs" (click)="printSlip(a)" [title]="'PRINT_RESERVATION' | translate">
+                      <span class="material-icons-round">printer</span>
+                    </button>
                     <button class="btn btn-icon btn-xs text-primary" (click)="openForm(a)">
                       <span class="material-icons-round">edit</span>
                     </button>
@@ -140,6 +151,13 @@ import { ExportService } from '../../core/services/export.service';
               </tr>
               <tr *ngIf="!appointments.length"><td colspan="8"><div class="p-20 text-center text-muted"><span class="material-icons-round text-5xl opacity-20 mb-4">event_busy</span><p>{{ 'NO_DATA' | translate }}</p></div></td></tr>
             </tbody>
+            <tfoot *ngIf="appointments.length">
+              <tr class="border-top">
+                <td colspan="6" class="text-end uppercase fw-800">{{ 'TOTAL_PRICE' | translate }}</td>
+                <td class="text-end font-mono fs-09">{{ fmtFee(totalFee) }}</td>
+                <td></td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>
@@ -234,7 +252,7 @@ import { ExportService } from '../../core/services/export.service';
             
             <div class="form-group col-span-2">
                <label class="form-label uppercase text-xs font-bold">{{ 'NOTES' | translate }}</label>
-               <textarea class="form-control" [(ngModel)]="form.notes" rows="2" placeholder="Reason for visit..."></textarea>
+               <textarea class="form-control" [(ngModel)]="form.notes" rows="2" [placeholder]="'UI_REASON_FOR_VISIT' | translate"></textarea>
             </div>
             
             <ng-container *ngIf="editing">
@@ -360,6 +378,53 @@ export class AppointmentsComponent implements OnInit {
         { key: 'fee', header: 'Fee' }
       ]
     );
+  }
+
+  private nf = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  /** Reservation amount, e.g. 25,000.50 */
+  fmtFee(v: any): string { return this.nf.format(Number(v ?? 0)); }
+  get totalFee(): number { return this.appointments.reduce((s: number, a: any) => s + Number(a.fee ?? 0), 0); }
+  private T(k: string): string { try { return this.translate.instant(k); } catch { return k; } }
+  private statusTxt(a: any): string { return this.T(a?.status === 'InProgress' ? 'IN_PROGRESS' : (a?.status ?? 'UNKNOWN')); }
+
+  printSlip(a: any) {
+    const ar = this.translate.currentLang === 'ar';
+    const w = window.open('', '_blank', 'width=720,height=560');
+    if (!w) return;
+    const line = (l: string, v: string) => `<tr><td class="k">${l}</td><td>${v || '—'}</td></tr>`;
+    const rows = [
+      line(this.T('CODE'), a.appointmentCode || a.code || '—'),
+      line(this.T('PATIENT'), a.patientName || a.name || '—'),
+      line(this.T('DOCTOR'), (a.doctorName || a.specialization ? 'Dr. ' + (a.doctorName || '—') : '—')),
+      line(this.T('SPECIALIZATION'), a.specialization || '—'),
+      line(this.T('DATE'), a.appointmentDate ? new Date(a.appointmentDate).toLocaleDateString(ar ? 'ar-EG' : 'en-US') : '—'),
+      line(this.T('TIME'), (a.appointmentTime || '').slice(0, 5)),
+      line(this.T('DURATION'), (a.durationMinutes ? a.durationMinutes + ' ' + this.T('MINUTES') : '—')),
+      line(this.T('STATUS'), this.statusTxt(a)),
+    ].join('');
+    w.document.write(`<!doctype html><html dir="${ar ? 'rtl' : 'ltr'}" lang="${ar ? 'ar' : 'en'}"><head><meta charset="utf-8">
+      <title>${this.T('PRINT_RESERVATION')} ${a.appointmentCode || ''}</title>
+      <style>body{font-family:'Cairo',Arial,sans-serif}h2{margin:0}table{width:100%;border-collapse:collapse;margin-top:16px}td{padding:8px;border-bottom:1px solid #e5e7eb;font-size:15px}.k{width:38%;font-weight:800;color:#4a6a7a}.tot td{background:#eef2ff;font-size:17px}.foot{margin-top:30px;font-size:11px;color:#888}</style></head>
+      <body><h2>${this.T('APPOINTMENTS')} — ${a.appointmentCode || ''}</h2>
+      <table>${rows}<tr class="tot"><td class="k">${this.T('TOTAL_PRICE')}</td><td>${this.fmtFee(a?.fee ?? 0)}</td></tr></table>
+      <div class="foot">NovoMind • ${new Date().toLocaleString()}</div></body></html>`);
+    w.document.close(); w.focus(); setTimeout(() => w.print(), 350);
+  }
+
+  printAll() {
+    const ar = this.translate.currentLang === 'ar';
+    const w = window.open('', '_blank', 'width=860,height=680');
+    if (!w) return;
+    const H = [this.T('CODE'), this.T('PATIENT'), this.T('DOCTOR'), this.T('DATE'), this.T('TIME'), this.T('STATUS'), this.T('FEE')];
+    const rows = this.appointments.map((a: any) =>
+      `<tr><td>${(a.appointmentCode || '').replace(/</g, '&lt;')}</td><td>${(a.patientName || '').replace(/</g, '&lt;')}</td><td>${(a.doctorName || '')}</td><td>${a.appointmentDate || ''}</td><td>${(a.appointmentTime || '').slice(0, 5)}</td><td>${this.statusTxt(a)}</td><td class="n">${this.fmtFee(a.fee)}</td></tr>`).join('');
+    w.document.write(`<!doctype html><html dir="${ar ? 'rtl' : 'ltr'}" lang="${ar ? 'ar' : 'en'}"><head><meta charset="utf-8"><title>${this.T('PRINT_ALL')}</title>
+      <style>body{font-family:'Cairo',Arial,sans-serif}h2{margin:0 0 4px}table{width:100%;border-collapse:collapse;margin-top:14px;font-size:12.5px}th,td{border-bottom:1px solid #e5e7eb;padding:6px 8px;text-align:${ar ? 'right' : 'left'}}th{background:#f3f4f6}td.n,th.n{text-align:${ar ? 'left' : 'right'}}.g{background:#eef2ff;font-size:15px;font-weight:800}</style></head>
+      <body><h2>${this.T('APPOINTMENTS')} — ${this.T('PRINT_ALL')}</h2>
+      <table><thead><tr><th>${H[0]}</th><th>${H[1]}</th><th>${H[2]}</th><th>${H[3]}</th><th>${H[4]}</th><th>${H[5]}</th><th class="n">${H[6]}</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr class="g"><td colspan="6">${this.T('TOTAL_PRICE')} (${this.appointments.length})</td><td class="n">${this.fmtFee(this.totalFee)}</td></tr></tfoot></table></body></html>`);
+    w.document.close(); w.focus(); setTimeout(() => w.print(), 400);
   }
 
   // ── Calendar ──────────────────────────────────────────────

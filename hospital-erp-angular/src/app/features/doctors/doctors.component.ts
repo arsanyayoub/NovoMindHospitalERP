@@ -123,7 +123,7 @@ import { ToastService } from '../../core/services/language.service';
             </div>
             <div class="form-group">
               <label class="form-label font-bold text-xs uppercase">{{ 'SPECIALIZATION' | translate }}*</label>
-              <input class="form-control" [(ngModel)]="form.specialization" placeholder="Cardiology, etc.">
+              <input class="form-control" [(ngModel)]="form.specialization" [placeholder]="'UI_CARDIOLOGY_ETC' | translate">
             </div>
             <div class="form-group">
               <label class="form-label font-bold text-xs uppercase">{{ 'CONSULTATION_FEE' | translate }}</label>
@@ -143,7 +143,7 @@ import { ToastService } from '../../core/services/language.service';
             </div>
             <div class="form-group">
               <label class="form-label">{{ 'WORKING_DAYS' | translate }}</label>
-              <input class="form-control" [(ngModel)]="form.workingDays" placeholder="Mon-Fri">
+              <input class="form-control" [(ngModel)]="form.workingDays" [placeholder]="'UI_MON_FRI' | translate">
             </div>
           </div>
         </div>

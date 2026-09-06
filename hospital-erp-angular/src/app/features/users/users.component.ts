@@ -5,21 +5,24 @@ import { TranslateModule } from '@ngx-translate/core';
 import { UserService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
   template: `
     <div class="page-header">
       <div>
         <h1 class="page-title">{{ ('USERS_AND_ROLES' | translate) || 'Users & Roles' }}</h1>
-        <p class="page-subtitle">Manage system access and permissions</p>
+        <p class="page-subtitle">{{ 'UI_MANAGE_SYSTEM_ACCESS_AND_PER' | translate }}</p>
       </div>
       <button class="btn btn-primary" (click)="openForm()">
         <span class="material-icons-round">person_add</span>
         New User
       </button>
     </div>
+    <app-module-dashboard class="no-print" name="users"></app-module-dashboard>
 
     <!-- Stats -->
     <div class="stats-grid mb-4">
@@ -29,7 +32,7 @@ import { ToastService } from '../../core/services/language.service';
         </div>
         <div class="stat-info">
           <div class="stat-value">{{ data?.totalCount || 0 }}</div>
-          <div class="stat-label">Total Users</div>
+          <div class="stat-label">{{ 'UI_TOTAL_USERS' | translate }}</div>
         </div>
       </div>
       <div class="stat-card">
@@ -38,7 +41,7 @@ import { ToastService } from '../../core/services/language.service';
         </div>
         <div class="stat-info">
           <div class="stat-value">{{ getActiveCount() }}</div>
-          <div class="stat-label">Active Users</div>
+          <div class="stat-label">{{ 'UI_ACTIVE_USERS' | translate }}</div>
         </div>
       </div>
     </div>
@@ -59,13 +62,13 @@ import { ToastService } from '../../core/services/language.service';
         <table class="table">
           <thead>
             <tr>
-              <th>Username</th>
-              <th>Full Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Created</th>
-              <th>Actions</th>
+              <th>{{ 'UI_USERNAME' | translate }}</th>
+              <th>{{ 'UI_FULL_NAME' | translate }}</th>
+              <th>{{ 'UI_EMAIL' | translate }}</th>
+              <th>{{ 'UI_ROLE' | translate }}</th>
+              <th>{{ 'UI_STATUS' | translate }}</th>
+              <th>{{ 'UI_CREATED' | translate }}</th>
+              <th>{{ 'UI_ACTIONS' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -75,7 +78,7 @@ import { ToastService } from '../../core/services/language.service';
               </td>
             </tr>
             <tr *ngIf="!loading && (!data?.items || data.items.length === 0)">
-              <td colspan="7" class="text-center py-4 text-muted">No users found.</td>
+              <td colspan="7" class="text-center py-4 text-muted">{{ 'UI_NO_USERS_FOUND' | translate }}</td>
             </tr>
             <tr *ngFor="let u of data?.items">
               <td class="font-semibold">{{ u.username }}</td>
@@ -90,7 +93,7 @@ import { ToastService } from '../../core/services/language.service';
               <td class="text-muted text-sm">{{ u.createdDate | date }}</td>
               <td>
                 <div class="btn-group">
-                  <button class="btn btn-icon btn-secondary" title="Edit" (click)="openForm(u)">
+                  <button class="btn btn-icon btn-secondary" [title]="'UI_EDIT' | translate" (click)="openForm(u)">
                     <span class="material-icons-round" style="font-size:18px">edit</span>
                   </button>
                   <button class="btn btn-icon" 
@@ -110,9 +113,9 @@ import { ToastService } from '../../core/services/language.service';
       
       <!-- Pagination -->
       <div class="pagination mt-4" *ngIf="data?.totalPages > 1">
-        <button class="btn btn-secondary btn-sm" [disabled]="!data.hasPrevious" (click)="request.page = request.page - 1; load()">Previous</button>
+        <button class="btn btn-secondary btn-sm" [disabled]="!data.hasPrevious" (click)="request.page = request.page - 1; load()">{{ 'UI_PREVIOUS' | translate }}</button>
         <span class="px-2 text-sm text-muted">Page {{ data.page }} of {{ data.totalPages }}</span>
-        <button class="btn btn-secondary btn-sm" [disabled]="!data.hasNext" (click)="request.page = request.page + 1; load()">Next</button>
+        <button class="btn btn-secondary btn-sm" [disabled]="!data.hasNext" (click)="request.page = request.page + 1; load()">{{ 'UI_NEXT' | translate }}</button>
       </div>
     </div>
 
@@ -144,7 +147,7 @@ import { ToastService } from '../../core/services/language.service';
               <input type="email" class="form-control" [(ngModel)]="form.email">
             </div>
             <div class="form-group">
-              <label class="form-label">Phone</label>
+              <label class="form-label">{{ 'UI_PHONE' | translate }}</label>
               <input type="text" class="form-control" [(ngModel)]="form.phoneNumber">
             </div>
           </div>
@@ -165,12 +168,12 @@ import { ToastService } from '../../core/services/language.service';
           <div class="form-group mt-3" *ngIf="form.id">
             <label class="checkbox-label">
               <input type="checkbox" [(ngModel)]="form.isActive">
-              <span>Account is Active</span>
+              <span>{{ 'UI_ACCOUNT_IS_ACTIVE' | translate }}</span>
             </label>
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" (click)="closeForm()">Cancel</button>
+          <button class="btn btn-secondary" (click)="closeForm()">{{ 'UI_CANCEL' | translate }}</button>
           <button class="btn btn-primary" (click)="save()" [disabled]="saving">
             <div class="spinner-sm" *ngIf="saving"></div>
             {{ (form.id ? 'UPDATE' : 'CREATE') | translate }}

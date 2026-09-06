@@ -5,10 +5,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MaternityService, PatientService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
     selector: 'app-maternity',
     standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule],
+    imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
     styles: [`
         .mat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; }
         .baby-card { background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(var(--accent-rgb), 0.1)); border: 1.5px solid var(--border); border-radius: 20px; padding: 20px; }
@@ -30,6 +32,7 @@ import { ToastService } from '../../core/services/language.service';
          <button class="btn btn-primary" (click)="showPregnancyModal=true">{{ 'START_TRACKING' | translate }}</button>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="maternity"></app-module-dashboard>
 
     <!-- TABS -->
     <div class="card p-0 overflow-hidden mb-6">
@@ -65,20 +68,20 @@ import { ToastService } from '../../core/services/language.service';
                <div class="stat-group">
                   <div class="stat-item">
                      <span class="stat-val">{{ p.gravidity }}</span>
-                     <span class="stat-lab">GRAV</span>
+                     <span class="stat-lab">{{ 'UI_GRAV' | translate }}</span>
                   </div>
                   <div class="stat-item">
                      <span class="stat-val">{{ p.parity }}</span>
-                     <span class="stat-lab">PARITY</span>
+                     <span class="stat-lab">{{ 'UI_PARITY' | translate }}</span>
                   </div>
                   <div class="stat-item">
                      <span class="stat-val">{{ p.bloodGroup }}</span>
-                     <span class="stat-lab">BLOOD</span>
+                     <span class="stat-lab">{{ 'UI_BLOOD' | translate }}</span>
                   </div>
                </div>
 
                <div class="mt-4 p-3 bg-glass border border-dashed rounded-xl text-xs font-bold" *ngIf="p.riskFactors">
-                  <span class="text-red-400 uppercase text-[0.6rem] block mb-1">Risk Factors</span>
+                  <span class="text-red-400 uppercase text-[0.6rem] block mb-1">{{ 'UI_RISK_FACTORS' | translate }}</span>
                   {{ p.riskFactors }}
                </div>
 
@@ -105,17 +108,17 @@ import { ToastService } from '../../core/services/language.service';
                <div class="stat-group">
                   <div class="stat-item">
                      <span class="stat-val">{{ b.birthWeight }}kg</span>
-                     <span class="stat-lab">WEIGHT</span>
+                     <span class="stat-lab">{{ 'UI_WEIGHT' | translate }}</span>
                   </div>
                   <div class="stat-item">
                      <span class="stat-val">{{ b.apgar5Min }}/10</span>
-                     <span class="stat-lab">APGAR 5m</span>
+                     <span class="stat-lab">{{ 'UI_APGAR_5M' | translate }}</span>
                   </div>
                </div>
 
                <div class="mt-4 flex items-center gap-3">
                   <div class="flex-1">
-                     <div class="text-[0.6rem] font-bold opacity-50 uppercase mb-1">Status</div>
+                     <div class="text-[0.6rem] font-bold opacity-50 uppercase mb-1">{{ 'UI_STATUS' | translate }}</div>
                      <div class="text-xs font-black">{{ b.healthStatus || 'Stable' }}</div>
                   </div>
                   <button class="btn btn-xs btn-primary rounded-full px-4">{{ 'VITAL_CHART' | translate }}</button>

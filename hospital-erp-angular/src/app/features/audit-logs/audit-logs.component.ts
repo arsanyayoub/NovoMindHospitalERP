@@ -5,24 +5,27 @@ import { TranslateModule } from '@ngx-translate/core';
 import { AuditLogService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
     selector: 'app-audit-logs',
     standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule],
+    imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
     template: `
     <div class="page-header">
       <div class="header-content">
         <h1 class="page-title">{{ 'AUDIT_LOG' | translate }}</h1>
-        <p class="page-subtitle">Track all system activities and data changes</p>
+        <p class="page-subtitle">{{ 'UI_TRACK_ALL_SYSTEM_ACTIVITIES_' | translate }}</p>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="audit"></app-module-dashboard>
 
     <div class="card">
       <div class="card-header border-none pb-0">
         <div class="flex items-center gap-4 w-full">
           <div class="search-box flex-1">
             <span class="material-icons-round search-icon">search</span>
-            <input type="text" class="search-input" [(ngModel)]="search" (keyup.enter)="loadLogs()" placeholder="Search by user, action or entity...">
+            <input type="text" class="search-input" [(ngModel)]="search" (keyup.enter)="loadLogs()" [placeholder]="'UI_SEARCH_BY_USER_ACTION_OR_ENT' | translate">
           </div>
           <button class="btn btn-secondary btn-icon" (click)="loadLogs()">
              <span class="material-icons-round">refresh</span>
@@ -54,7 +57,7 @@ import { ToastService } from '../../core/services/language.service';
               <td class="msg-changes" [title]="log.changes">{{ log.changes }}</td>
             </tr>
             <tr *ngIf="logs.length === 0 && !loading">
-              <td colspan="6" class="text-center py-8 text-muted">No audit logs found</td>
+              <td colspan="6" class="text-center py-8 text-muted">{{ 'UI_NO_AUDIT_LOGS_FOUND' | translate }}</td>
             </tr>
           </tbody>
         </table>
@@ -64,7 +67,7 @@ import { ToastService } from '../../core/services/language.service';
          <div class="flex justify-between items-center w-full">
             <span class="text-xs text-muted">Showing {{ logs.length }} of {{ totalCount }} logs</span>
             <div class="flex gap-2">
-               <button class="btn btn-sm btn-secondary" [disabled]="page === 1" (click)="prevPage()">Previous</button>
+               <button class="btn btn-sm btn-secondary" [disabled]="page === 1" (click)="prevPage()">{{ 'UI_PREVIOUS' | translate }}</button>
                <button class="btn btn-sm btn-secondary" [disabled]="page * pageSize >= totalCount" (click)="nextPage()">Next</button>
             </div>
          </div>

@@ -63,11 +63,11 @@ import { AuthService } from '../../../core/services/auth.service';
                         </div>
                         <div class="flex items-center gap-4 text-right">
                             <div class="text-xs font-black">
-                                <div class="opacity-50">BAY</div>
+                                <div class="opacity-50">{{ 'UI_BAY' | translate }}</div>
                                 <div>{{ p.erBayNumber || 'WAITING' }}</div>
                             </div>
                             <div class="text-xs font-black w-24">
-                                <div class="opacity-50">ARV</div>
+                                <div class="opacity-50">{{ 'UI_ARV' | translate }}</div>
                                 <div>{{ p.arrivalTime | date:'HH:mm' }}</div>
                             </div>
                             <button class="btn btn-primary btn-sm rounded-lg" (click)="openChart(p.id); $event.stopPropagation()">
@@ -106,10 +106,10 @@ import { AuthService } from '../../../core/services/auth.service';
             <h3 class="section-title">{{ 'CRITICAL_ALERTS' | translate }}</h3>
             <!-- Placeholder for critical lab results / imaging alerts -->
             <div class="bg-red-500 bg-opacity-10 border border-red-500 rounded-2xl p-4 mb-4" *ngIf="myPatients.length > 0">
-                <div class="text-xs font-black text-red-500 mb-1">CRITICAL LAB VALUE</div>
+                <div class="text-xs font-black text-red-500 mb-1">{{ 'UI_CRITICAL_LAB_VALUE' | translate }}</div>
                 <div class="font-bold text-sm">{{ myPatients[0]?.patientName }}</div>
-                <div class="text-xs opacity-80 mt-1">Potassium: 6.2 mmol/L (High)</div>
-                <button class="btn btn-danger btn-xs mt-3 w-full" (click)="openChart(myPatients[0]?.id)">Review</button>
+                <div class="text-xs opacity-80 mt-1">{{ 'UI_POTASSIUM_6_2_MMOL_L_HIGH' | translate }}</div>
+                <button class="btn btn-danger btn-xs mt-3 w-full" (click)="openChart(myPatients[0]?.id)">{{ 'UI_REVIEW' | translate }}</button>
             </div>
             <div class="text-center opacity-50 text-xs font-black mt-8" *ngIf="myPatients.length === 0">NO CRITICAL ALERTS</div>
         </div>

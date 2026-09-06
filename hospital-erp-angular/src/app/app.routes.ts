@@ -61,10 +61,14 @@ export const routes: Routes = [
                 path: 'hr',
                 loadComponent: () => import('./features/hr/hr.component').then(m => m.HrComponent)
             },
-            {
-                path: 'reports',
-                loadComponent: () => import('./features/reports/reports.component').then(m => m.ReportsComponent)
-            },
+                {
+                    path: 'reports',
+                    loadComponent: () => import('./features/reports/reports.component').then(m => m.ReportsComponent)
+                },
+                {
+                    path: 'report-center',
+                    loadComponent: () => import('./features/reports/report-center.component').then(m => m.ReportCenterComponent)
+                },
             {
                 path: 'lab',
                 loadComponent: () => import('./features/lab/lab.component').then(m => m.LabComponent)

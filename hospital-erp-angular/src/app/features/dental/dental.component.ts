@@ -5,10 +5,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DentalService } from '../../core/services/api.services';
 import { ToastService } from '../../core/services/language.service';
 
+import { ModuleDashboardComponent } from '../../core/components/module-dashboard.component';
+
 @Component({
     selector: 'app-dental',
     standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule],
+    imports: [CommonModule, FormsModule, TranslateModule, ModuleDashboardComponent],
     styles: [`
         .tooth-grid { display: grid; grid-template-columns: repeat(16, 1fr); gap: 4px; margin-bottom: 20px; }
         .tooth { aspect-ratio: 1; border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 900; cursor: pointer; transition: 0.2s; background: var(--glass); }
@@ -24,6 +26,7 @@ import { ToastService } from '../../core/services/language.service';
         <p class="page-subtitle">{{ 'DENTAL_CARE_AND_SURGERY' | translate }}</p>
       </div>
     </div>
+    <app-module-dashboard class="no-print" name="dental"></app-module-dashboard>
 
     <div class="card mb-6 p-6">
         <div class="flex justify-between items-center mb-6">
@@ -35,7 +38,7 @@ import { ToastService } from '../../core/services/language.service';
             </div>
         </div>
 
-        <div class="text-[0.6rem] font-bold opacity-40 uppercase mb-2">Upper Arch</div>
+        <div class="text-[0.6rem] font-bold opacity-40 uppercase mb-2">{{ 'UI_UPPER_ARCH' | translate }}</div>
         <div class="tooth-grid">
             <div *ngFor="let t of upperTeeth" class="tooth" 
                  [class.decayed]="t % 3 === 0" 
@@ -43,7 +46,7 @@ import { ToastService } from '../../core/services/language.service';
                  (click)="selectTooth(t)">{{ t }}</div>
         </div>
 
-        <div class="text-[0.6rem] font-bold opacity-40 uppercase mb-2">Lower Arch</div>
+        <div class="text-[0.6rem] font-bold opacity-40 uppercase mb-2">{{ 'UI_LOWER_ARCH' | translate }}</div>
         <div class="tooth-grid">
             <div *ngFor="let t of lowerTeeth" class="tooth" 
                  [class.filled]="t % 5 === 0"
@@ -57,10 +60,10 @@ import { ToastService } from '../../core/services/language.service';
             <div class="card p-6 border-primary">
                 <h3 class="font-black mb-4">Tooth #{{ selectedTooth }} Details</h3>
                 <div class="space-y-4">
-                    <button class="btn btn-outline btn-block btn-sm" (click)="addProcedure('Cleaning')">Record Cleaning</button>
-                    <button class="btn btn-outline btn-block btn-sm" (click)="addProcedure('Filling')">Record Filling</button>
-                    <button class="btn btn-outline btn-block btn-sm" (click)="addProcedure('Extraction')">Record Extraction</button>
-                    <button class="btn btn-primary btn-block btn-sm" (click)="selectedTooth = null">Clear Selection</button>
+                    <button class="btn btn-outline btn-block btn-sm" (click)="addProcedure('Cleaning')">{{ 'UI_RECORD_CLEANING' | translate }}</button>
+                    <button class="btn btn-outline btn-block btn-sm" (click)="addProcedure('Filling')">{{ 'UI_RECORD_FILLING' | translate }}</button>
+                    <button class="btn btn-outline btn-block btn-sm" (click)="addProcedure('Extraction')">{{ 'UI_RECORD_EXTRACTION' | translate }}</button>
+                    <button class="btn btn-primary btn-block btn-sm" (click)="selectedTooth = null">{{ 'UI_CLEAR_SELECTION' | translate }}</button>
                 </div>
             </div>
         </div>
